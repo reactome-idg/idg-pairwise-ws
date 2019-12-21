@@ -32,13 +32,15 @@ public class MainApp {
         root.setLevel(Level.INFO);
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
         PairwiseService service = context.getBean(PairwiseService.class);
-//        service.test();
-        String dirName = "examples";
-        String fileName = "Breast-MammaryTissue_Spearman_Adj.csv";
-        DataDesc desc = createGTExDataDesc(fileName);
-        service.insertDataDesc(desc);
-        processGTEGeneCoExpression(fileName, dirName, desc, service);
-        service.performIndex();
+//        String dirName = "examples";
+//        String fileName = "Breast-MammaryTissue_Spearman_Adj.csv";
+////        String fileName = "Ovary_Spearman_Adj.csv";
+//        DataDesc desc = createGTExDataDesc(fileName);
+//        service.insertDataDesc(desc);
+//        processGTEGeneCoExpression(fileName, dirName, desc, service);
+//        service.performIndex();
+        List<DataDesc> descs = service.listDataDesc();
+        descs.forEach(desc -> System.out.println(desc.getId()));
         context.close();
     }
     
