@@ -56,5 +56,12 @@ public class PairwiseRelationship {
             neg = new ArrayList<>();
         neg.add(gene);
     }
+    
+    public boolean isEmpty() {
+        if ((pos == null || pos.size() == 0) && 
+            (neg == null || neg.size() == 0))
+            return true;
+        return false;
+    }
 
 }

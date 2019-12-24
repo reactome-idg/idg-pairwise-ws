@@ -32,6 +32,7 @@ public class MainApp {
         root.setLevel(Level.INFO);
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
         PairwiseService service = context.getBean(PairwiseService.class);
+//        service.testConnection();
 //        String dirName = "examples";
 //        String fileName = "Breast-MammaryTissue_Spearman_Adj.csv";
 ////        String fileName = "Ovary_Spearman_Adj.csv";
@@ -55,6 +56,7 @@ public class MainApp {
             String[] genes = line.split(",");
             List<String> list = Arrays.asList(genes);
             Map<String, Integer> geneToIndex = service.ensureGeneIndex(list.subList(1, list.size()));
+            logger.info("Total indexed genes: " + geneToIndex.size());
             int c = 0;
             long time1 = System.currentTimeMillis();
             while ((line = br.readLine()) != null) {
