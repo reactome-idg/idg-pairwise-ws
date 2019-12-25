@@ -8,8 +8,11 @@ import org.junit.Test;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.Projections;
 
 public class MongoDBTests {
 
@@ -19,26 +22,32 @@ public class MongoDBTests {
                                                                       "idg_pairwise",
                                                                       "macmongodb01".toCharArray());
         MongoClient client = new MongoClient(new ServerAddress("localhost"), Arrays.asList(credential));
-//        MongoClient client = new MongoClient();
         MongoDatabase database = client.getDatabase("idg_pairwise");
-        MongoCollection<Document> collection = database.getCollection("test");
-        Document doc = new Document("name", "MongoDB")
-                .append("type", "database")
-                .append("count", 1)
-                .append("versions", Arrays.asList("v3.2", "v3.0", "v2.6"))
-                .append("info", new Document("x", 203).append("y", 102));
-        //        collection.insertOne(doc);
-        //        collection.insertMany(Arrays.asList(
-        //                                     Document.parse("{ item: 'journal', qty: 25, size: { h: 14, w: 21, uom: 'cm' }, status: 'A' }"),
-        //                                     Document.parse("{ item: 'notebook', qty: 50, size: { h: 8.5, w: 11, uom: 'in' }, status: 'A' }"),
-        //                                     Document.parse("{ item: 'paper', qty: 100, size: { h: 8.5, w: 11, uom: 'in' }, status: 'D' }"),
-        //                                     Document.parse("{ item: 'planner', qty: 75, size: { h: 22.85, w: 30, uom: 'cm' }, status: 'D' }"),
-        //                                     Document.parse("{ item: 'postcard', qty: 45, size: { h: 10, w: 15.25, uom: 'cm' }, status: 'A' }")
-        //                             ));
-        //        
-        for (Document index : collection.listIndexes())
-            System.out.println(index.toJson());
+        MongoCollection<Document> collection = database.getCollection("relationships");
+        String[] genes = new String[] {
+                "EGF",
+                "NOTCH1",
+                "OR4F29"
+        };
+        FindIterable<Document> geneDocs = collection.find(Filters.in("_id", genes))
+                .projection(Projections.fields(Projections.include("GTEx|Ovary|Gene_Coexpression", "GTEx|Breast-MammaryTissue|Gene_Coexpression")));
+        for (Document geneDoc : geneDocs) {
+            System.out.println();
+            printDocument(geneDoc);
+        }
         client.close();
+    }
+    
+    private void printDocument(Document geneDoc) {
+        for (String key : geneDoc.keySet()) {
+            Object value = geneDoc.get(key);
+            if (value instanceof Document) {
+                System.out.println(key + ":");
+                printDocument((Document)value);
+            }
+            else
+                System.out.println(key + ": " + value);
+        }
     }
 
 }

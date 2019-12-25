@@ -1,5 +1,9 @@
 package org.reactome.idg.pairwise.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class DataDesc {
     
     // Used as the primary index, which should be unique

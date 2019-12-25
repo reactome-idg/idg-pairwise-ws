@@ -15,6 +15,9 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class WSTests {
     protected final String HOST_URL = "http://localhost:8060/idgpairwise";
     protected final String HTTP_POST = "Post";
@@ -26,6 +29,28 @@ public class WSTests {
         System.out.println(url);
         String rtn = callHttp(url, HTTP_GET, null);
         System.out.println(rtn);
+    }
+    
+    @Test
+    public void testQueryRelsForGenes() throws Exception {
+        String url = HOST_URL + "/pairwise/genes";
+        String genes = "EGF,EGFR,TP53,NOTCH1";
+        String descIds = "GTEx|Ovary|Gene_Coexpression";
+        String query = descIds + "\n" + genes;
+        System.out.println(url + ": " + descIds);
+        String rtn = callHttp(url, HTTP_POST, query);
+        outputJSON(rtn);
+        descIds += ",GTEx|Breast-MammaryTissue|Gene_Coexpression";
+        System.out.println(descIds);
+        query = descIds + "\n" + genes;
+        rtn = callHttp(url, HTTP_POST, query);
+        outputJSON(rtn);
+    }
+    
+    private void outputJSON(String json) throws JsonProcessingException, IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        Object obj = mapper.readValue(json, Object.class);
+        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(obj));
     }
 
     protected String callHttp(String url,

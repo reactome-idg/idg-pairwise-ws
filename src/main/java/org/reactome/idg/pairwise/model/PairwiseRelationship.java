@@ -3,13 +3,38 @@ package org.reactome.idg.pairwise.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+@JsonInclude(Include.NON_NULL)
 public class PairwiseRelationship {
     
     private String gene;
     private DataDesc dataDesc;
+    @JsonIgnore
     private List<Integer> pos;
+    @JsonIgnore
     private List<Integer> neg;
+    private List<String> posGenes;
+    private List<String> negGenes;
     
+    public List<String> getPosGenes() {
+        return posGenes;
+    }
+
+    public void setPosGenes(List<String> posGenes) {
+        this.posGenes = posGenes;
+    }
+
+    public List<String> getNegGenes() {
+        return negGenes;
+    }
+
+    public void setNegGenes(List<String> negGenes) {
+        this.negGenes = negGenes;
+    }
+
     public PairwiseRelationship() {
     }
 
@@ -57,6 +82,7 @@ public class PairwiseRelationship {
         neg.add(gene);
     }
     
+    @JsonIgnore
     public boolean isEmpty() {
         if ((pos == null || pos.size() == 0) && 
             (neg == null || neg.size() == 0))
