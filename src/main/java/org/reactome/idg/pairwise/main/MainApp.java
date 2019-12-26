@@ -1,6 +1,7 @@
 package org.reactome.idg.pairwise.main;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Arrays;
@@ -27,24 +28,39 @@ public class MainApp {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
 
     public static void main(String[] args) {
+        if (args.length < 1) {
+            System.err.println("Provide the data directory as the sole parameter!");
+            return;
+        }
         // Force to set the logging level
         ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
         root.setLevel(Level.INFO);
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
         PairwiseService service = context.getBean(PairwiseService.class);
-//        service.testConnection();
-//        String dirName = "examples";
-//        String fileName = "Breast-MammaryTissue_Spearman_Adj.csv";
-////        String fileName = "Ovary_Spearman_Adj.csv";
-//        DataDesc desc = createGTExDataDesc(fileName);
-//        service.insertDataDesc(desc);
-//        processGTEGeneCoExpression(fileName, dirName, desc, service);
-//        service.performIndex();
-        List<DataDesc> descs = service.listDataDesc();
-        descs.forEach(desc -> System.out.println(desc.getId()));
+        File dir = new File(args[0]);
+        for (File file : dir.listFiles()) {
+//            String fileName = "Breast-MammaryTissue_Spearman_Adj.csv";
+            //        String fileName = "Ovary_Spearman_Adj.csv";
+            String fileName = file.getName();
+            if (!fileName.endsWith("Spearman_Adj.csv"))
+                continue;
+            DataDesc desc = createGTExDataDesc(fileName);
+            service.insertDataDesc(desc);
+            processGTEGeneCoExpression(fileName, args[0], desc, service);
+        }
+        //        service.testConnection();
+        //        String dirName = "examples";
+        //        String fileName = "Breast-MammaryTissue_Spearman_Adj.csv";
+        ////        String fileName = "Ovary_Spearman_Adj.csv";
+        //        DataDesc desc = createGTExDataDesc(fileName);
+        //        service.insertDataDesc(desc);
+        //        processGTEGeneCoExpression(fileName, dirName, desc, service);
+        //        service.performIndex();
+        //        List<DataDesc> descs = service.listDataDesc();
+        //        descs.forEach(desc -> System.out.println(desc.getId()));
         context.close();
     }
-    
+
     private static void processGTEGeneCoExpression(String fileName, 
                                                    String dirName,
                                                    DataDesc desc,
@@ -63,14 +79,17 @@ public class MainApp {
                 String[] tokens = line.split(",");
                 PairwiseRelationship rel = new PairwiseRelationship();
                 rel.setGene(tokens[0]);
+                Integer currentGeneIndex = geneToIndex.get(tokens[0]);
                 for (int i = 1; i < tokens.length; i++) {
                     if (tokens[i].equals("NA") || tokens[i].equals("TRUE")) {
-//                        System.err.println(line);
+                        //                        System.err.println(line);
                         continue; // Just ignore NA
                     }
                     Integer geneIndex = geneToIndex.get(genes[i]);
                     if (geneIndex == null)
                         throw new IllegalStateException(tokens[i] + " is not in the database!");
+                    if (currentGeneIndex.equals(geneIndex))
+                        continue; // Escape itself
                     Double value = new Double(tokens[i]);
                     if (value > 0.5d)
                         rel.addPos(geneIndex);
@@ -84,8 +103,8 @@ public class MainApp {
                 rel.setDataDesc(desc);
                 service.insertPairwise(rel);
                 c ++;
-//                if (c == 1000)
-//                    break;
+                //                if (c == 1000)
+                //                    break;
             }
             br.close();
             reader.close();
@@ -97,7 +116,7 @@ public class MainApp {
             logger.error(e.getMessage(), e);
         }
     }
-    
+
     private static DataDesc createGTExDataDesc(String fileName) {
         DataDesc desc = new DataDesc();
         desc.setProvenance("GTEx");
@@ -108,5 +127,4 @@ public class MainApp {
         desc.setBioSource(tissue);
         return desc;
     }
-    
 }

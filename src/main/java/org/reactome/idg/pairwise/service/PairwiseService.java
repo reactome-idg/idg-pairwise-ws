@@ -1,9 +1,11 @@
 package org.reactome.idg.pairwise.service;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -27,6 +29,7 @@ public class PairwiseService {
     private final String DATA_DESCRIPTIONS_COL_ID = "datadescriptions";
     private final String GENE_INDEX_COL_ID = "GENE_INDEX";
     private final String RELATIONSHUP_COL_ID = "relationships";
+    private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
 
@@ -34,14 +37,73 @@ public class PairwiseService {
     private MongoDatabase database;
     // Cached index to gene for performance
     private Map<Integer, String> indexToGene;
+    //TODO: One-to-one mapping between UniProt and gene symbols are most likely not right.
+    // This should be improved in the future.
+    // Cached uniprot to gene mapping
+    private Map<String, String> uniprotToGene;
+    private Map<String, String> geneToUniprot;
 
     public PairwiseService() {
+    }
+
+    private Map<String, String> getUniProtToGene() {
+        if (uniprotToGene == null) {
+            loadUniProtToGene();
+        }
+        return uniprotToGene;
+    }
+
+    private void loadUniProtToGene() {
+        uniprotToGene = new HashMap<>();
+        InputStream is = getClass().getClassLoader().getResourceAsStream(UNIPROT_TO_GENE_FILE_NAME);
+        Scanner scanner = new Scanner(is);
+        String line = scanner.nextLine(); // Escape one line
+        while ((line = scanner.nextLine()) != null) {
+            String[] tokens = line.split("\t");
+            uniprotToGene.put(tokens[0], tokens[1]);
+            if (!scanner.hasNextLine())
+                break;
+        }
+        scanner.close();
+        geneToUniprot = new HashMap<>();
+        uniprotToGene.forEach((u, g) -> geneToUniprot.put(g, u));
     }
 
     public void testConnection() {
         FindIterable<Document> documents = database.getCollection("datadescriptions").find();
         for (Document doc : documents)
             System.out.println(doc.toJson());
+    }
+    
+    public List<PairwiseRelationship> queryRelsForProteins(List<String> proteins,
+                                                          List<String> descIds) {
+        Map<String, String> uniprotToGenes = getUniProtToGene();
+        List<String> genes = proteins.stream()
+                                     .map(p -> uniprotToGenes.get(p))
+                                     .distinct() // Remove duplication
+                                     .collect(Collectors.toList());
+        List<PairwiseRelationship> rels = queryRelsForGenes(genes, descIds);
+        // Need to add UniProt ids back to relationships
+        for (PairwiseRelationship rel : rels) {
+            List<String> posGenes = rel.getPosGenes();
+            if (posGenes != null) {
+                List<String> posProteins = posGenes.stream()
+                                                   .map(g -> geneToUniprot.get(g))
+                                                   .distinct()
+                                                   .collect(Collectors.toList());
+                rel.setPosGenes(posProteins);
+            }
+            List<String> negGenes = rel.getNegGenes();
+            if (negGenes != null) {
+                List<String> negProteins = negGenes.stream()
+                                                   .map(g -> geneToUniprot.get(g))
+                                                   .distinct()
+                                                   .collect(Collectors.toList());
+                rel.setNegGenes(negProteins);
+            }
+            rel.setGene(geneToUniprot.get(rel.getGene()));
+        }
+        return rels;
     }
 
     public List<PairwiseRelationship> queryRelsForGenes(List<String> genes,

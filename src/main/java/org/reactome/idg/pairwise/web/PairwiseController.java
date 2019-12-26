@@ -33,7 +33,7 @@ public class PairwiseController {
     }
     
     /**
-     * There are should be two lines in the post body:
+     * There should be two lines in the post body:
      * 1). Line 1: "," delimited DataDesc ids
      * 2). Line 2: "," delimited gene names.
      * @param txt
@@ -48,6 +48,24 @@ public class PairwiseController {
         List<String> descIds = Arrays.asList(lines[0].split(","));
         List<String> genes = Arrays.asList(lines[1].split(","));
         return service.queryRelsForGenes(genes, descIds);
+    }
+    
+    /**
+     * There should be two lines in the post body:
+     * Line 1: "," delimited DataDesc ids
+     * List 2: "," delimited protein uniprot accession numbers
+     * @param txt
+     * @return
+     */
+    @PostMapping("/pairwise/uniprots")
+    public List<PairwiseRelationship> queryRelationshipsForProteins(@RequestBody String txt) {
+        String[] lines = txt.split("\n");
+        if (lines.length < 2)
+            return new ArrayList<>(); // Nothing to return
+        // The first line should be desc ids
+        List<String> descIds = Arrays.asList(lines[0].split(","));
+        List<String> genes = Arrays.asList(lines[1].split(","));
+        return service.queryRelsForProteins(genes, descIds);
     }
 
 }

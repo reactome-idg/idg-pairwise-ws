@@ -47,6 +47,22 @@ public class WSTests {
         outputJSON(rtn);
     }
     
+    @Test
+    public void testQueryRelsForProteins() throws Exception {
+        String url = HOST_URL + "/pairwise/uniprots";
+        String genes = "P01133,P00533,P04637,P46531";
+        String descIds = "GTEx|Ovary|Gene_Coexpression";
+        String query = descIds + "\n" + genes;
+        System.out.println(url + ": " + descIds);
+        String rtn = callHttp(url, HTTP_POST, query);
+        outputJSON(rtn);
+        descIds += ",GTEx|Breast-MammaryTissue|Gene_Coexpression";
+        System.out.println(descIds);
+        query = descIds + "\n" + genes;
+        rtn = callHttp(url, HTTP_POST, query);
+        outputJSON(rtn);
+    }
+    
     private void outputJSON(String json) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         Object obj = mapper.readValue(json, Object.class);
