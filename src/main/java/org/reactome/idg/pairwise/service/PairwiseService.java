@@ -241,7 +241,7 @@ public class PairwiseService {
             relDoc.append("neg", rel.getNeg());
         collection.updateOne(Filters.eq("_id", rel.getGene()),
                              Updates.set(rel.getDataDesc().getId(), relDoc));
-        logger.info("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ": " + relDoc.toJson());
+        logger.info("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
 
     private Map<Integer, String> getIndexToGene() {
@@ -278,9 +278,11 @@ public class PairwiseService {
         }
         document = new Document();
         document.append("_id", desc.getId())
-        .append("bioSource", desc.getBioSource())
-        .append("dataType", desc.getDataType().toString())
-        .append("provenance", desc.getProvenance());
+                .append("bioSource", desc.getBioSource())
+                .append("dataType", desc.getDataType().toString())
+                .append("provenance", desc.getProvenance());
+        if (desc.getOrigin() != null)
+            document.append("origin", desc.getOrigin());
         collection.insertOne(document);
         logger.info("Inserted DataDesc: " + desc.getId());
     }

@@ -14,14 +14,27 @@ public class DataDesc {
     private DataType dataType;
     // Tissue or cancer type
     private String bioSource;
+    // For harmonizome data, this field is used to track the original
+    // data source, e.g., motifmap or ctddisease
+    private String origin;
     
     public DataDesc() {
+    }
+
+    public String getOrigin() {
+        return origin;
+    }
+
+    public void setOrigin(String origin) {
+        this.origin = origin;
     }
 
     public String getId() {
         if (id == null) { // Generate an id based on three values. Note: Since this will be used as a primary index
                           // key, make sure the cocatenated string is not too long (should be less than 250 bytes).
             id = provenance + "|" + bioSource + "|" + dataType;
+            if (origin != null)
+                id += "|" + origin; // This is an optional field
             // Hard-coded to 100 characters, assuming on character takes 2 bytes
             if (id.length() > 100)
                 id = id.substring(0, 100);
