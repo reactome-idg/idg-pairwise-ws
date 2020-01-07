@@ -4,12 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import org.junit.Test;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.DataType;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
@@ -44,37 +47,23 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
 
     @Override
     public void processFile(String fileName, String dirName, DataDesc desc, PairwiseService service) throws Exception {
-        Map<String, Set<String>> posRels = new HashMap<>();
-        Map<String, Set<String>> negRels = new HashMap<>();
-        loadRelationships(fileName, dirName, posRels, negRels);
-        logger.info("Relationships have been loaded.");
-        Set<String> totalGenes = new HashSet<>(posRels.keySet());
-        totalGenes.addAll(negRels.keySet());
-        Map<String, Integer> geneToIndex = service.ensureGeneIndex(totalGenes.stream().collect(Collectors.toList()));
+        // Load all genes on one shot first
+        List<String> totalGenes = loadGenes(fileName, dirName);
+        Map<String, Integer> geneToIndex = service.ensureGeneIndex(totalGenes);
         logger.info("Total indexed genes: " + geneToIndex.size());
+        // Load relationships
+        Map<String, List<Integer>> posRels = new HashMap<>();
+        Map<String, List<Integer>> negRels = new HashMap<>();
+        loadRelationships(fileName, dirName, posRels, negRels, geneToIndex);
+        logger.info("Relationships have been loaded.");
+        
         long time1 = System.currentTimeMillis();
         int c = 0;
         for (String gene : geneToIndex.keySet()) {
             PairwiseRelationship rel = new PairwiseRelationship();
             rel.setGene(gene);
-            Set<String> posGenes = posRels.get(gene);
-            if (posGenes != null && posGenes.size() > 0) {
-                for (String posGene : posGenes) {
-                    Integer posIndex = geneToIndex.get(posGene);
-                    if (posIndex == null)
-                        throw new IllegalStateException(posGene + " is not in the database!");
-                    rel.addPos(posIndex);
-                }
-            }
-            Set<String> negGenes = negRels.get(gene);
-            if (negGenes != null && negGenes.size() > 0) {
-                for (String negGene : negGenes) {
-                    Integer negIndex = geneToIndex.get(negGene);
-                    if (negIndex == null)
-                        throw new IllegalStateException(negGene + " is not in the database!");
-                    rel.addNeg(negIndex);
-                }
-            }
+            rel.setPos(posRels.get(gene));
+            rel.setNeg(posRels.get(gene));
             if (rel.getNeg() == null && rel.getPos() == null) {
                 continue;
             }
@@ -89,34 +78,83 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
 
     private void loadRelationships(String fileName, 
                                    String dirName,
-                                   Map<String, Set<String>> posRels,
-                                   Map<String, Set<String>> negRels) throws IOException {
+                                   Map<String, List<Integer>> posRels,
+                                   Map<String, List<Integer>> negRels,
+                                   Map<String, Integer> geneToIndex) throws IOException {
         FileReader fr = new FileReader(dirName + File.separator + fileName);
         BufferedReader br = new BufferedReader(fr);
         String line = null;
         while ((line = br.readLine()) != null) {
+//            System.out.println(line);
             String[] tokens = line.split("\t");
             if (tokens[2].equals("+")) 
-                pushRel(tokens, posRels);
+                pushRel(tokens, posRels, geneToIndex);
             else if (tokens[2].equals("-")) 
-                pushRel(tokens, negRels);
+                pushRel(tokens, negRels, geneToIndex);
         }
         br.close();
         fr.close();
     }
-
-    private void pushRel(String[] tokens, Map<String, Set<String>> map) {
+    
+    private void loadRelationships(String fileName, 
+                                   String dirName) throws IOException {
+        List<String> genes = loadGenes(fileName, dirName);
+        logger.info("Total genes loaded: " + genes.size());
+        Map<String, Integer> geneToIndex = new HashMap<>();
+        for (int i = 0; i < genes.size(); i++)
+            geneToIndex.put(genes.get(i), i);
+        FileReader fr = new FileReader(dirName + File.separator + fileName);
+        BufferedReader br = new BufferedReader(fr);
+        String line = null;
+        Map<String, List<Integer>> posRels = new HashMap<>();
+        Map<String, List<Integer>> negRels = new HashMap<>();
+        while ((line = br.readLine()) != null) {
+            String[] tokens = line.split("\t");
+            if (tokens[2].equals("+")) 
+                pushRel(tokens, posRels, geneToIndex);
+            else if (tokens[2].equals("-")) 
+                pushRel(tokens, negRels, geneToIndex);
+        }
+        br.close();
+        fr.close();
+    }
+    
+    private List<String> loadGenes(String fileName, String dirName) throws IOException {
+        FileReader fr = new FileReader(dirName + File.separator + fileName);
+        BufferedReader br = new BufferedReader(fr);
+        String line = null;
+        Set<String> genes = new HashSet<>();
+        while ((line = br.readLine()) != null) {
+            String[] tokens = line.split("\t");
+            genes.add(tokens[0]);
+            genes.add(tokens[1]);
+        }
+        br.close();
+        fr.close();
+        List<String> rtn = new ArrayList<>(genes);
+        Collections.sort(rtn);
+        return rtn;
+    }
+    
+    @Test
+    public void testLoadRelationships() throws IOException {
+        String fileName = "locatepredicted_filtered.txt";
+        String dirName = "/Users/wug/datasets/Harmonizome/download/gene_similarity_matrix_cosine";
+        loadRelationships(fileName, dirName);
+    }
+    
+    private void pushRel(String[] tokens, Map<String, List<Integer>> map, Map<String, Integer> geneToIndex) {
         map.compute(tokens[0], (key, set) -> {
             if (set == null)
-                set = new HashSet<>();
-            set.add(tokens[1]);
+                set = new ArrayList<>();
+            set.add(geneToIndex.get(tokens[1]));
             return set;
         });
         // Need to add another relationship
         map.compute(tokens[1], (key, set) -> {
             if (set == null)
-                set = new HashSet<>();
-            set.add(tokens[0]);
+                set = new ArrayList<>();
+            set.add(geneToIndex.get(tokens[0]));
             return set;
         });
     }

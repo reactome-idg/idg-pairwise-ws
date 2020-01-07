@@ -204,7 +204,7 @@ public class PairwiseService {
         // Existing content
         Map<String, Object> originalMap = new HashMap<>();
         // It may be an ObjectId
-        document.forEach((gene, index) -> originalMap.put(gene, index));
+        document.forEach((gene, index) -> originalMap.put(recoverDotInGene(gene), index));
         List<String> toBePersisted = new ArrayList<>();
         Map<String, Integer> rtn = new HashMap<>();
         for (String gene : genes) {
@@ -219,11 +219,29 @@ public class PairwiseService {
         int nextIndex = originalMap.size();
         for (String gene : toBePersisted) {
             collection.updateOne(Filters.eq("_id", document.get("_id")), 
-                                 Updates.set(gene, nextIndex));
+                                 Updates.set(escapeDotInGene(gene), nextIndex));
             rtn.put(gene, nextIndex);
             nextIndex ++;
         }
         return rtn;
+    }
+    
+    /**
+     * Dot cannot be used in a key name. Use its escape to escape it.
+     * See https://stackoverflow.com/questions/37987299/insert-field-name-with-dot-in-mongo-document.
+     * @param gene
+     * @return
+     */
+    private String escapeDotInGene(String gene) {
+        if (!gene.contains("."))
+            return gene;
+        gene = gene.replaceAll("\\.", "\\u002E");
+        return gene;
+    }
+    
+    private String recoverDotInGene(String gene) {
+        gene = gene.replaceAll("\\u002E", ".");
+        return gene;
     }
 
     public void insertPairwise(PairwiseRelationship rel) {
@@ -252,7 +270,7 @@ public class PairwiseService {
         for (String key : indexDoc.keySet()) {
             Object value = indexDoc.get(key);
             if (value instanceof Integer)
-                indexToGene.put((Integer)value, key); 
+                indexToGene.put((Integer)value, recoverDotInGene(key)); 
         }
         return indexToGene;
     }

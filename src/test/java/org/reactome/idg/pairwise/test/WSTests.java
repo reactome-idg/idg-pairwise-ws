@@ -28,7 +28,7 @@ public class WSTests {
         String url = HOST_URL + "/datadesc";
         System.out.println(url);
         String rtn = callHttp(url, HTTP_GET, null);
-        System.out.println(rtn);
+        outputJSON(rtn);
     }
     
     @Test
@@ -45,6 +45,11 @@ public class WSTests {
         query = descIds + "\n" + genes;
         rtn = callHttp(url, HTTP_POST, query);
         outputJSON(rtn);
+        descIds += ",Harmonizome|human|Gene_Similarity|ctddisease";
+        System.out.println(descIds);
+        query = descIds + "\n" + genes;
+        rtn = callHttp(url, HTTP_POST, query);
+        outputJSON(rtn);
     }
     
     @Test
@@ -57,6 +62,11 @@ public class WSTests {
         String rtn = callHttp(url, HTTP_POST, query);
         outputJSON(rtn);
         descIds += ",GTEx|Breast-MammaryTissue|Gene_Coexpression";
+        System.out.println(descIds);
+        query = descIds + "\n" + genes;
+        rtn = callHttp(url, HTTP_POST, query);
+        outputJSON(rtn);
+        descIds += ",Harmonizome|human|Gene_Similarity|ctddisease";
         System.out.println(descIds);
         query = descIds + "\n" + genes;
         rtn = callHttp(url, HTTP_POST, query);
