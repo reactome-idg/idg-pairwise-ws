@@ -6,7 +6,10 @@
 	<groupId>org.reactome.idg</groupId>
 	<artifactId>pairwise</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<!-- To use this pom.xml for packaging a runnable jar, this should not be turned on.
+	To make tomcat7:run work, need to add ignorePackage configuration to true. To package
+	the runnable jar, use the profile package-runnable-jar in the command line. -->
+<!-- 	<packaging>war</packaging> -->
 	<name>idg-pairwise</name>
 	<description>The project used to handle the pairwise relationships via a couchbase database</description>
 
@@ -71,7 +74,7 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
-			<scope>test</scope>
+<!-- 			<scope>test</scope> -->
 		</dependency>
 
 		<dependency>
@@ -87,6 +90,40 @@
 		</dependency>
 
 	</dependencies>
+
+	<profiles>
+		<profile>
+			<id>build-runnable-jar</id>
+			<build>
+				<finalName>pairwise-processor</finalName>
+				<plugins>
+					<plugin>
+						<artifactId>maven-assembly-plugin</artifactId>
+						<version>3.1.1</version>
+						<configuration>
+							<archive>
+								<manifest>
+									<mainClass>org.reactome.idg.pairwise.main.MainApp</mainClass>
+								</manifest>
+							</archive>
+							<descriptorRefs>
+								<descriptorRef>jar-with-dependencies</descriptorRef>
+							</descriptorRefs>
+						</configuration>
+						<executions>
+							<execution>
+								<id>make-assembly</id> <!-- this is used for inheritance merges -->
+								<phase>package</phase> <!-- bind to the packaging phase -->
+								<goals>
+									<goal>single</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<build>
 		<sourceDirectory>src/main/java</sourceDirectory>
@@ -107,6 +144,7 @@
 				<artifactId>tomcat7-maven-plugin</artifactId>
 				<version>2.2</version>
 				<configuration>
+					<ignorePackaging>true</ignorePackaging>
 					<path>/idgpairwise</path>
 					<port>8060</port>
 				</configuration>
