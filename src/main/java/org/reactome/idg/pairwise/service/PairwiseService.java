@@ -178,7 +178,7 @@ public class PairwiseService {
                 desc.setDataType(DataType.valueOf((String)value));
             value = doc.get("origin");
             if (value != null)
-                desc.setOrigin("origin");
+                desc.setOrigin((String)value);
             rtn.add(desc);
         }
         return rtn;
