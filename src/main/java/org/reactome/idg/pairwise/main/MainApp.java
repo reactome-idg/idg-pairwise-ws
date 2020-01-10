@@ -40,6 +40,7 @@ public class MainApp {
                 String fileName = file.getName();
                 if (!processor.isCorrectFile(fileName))
                     continue;
+                logger.info("Processing file " + fileName + "...");
                 DataDesc desc = processor.createDataDesc(fileName);
                 service.insertDataDesc(desc);
                 processor.processFile(fileName, args[1], desc, service);
@@ -66,6 +67,8 @@ public class MainApp {
             return new GTExDataProcessor();
         if (dataSource.equalsIgnoreCase("Harmonizome"))
             return new HarmonizomeDataProcessor();
+        if (dataSource.equals("PPI"))
+            return new PPIDataProcessor();
         return null; // Don't know
     }
 }

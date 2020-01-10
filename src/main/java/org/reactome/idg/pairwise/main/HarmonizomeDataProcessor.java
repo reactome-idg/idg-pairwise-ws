@@ -119,7 +119,7 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
         fr.close();
     }
     
-    private List<String> loadGenes(String fileName, String dirName) throws IOException {
+    protected List<String> loadGenes(String fileName, String dirName) throws IOException {
         FileReader fr = new FileReader(dirName + File.separator + fileName);
         BufferedReader br = new BufferedReader(fr);
         String line = null;
@@ -143,7 +143,7 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
         loadRelationships(fileName, dirName);
     }
     
-    private void pushRel(String[] tokens, Map<String, List<Integer>> map, Map<String, Integer> geneToIndex) {
+    protected void pushRel(String[] tokens, Map<String, List<Integer>> map, Map<String, Integer> geneToIndex) {
         map.compute(tokens[0], (key, set) -> {
             if (set == null)
                 set = new ArrayList<>();

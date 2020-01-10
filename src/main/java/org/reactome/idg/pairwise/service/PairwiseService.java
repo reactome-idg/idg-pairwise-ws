@@ -46,7 +46,7 @@ public class PairwiseService {
     public PairwiseService() {
     }
 
-    private Map<String, String> getUniProtToGene() {
+    public Map<String, String> getUniProtToGene() {
         if (uniprotToGene == null) {
             loadUniProtToGene();
         }
@@ -262,7 +262,7 @@ public class PairwiseService {
             relDoc.append("neg", rel.getNeg());
         collection.updateOne(Filters.eq("_id", rel.getGene()),
                              Updates.set(rel.getDataDesc().getId(), relDoc));
-        logger.info("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
+        logger.debug("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
 
     private Map<Integer, String> getIndexToGene() {
