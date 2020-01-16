@@ -3,6 +3,7 @@ package org.reactome.idg.pairwise.web;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
@@ -25,6 +26,14 @@ public class PairwiseController {
     private PairwiseService service;
     
     public PairwiseController() {
+    }
+    
+    @GetMapping("uniprot2gene")
+    public String getUniProtToGene() {
+        Map<String, String> uniprotToGene = service.getUniProtToGene();
+        StringBuilder builder = new StringBuilder();
+        uniprotToGene.forEach((u, g) -> builder.append(u + "\t" + g + "\n"));
+        return builder.toString();
     }
     
     @GetMapping("/datadesc")

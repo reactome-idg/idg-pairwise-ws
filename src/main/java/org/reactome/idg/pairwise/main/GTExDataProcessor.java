@@ -25,8 +25,6 @@ public class GTExDataProcessor implements PairwiseDataProcessor {
     public GTExDataProcessor() {
     }
 
-
-
     @Override
     public boolean isCorrectFile(String fileName) {
         return fileName.endsWith("Spearman_Adj.csv");
@@ -77,7 +75,7 @@ public class GTExDataProcessor implements PairwiseDataProcessor {
                     rel.addNeg(geneIndex);
             }
             if (rel.getNeg() == null && rel.getPos() == null) {
-                logger.info("No value in line: " + line);
+                logger.info("No value in line: " + c);
                 continue;
             }
             rel.setDataDesc(desc);

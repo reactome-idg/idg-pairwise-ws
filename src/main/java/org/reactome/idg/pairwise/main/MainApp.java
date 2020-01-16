@@ -65,6 +65,8 @@ public class MainApp {
     private static PairwiseDataProcessor getPairwiseDataProcessor(String dataSource) {
         if (dataSource.equalsIgnoreCase("GTEx"))
             return new GTExDataProcessor();
+        if (dataSource.equalsIgnoreCase("TCGA"))
+            return new TCGADataProcessor();
         if (dataSource.equalsIgnoreCase("Harmonizome"))
             return new HarmonizomeDataProcessor();
         if (dataSource.equals("PPI"))

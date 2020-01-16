@@ -23,6 +23,15 @@ public class WSTests {
     protected final String HTTP_POST = "Post";
     protected final String HTTP_GET = "Get";
 
+    
+    @Test
+    public void testUniProtToGene() throws Exception {
+        String url = HOST_URL + "/uniprot2gene";
+        System.out.println(url);
+        String rtn = callHttp(url, HTTP_GET, null);
+        System.out.println(rtn);
+    }
+    
     @Test
     public void testListDataDescs() throws Exception {
         String url = HOST_URL + "/datadesc";
