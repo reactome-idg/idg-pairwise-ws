@@ -18,9 +18,28 @@ public class PairwiseRelationship {
     private List<Integer> neg;
     private List<String> posGenes;
     private List<String> negGenes;
+    // Provide numbers of partners
+    private Integer posNum;
+    private Integer negNum;
     
     public List<String> getPosGenes() {
         return posGenes;
+    }
+
+    public Integer getPosNum() {
+        return posNum;
+    }
+
+    public void setPosNum(Integer posNum) {
+        this.posNum = posNum;
+    }
+
+    public Integer getNegNum() {
+        return negNum;
+    }
+
+    public void setNegNum(Integer negNum) {
+        this.negNum = negNum;
     }
 
     public void setPosGenes(List<String> posGenes) {

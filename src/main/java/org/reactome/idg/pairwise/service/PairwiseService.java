@@ -3,6 +3,7 @@ package org.reactome.idg.pairwise.service;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -28,7 +29,7 @@ import com.mongodb.client.model.Updates;
 public class PairwiseService {
     private final String DATA_DESCRIPTIONS_COL_ID = "datadescriptions";
     private final String GENE_INDEX_COL_ID = "GENE_INDEX";
-    private final String RELATIONSHUP_COL_ID = "relationships";
+    private final String RELATIONSHIP_COL_ID = "relationships";
     private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
@@ -76,41 +77,78 @@ public class PairwiseService {
     }
     
     public List<PairwiseRelationship> queryRelsForProteins(List<String> proteins,
+                                                           List<String> descIds,
+                                                           Boolean numberOnly) {
+         Map<String, String> uniprotToGenes = getUniProtToGene();
+         List<String> genes = proteins.stream()
+                                      .map(p -> uniprotToGenes.get(p))
+                                      .distinct() // Remove duplication
+                                      .collect(Collectors.toList());
+         List<PairwiseRelationship> rels = queryRelsForGenes(genes, descIds, numberOnly);
+         // Need to add UniProt ids back to relationships
+         for (PairwiseRelationship rel : rels) {
+             rel.setGene(geneToUniprot.get(rel.getGene()));
+             if (!numberOnly) {
+                 // Need to add UniProt ids back to relationships
+                 List<String> posGenes = rel.getPosGenes();
+                 if (posGenes != null) {
+                     List<String> posProteins = posGenes.stream()
+                             .map(g -> geneToUniprot.get(g))
+                             .distinct()
+                             .collect(Collectors.toList());
+                     rel.setPosGenes(posProteins);
+                 }
+                 List<String> negGenes = rel.getNegGenes();
+                 if (negGenes != null) {
+                     List<String> negProteins = negGenes.stream()
+                             .map(g -> geneToUniprot.get(g))
+                             .distinct()
+                             .collect(Collectors.toList());
+                     rel.setNegGenes(negProteins);
+                 }
+             }
+         }
+         return rels;
+     }
+    
+    public List<PairwiseRelationship> queryRelsForProteins(List<String> proteins,
                                                           List<String> descIds) {
-        Map<String, String> uniprotToGenes = getUniProtToGene();
-        List<String> genes = proteins.stream()
-                                     .map(p -> uniprotToGenes.get(p))
-                                     .distinct() // Remove duplication
-                                     .collect(Collectors.toList());
-        List<PairwiseRelationship> rels = queryRelsForGenes(genes, descIds);
-        // Need to add UniProt ids back to relationships
-        for (PairwiseRelationship rel : rels) {
-            List<String> posGenes = rel.getPosGenes();
-            if (posGenes != null) {
-                List<String> posProteins = posGenes.stream()
-                                                   .map(g -> geneToUniprot.get(g))
-                                                   .distinct()
-                                                   .collect(Collectors.toList());
-                rel.setPosGenes(posProteins);
-            }
-            List<String> negGenes = rel.getNegGenes();
-            if (negGenes != null) {
-                List<String> negProteins = negGenes.stream()
-                                                   .map(g -> geneToUniprot.get(g))
-                                                   .distinct()
-                                                   .collect(Collectors.toList());
-                rel.setNegGenes(negProteins);
-            }
-            rel.setGene(geneToUniprot.get(rel.getGene()));
+        return queryRelsForProteins(proteins, descIds, false);
+    }
+    
+    /**
+     * List PairwiseRelationships between queryGenes and targetGenes. For example, query a list of
+     * genes in a pathway for TDark proteins.
+     * @param queryGenes
+     * @param targetGenes
+     * @return
+     */
+    public List<PairwiseRelationship> queryRelsForGenesInTargets(List<String> queryGenes,
+                                                                 List<String> targetGenes,
+                                                                 List<String> descIds) {
+        List<PairwiseRelationship> rtn = queryRelsForGenes(queryGenes, descIds);
+        // Perform filtering
+        for (Iterator<PairwiseRelationship> it = rtn.iterator(); it.hasNext();) {
+            PairwiseRelationship rel = it.next();
+            if (rel.getNegGenes() != null)
+                rel.getNegGenes().retainAll(targetGenes);
+            if (rel.getPosGenes() != null)
+                rel.getPosGenes().retainAll(targetGenes);
+            if ((rel.getNegGenes() == null || rel.getNegGenes().size() == 0) && 
+                (rel.getPosGenes() == null || rel.getPosGenes().size() == 0))
+                it.remove();
         }
-        return rels;
+        return rtn;
     }
 
     public List<PairwiseRelationship> queryRelsForGenes(List<String> genes,
-                                                        List<String> descIds) {
-        Map<Integer, String> indexToGene = getIndexToGene();
+                                                        List<String> descIds,
+                                                        Boolean numberOnly) {
+        Map<Integer, String> indexToGene = null;
+        if (!numberOnly) // Need to load this map
+            indexToGene = getIndexToGene();
         List<PairwiseRelationship> rtn = new ArrayList<>();
-        FindIterable<Document> results = database.getCollection(RELATIONSHUP_COL_ID)
+        FindIterable<Document> results = database.getCollection(RELATIONSHIP_COL_ID)
                 .find(Filters.in("_id", genes))
                 .projection(Projections.include(descIds));
         Map<String, DataDesc> idToDesc = createIdToDesc(descIds);
@@ -124,11 +162,29 @@ public class PairwiseService {
                     rel.setGene(gene);
                     rel.setDataDesc(idToDesc.get(key));
                     Document relDoc = (Document) result.get(key);
-                    fillGenesForRel(indexToGene, rel, relDoc);
+                    if (numberOnly)
+                        fillGeneNumbersForRel(rel, relDoc);
+                    else
+                        fillGenesForRel(indexToGene, rel, relDoc);
                 }
             }
         }
         return rtn;
+    }
+    
+    public List<PairwiseRelationship> queryRelsForGenes(List<String> genes,
+                                                        List<String> descIds) {
+        return queryRelsForGenes(genes, descIds, false);
+    }
+    
+    private void fillGeneNumbersForRel(PairwiseRelationship rel, Document relDoc) {
+        List<Integer> indexList = (List<Integer>) relDoc.get("pos");
+        if (indexList != null)
+            rel.setPosNum(indexList.size());
+        indexList = (List<Integer>) relDoc.get("neg");
+        if (indexList != null) {
+            rel.setNegNum(indexList.size());
+        }
     }
 
     private void fillGenesForRel(Map<Integer, String> indexToGene, PairwiseRelationship rel, Document relDoc) {
@@ -252,7 +308,7 @@ public class PairwiseService {
             logger.info("Nothing to be inserted for " + rel.getGene() + " in " + rel.getDataDesc().getId());
             return; 
         }
-        MongoCollection<Document> collection = database.getCollection(RELATIONSHUP_COL_ID);
+        MongoCollection<Document> collection = database.getCollection(RELATIONSHIP_COL_ID);
         ensureGeneDoc(collection, rel.getGene());
         // Need to push the values via a Document
         Document relDoc = new Document();

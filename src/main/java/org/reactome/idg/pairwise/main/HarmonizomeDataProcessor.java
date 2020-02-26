@@ -20,6 +20,7 @@ import org.reactome.idg.pairwise.service.PairwiseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//TODO: There is a bug in the first load of this data and need to fix it.
 public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
     private final static Logger logger = LoggerFactory.getLogger(HarmonizomeDataProcessor.class);
 
@@ -110,6 +111,9 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
         Map<String, List<Integer>> negRels = new HashMap<>();
         while ((line = br.readLine()) != null) {
             String[] tokens = line.split("\t");
+            if (tokens[0].equals("TP53") || tokens[1].equals("TP53")) {
+                System.out.println(line);
+            }
             if (tokens[2].equals("+")) 
                 pushRel(tokens, posRels, geneToIndex);
             else if (tokens[2].equals("-")) 
@@ -117,6 +121,12 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
         }
         br.close();
         fr.close();
+        System.out.println("Results for TP53:");
+        String gene = "TP53";
+        List<Integer> pos = posRels.get(gene);
+        System.out.println(pos == null ? "" : pos.size());
+        List<Integer> neg = negRels.get(gene);
+        System.out.println(neg == null ? "" : neg.size());
     }
     
     protected List<String> loadGenes(String fileName, String dirName) throws IOException {
@@ -139,6 +149,7 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
     @Test
     public void testLoadRelationships() throws IOException {
         String fileName = "locatepredicted_filtered.txt";
+        fileName = "ctddisease_filtered.txt";
         String dirName = "/Users/wug/datasets/Harmonizome/download/gene_similarity_matrix_cosine";
         loadRelationships(fileName, dirName);
     }

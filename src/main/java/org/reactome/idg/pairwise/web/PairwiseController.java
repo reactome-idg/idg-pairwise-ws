@@ -11,6 +11,7 @@ import org.reactome.idg.pairwise.service.PairwiseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,15 +49,16 @@ public class PairwiseController {
      * @param txt
      * @return
      */
-    @PostMapping("/pairwise/genes")
-    public List<PairwiseRelationship> queryRelationshipsForGenes(@RequestBody String txt) {
+    @PostMapping("/pairwise/genes/{numberOnly}")
+    public List<PairwiseRelationship> queryRelationshipsForGenes(@PathVariable("numberOnly") Boolean numberOnly,
+                                                                 @RequestBody String txt) {
         String[] lines = txt.split("\n");
         if (lines.length < 2)
             return new ArrayList<>(); // Nothing to return
         // The first line should be desc ids
         List<String> descIds = Arrays.asList(lines[0].split(","));
         List<String> genes = Arrays.asList(lines[1].split(","));
-        return service.queryRelsForGenes(genes, descIds);
+        return service.queryRelsForGenes(genes, descIds, numberOnly);
     }
     
     /**
@@ -66,15 +68,16 @@ public class PairwiseController {
      * @param txt
      * @return
      */
-    @PostMapping("/pairwise/uniprots")
-    public List<PairwiseRelationship> queryRelationshipsForProteins(@RequestBody String txt) {
+    @PostMapping("/pairwise/uniprots/{numberOnly}")
+    public List<PairwiseRelationship> queryRelationshipsForProteins(@PathVariable("numberOnly") Boolean numberOnly,
+                                                                    @RequestBody String txt) {
         String[] lines = txt.split("\n");
         if (lines.length < 2)
             return new ArrayList<>(); // Nothing to return
         // The first line should be desc ids
         List<String> descIds = Arrays.asList(lines[0].split(","));
         List<String> genes = Arrays.asList(lines[1].split(","));
-        return service.queryRelsForProteins(genes, descIds);
+        return service.queryRelsForProteins(genes, descIds, numberOnly);
     }
 
 }

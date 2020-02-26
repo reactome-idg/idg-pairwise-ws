@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class WSTests {
-    protected final String HOST_URL = "http://localhost:8060/idgpairwise";
+    protected final String HOST_URL = "http://localhost:8043/idgpairwise";
     protected final String HTTP_POST = "Post";
     protected final String HTTP_GET = "Get";
 
@@ -42,8 +42,9 @@ public class WSTests {
     
     @Test
     public void testQueryRelsForGenes() throws Exception {
-        String url = HOST_URL + "/pairwise/genes";
+        String url = HOST_URL + "/pairwise/genes/false";
         String genes = "EGF,EGFR,TP53,NOTCH1";
+//        genes = "EP300";
         String descIds = "GTEx|Ovary|Gene_Coexpression";
         String query = descIds + "\n" + genes;
         System.out.println(url + ": " + descIds);
@@ -63,7 +64,7 @@ public class WSTests {
     
     @Test
     public void testQueryRelsForProteins() throws Exception {
-        String url = HOST_URL + "/pairwise/uniprots";
+        String url = HOST_URL + "/pairwise/uniprots/false";
         String genes = "P01133,P00533,P04637,P46531";
         String descIds = "GTEx|Ovary|Gene_Coexpression";
         String query = descIds + "\n" + genes;
