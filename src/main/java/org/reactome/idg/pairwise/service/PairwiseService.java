@@ -84,28 +84,36 @@ public class PairwiseService {
                                       .map(p -> uniprotToGenes.get(p))
                                       .distinct() // Remove duplication
                                       .collect(Collectors.toList());
-         List<PairwiseRelationship> rels = queryRelsForGenes(genes, descIds, numberOnly);
+         // Since in rare cases, more than one gene may be mapped to the same UniProt id.
+         // Therefore, we may get inconsistent numbers using genes. So always query 
+         // full genes first. 
+         List<PairwiseRelationship> rels = queryRelsForGenes(genes, descIds, false);
          // Need to add UniProt ids back to relationships
          for (PairwiseRelationship rel : rels) {
              rel.setGene(geneToUniprot.get(rel.getGene()));
-             if (!numberOnly) {
-                 // Need to add UniProt ids back to relationships
-                 List<String> posGenes = rel.getPosGenes();
-                 if (posGenes != null) {
-                     List<String> posProteins = posGenes.stream()
-                             .map(g -> geneToUniprot.get(g))
-                             .distinct()
-                             .collect(Collectors.toList());
+             // Need to add UniProt ids back to relationships
+             List<String> posGenes = rel.getPosGenes();
+             if (posGenes != null) {
+                 List<String> posProteins = posGenes.stream()
+                         .map(g -> geneToUniprot.get(g))
+                         .distinct()
+                         .collect(Collectors.toList());
+                 if (numberOnly)
+                     rel.setPosNum(posProteins.size());
+                 else
                      rel.setPosGenes(posProteins);
-                 }
-                 List<String> negGenes = rel.getNegGenes();
-                 if (negGenes != null) {
-                     List<String> negProteins = negGenes.stream()
-                             .map(g -> geneToUniprot.get(g))
-                             .distinct()
-                             .collect(Collectors.toList());
+                 
+             }
+             List<String> negGenes = rel.getNegGenes();
+             if (negGenes != null) {
+                 List<String> negProteins = negGenes.stream()
+                         .map(g -> geneToUniprot.get(g))
+                         .distinct()
+                         .collect(Collectors.toList());
+                 if (numberOnly)
+                     rel.setNegNum(negProteins.size());
+                 else
                      rel.setNegGenes(negProteins);
-                 }
              }
          }
          return rels;
