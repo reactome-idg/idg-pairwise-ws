@@ -98,8 +98,10 @@ public class PairwiseService {
                          .map(g -> geneToUniprot.get(g))
                          .distinct()
                          .collect(Collectors.toList());
-                 if (numberOnly)
+                 if (numberOnly) {
                      rel.setPosNum(posProteins.size());
+                     rel.setPosGenes(null); // Reset it so that they will not be returned
+                 }
                  else
                      rel.setPosGenes(posProteins);
                  
@@ -110,8 +112,10 @@ public class PairwiseService {
                          .map(g -> geneToUniprot.get(g))
                          .distinct()
                          .collect(Collectors.toList());
-                 if (numberOnly)
+                 if (numberOnly) {
                      rel.setNegNum(negProteins.size());
+                     rel.setNegGenes(null);
+                 }
                  else
                      rel.setNegGenes(negProteins);
              }
