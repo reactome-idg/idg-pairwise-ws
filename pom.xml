@@ -6,6 +6,7 @@
 	<groupId>org.reactome.idg</groupId>
 	<artifactId>pairwise</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>war</packaging>
 	<!-- To use this pom.xml for packaging a runnable jar, this should not be turned on.
 	To make tomcat7:run work, need to add ignorePackage configuration to true. To package
 	the runnable jar, use the profile package-runnable-jar in the command line. -->
@@ -146,10 +147,11 @@
 				<configuration>
 					<ignorePackaging>true</ignorePackaging>
 					<path>/idgpairwise</path>
-					<port>8060</port>
+					<port>8043</port>
 				</configuration>
 			</plugin>
 		</plugins>
+		<finalName>idgpairwise</finalName>
 	</build>
 
 </project>
