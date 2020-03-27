@@ -97,6 +97,7 @@ public class PairwiseService {
                  List<String> posProteins = posGenes.stream()
                          .map(g -> geneToUniprot.get(g))
                          .distinct()
+                         .filter(x-> x!=null)
                          .collect(Collectors.toList());
                  if (numberOnly) {
                      rel.setPosNum(posProteins.size());
@@ -111,6 +112,7 @@ public class PairwiseService {
                  List<String> negProteins = negGenes.stream()
                          .map(g -> geneToUniprot.get(g))
                          .distinct()
+                         .filter(x-> x!=null)
                          .collect(Collectors.toList());
                  if (numberOnly) {
                      rel.setNegNum(negProteins.size());
