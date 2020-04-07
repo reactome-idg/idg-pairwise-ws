@@ -64,7 +64,7 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
             PairwiseRelationship rel = new PairwiseRelationship();
             rel.setGene(gene);
             rel.setPos(posRels.get(gene));
-            rel.setNeg(posRels.get(gene));
+            rel.setNeg(negRels.get(gene));
             if (rel.getNeg() == null && rel.getPos() == null) {
                 continue;
             }

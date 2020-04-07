@@ -1,5 +1,6 @@
 package org.reactome.idg.pairwise.main;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.reactome.idg.pairwise.config.MainAppConfig;
+import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.slf4j.Logger;
@@ -15,7 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
- * This is for a traditional Java application used to load pairwise relationships into a couchbase database.
+ * This is for a traditional Java application used to load pairwise relationships into a mongodb database.
  * @author wug
  *
  */
@@ -23,38 +25,37 @@ public class MainApp {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
 
     public static void main(String[] args) {
-//        if (args.length < 2) {
-//            System.err.println("Provide two parameters: data_source data_dir.");
-//            return;
-//        }
-//        // The configuration is controlled by logback.xml in the resource folder.
-//        // There is no need to hard-code this here.
-//        // Force to set the logging level
-////        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-////        root.setLevel(Level.WARN); // Force to use the warn level
-//        PairwiseDataProcessor processor = getPairwiseDataProcessor(args[0]);
-//        if (processor == null) {
-//            logger.error("Cannot find a data processor for " + args[0] + ".");
-//            return;
-//        }
+        if (args.length < 2) {
+            System.err.println("Provide two parameters: data_source data_dir.");
+            return;
+        }
+        // The configuration is controlled by logback.xml in the resource folder.
+        // There is no need to hard-code this here.
+        // Force to set the logging level
+//        ch.qos.logback.classic.Logger root = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+//        root.setLevel(Level.WARN); // Force to use the warn level
+        PairwiseDataProcessor processor = getPairwiseDataProcessor(args[0]);
+        if (processor == null) {
+            logger.error("Cannot find a data processor for " + args[0] + ".");
+            return;
+        }
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
         PairwiseService service = context.getBean(PairwiseService.class);
-        loadPathwayGeneDarkProteinRels(service);
-//        File dir = new File(args[1]);
-//        try {
-//            for (File file : dir.listFiles()) {
-//                String fileName = file.getName();
-//                if (!processor.isCorrectFile(fileName))
-//                    continue;
-//                logger.info("Processing file " + fileName + "...");
-//                DataDesc desc = processor.createDataDesc(fileName);
-//                service.insertDataDesc(desc);
-//                processor.processFile(fileName, args[1], desc, service);
-//            }
-//        }
-//        catch(Exception e) {
-//            logger.error(e.getMessage(), e);
-//        }
+        File dir = new File(args[1]);
+        try {
+            for (File file : dir.listFiles()) {
+                String fileName = file.getName();
+                if (!processor.isCorrectFile(fileName))
+                    continue;
+                logger.info("Processing file " + fileName + "...");
+                DataDesc desc = processor.createDataDesc(fileName);
+                service.insertDataDesc(desc);
+                processor.processFile(fileName, args[1], desc, service);
+            }
+        }
+        catch(Exception e) {
+            logger.error(e.getMessage(), e);
+        }
         //        service.testConnection();
         //        String dirName = "examples";
         //        String fileName = "Breast-MammaryTissue_Spearman_Adj.csv";
@@ -65,9 +66,14 @@ public class MainApp {
         //        service.performIndex();
         //        List<DataDesc> descs = service.listDataDesc();
         //        descs.forEach(desc -> System.out.println(desc.getId()));
+//      loadPathwayGeneDarkProteinRels(service);
         context.close();
     }
     
+    /**
+     * For some data distribution test.
+     * @param service
+     */
     private static void loadPathwayGeneDarkProteinRels(PairwiseService service) {
         List<String> darkGenes = loadDarkGenes();
         List<String> queryGenes = Arrays.asList(new String[]{"RYR1", "RYR2", "RYR3"});

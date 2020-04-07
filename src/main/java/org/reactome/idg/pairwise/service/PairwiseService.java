@@ -26,6 +26,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
 
 @Service
+@SuppressWarnings("unchecked")
 public class PairwiseService {
     private final String DATA_DESCRIPTIONS_COL_ID = "datadescriptions";
     private final String GENE_INDEX_COL_ID = "GENE_INDEX";
