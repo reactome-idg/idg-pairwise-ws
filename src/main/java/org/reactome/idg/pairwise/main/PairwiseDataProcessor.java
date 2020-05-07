@@ -1,5 +1,7 @@
 package org.reactome.idg.pairwise.main;
 
+import java.util.Set;
+
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.service.PairwiseService;
 
@@ -27,6 +29,20 @@ public interface PairwiseDataProcessor {
      * @param desc
      * @param service
      */
-    public void processFile(String fileName, String dirName, DataDesc desc, PairwiseService service) throws Exception;
+    public void processFile(String fileName, 
+                            String dirName, 
+                            DataDesc desc, 
+                            PairwiseService service) throws Exception;
+    
+    /**
+     * Load a set of pairwise relationships directly into the database.
+     * @param pairs
+     * @param desc
+     * @param service
+     * @throws Exception
+     */
+    public void processPairs(Set<String> pairs,
+                             DataDesc desc,
+                             PairwiseService service) throws Exception;
 
 }

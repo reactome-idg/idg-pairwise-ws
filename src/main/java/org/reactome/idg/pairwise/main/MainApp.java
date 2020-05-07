@@ -19,12 +19,26 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 /**
  * This is for a traditional Java application used to load pairwise relationships into a mongodb database.
  * @author wug
- *
  */
 public class MainApp {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
 
     public static void main(String[] args) {
+//        pushDataIntoDB(args);
+        pushMLFeatureIntoDB();
+    }
+    
+    private static void pushMLFeatureIntoDB() {
+        try {
+            new MLFeatureDumper().dump();
+        }
+        catch(Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private static void pushDataIntoDB(String[] args) {
         if (args.length < 2) {
             System.err.println("Provide two parameters: data_source data_dir.");
             return;

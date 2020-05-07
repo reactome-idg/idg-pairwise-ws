@@ -1,8 +1,8 @@
 package org.reactome.idg.pairwise.main;
 
 import org.junit.Test;
+import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.DataType;
 
 public class TCGADataProcessor extends GTExDataProcessor {
     
@@ -13,7 +13,7 @@ public class TCGADataProcessor extends GTExDataProcessor {
     public DataDesc createDataDesc(String fileName) {
         DataDesc desc = new DataDesc();
         desc.setProvenance("TCGA");
-        desc.setDataType(DataType.Gene_Coexpression);
+        desc.setDataType(FeatureType.Gene_Coexpression);
         // Need to get the cancer from the file name
         // The format is like this: TCGA-SKCM_Spearman_Adj.csv
         int index = fileName.indexOf("_");

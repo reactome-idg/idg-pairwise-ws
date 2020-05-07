@@ -8,10 +8,12 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
+import org.reactome.fi.util.InteractionUtilities;
+import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.DataType;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.slf4j.Logger;
@@ -34,8 +36,21 @@ public class PPIDataProcessor extends HarmonizomeDataProcessor {
         String[] tokens = fileName.split("_");
         desc.setBioSource(tokens[1].toLowerCase());
         desc.setProvenance(tokens[0]);
-        desc.setDataType(DataType.Protein_Interaction);
+        desc.setDataType(FeatureType.Protein_Interaction);
         return desc;
+    }
+    
+    @Override
+    public void processPairs(Set<String> ppis,
+                             DataDesc desc,
+                             PairwiseService service) throws Exception {
+        Set<String> genes = grepGenesFromPairs(ppis);
+        Map<String, Integer> geneToIndex = service.ensureGeneIndex(genes);
+        logger.info("Total indexed genes: " + geneToIndex.size());
+        // Load relationships
+        Map<String, List<Integer>> rels = new HashMap<>();
+        loadRelationships(ppis, rels, geneToIndex);
+        dumpPairs(rels, desc, service);
     }
     
     @Override
@@ -48,14 +63,19 @@ public class PPIDataProcessor extends HarmonizomeDataProcessor {
         Map<String, List<Integer>> rels = new HashMap<>();
         loadRelationships(fileName, dirName, rels, geneToIndex);
         logger.info("Relationships have been loaded.");
-        
+        dumpPairs(rels, desc, service);
+    }
+
+    private void dumpPairs(Map<String, List<Integer>> geneToIndices,
+                           DataDesc desc,
+                           PairwiseService service) {
         long time1 = System.currentTimeMillis();
         int c = 0;
-        for (String gene : geneToIndex.keySet()) {
+        for (String gene : geneToIndices.keySet()) {
             PairwiseRelationship rel = new PairwiseRelationship();
             rel.setGene(gene);
             // All PPIs are treated as positive relationships here
-            rel.setPos(rels.get(gene));
+            rel.setPos(geneToIndices.get(gene));
             if (rel.getNeg() == null && rel.getPos() == null) {
                 continue;
             }
@@ -82,6 +102,15 @@ public class PPIDataProcessor extends HarmonizomeDataProcessor {
         }
         br.close();
         fr.close();
+    }
+    
+    private void loadRelationships(Set<String> pairs,
+                                     Map<String, List<Integer>> rels,
+                                     Map<String, Integer> geneToIndex) throws IOException {
+        for (String pair : pairs) {
+            String[] tokens = pair.split("\t");
+            pushRel(tokens, rels, geneToIndex);
+        }
     }
     
     /**
