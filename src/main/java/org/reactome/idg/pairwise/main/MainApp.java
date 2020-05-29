@@ -87,22 +87,15 @@ public class MainApp {
     
     /**
      * For adding data to Mongo db for use on the reactome idg homepage
-     * 1. Create "gene_info" collection in database
-     * 2. Get geneToIndex map
-     * 3. With keys for geneToIndex map, create gene_info object
-     * 	a. load Uniprot and TDL from TCRD or a text file if it exists
-     * 	b. load Reactome StableId and list of pathways and descriptions from reactome mysql database if annotated
-     * 		i. if not annotated, front end will only show an pairwise relationships and an FIView of them
-     * 4. Push each gene_info object into "gene_info" collection through PairwiseService
-     * 
-     * Other classes/methods to add:
-     * 1. getGeneToIndex() in PairwiseService (basically reverse of getIndexToGene
-     * 2. Model class for "gene_info" object
-     * 3. GeneInfoProcessor class to handle the creation of gene_info objects
-     * 	a. method to query or load Target Dev Level
-     * 	b. method to query or load Uniprot from file
-     * 	c. methods to query reactome stId/pathways from server or local mysql db
-     * 	d. method to create instance of geneInfo POJO and direct insertion into db by PairwiseService
+     * 1. Create PAIRWISE_INDEX collection
+     * 	a. key value pair of stable id to index
+     * 2. Create pathways collection
+     * 	a.load in geneToUniprot Map (may need to reverse)
+     * 	b. Load geneToIndex map (load indexToGeneMap and use stream to reverse)
+     * 3. Load uniprot2Reactome file
+     * 	a. iterate over and fill two maps
+     * 	  i. Map<String, List<int>> pathway to list of GENE_INDEX integer
+     *    ii. Map<String, List<int>> geneID to list of PATHWAY_INDEX integer
      */
     @SuppressWarnings("unused")
     private static void pushHomePageData() {
