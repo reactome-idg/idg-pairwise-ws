@@ -33,6 +33,8 @@ public class PairwiseService {
     private final String GENE_INDEX_COL_ID = "GENE_INDEX";
     private final String RELATIONSHIP_COL_ID = "relationships";
     private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
+    private final String PATHWAY_INDEX_COL_ID = "PATHWAY_INDEX";
+    private final String PATHWAYS_COL_ID = "pathways";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
 
@@ -262,7 +264,41 @@ public class PairwiseService {
      */
     public void performIndex() {
     }
-
+    
+    /**
+     * Call this method to ensure all pathways in the list have been persisted to the database.
+     * @param pathwayStIds
+     * @return
+     */
+    public Map<String, Integer> ensurePathwayIndex(Collection<String> pathwayStIds){
+    	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
+    	Document document = collection.find().first(); //only one document in this collection
+    	//if no document, add one
+    	if(document == null) {
+    		document = new Document();
+    		collection.insertOne(document);
+    	}
+    	//get Existing content
+    	Map<String, Object> originalMap = new HashMap<>();
+    	document.forEach((pathway, index) -> originalMap.put(pathway, index));
+    	
+    	List<String> toBePersisted = new ArrayList<>();
+    	Map<String, Integer> rtn = new HashMap<>();
+    	for(String pathway : pathwayStIds) {
+    		Object obj = originalMap.get(pathway);
+    		if(obj == null) toBePersisted.add(pathway);
+    		else rtn.put(pathway, (Integer)obj); //obj should always be integer here.
+    	}
+    	int nextIndex = originalMap.size();
+    	for(String pathway : toBePersisted) {
+    		collection.updateOne(Filters.eq("_id", document.get("_id")),
+    							 Updates.set(pathway, nextIndex));
+    		rtn.put(pathway, nextIndex);
+    		nextIndex++;
+    	}
+    	return rtn;
+    }
+    
     /**
      * Call this method to make ensure all genes in the list have been persited in the database.
      * @param genes

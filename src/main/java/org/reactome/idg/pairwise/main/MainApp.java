@@ -25,7 +25,8 @@ public class MainApp {
 
     public static void main(String[] args) {
 //        pushDataIntoDB(args);
-        pushMLFeatureIntoDB();
+//        pushMLFeatureIntoDB();
+    	  pushHomePageData();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -96,10 +97,16 @@ public class MainApp {
      * 	a. iterate over and fill two maps
      * 	  i. Map<String, List<int>> pathway to list of GENE_INDEX integer
      *    ii. Map<String, List<int>> geneID to list of PATHWAY_INDEX integer
+     *    
+     * @param: args[] should be [*directory of UniProt2Pathway file*, *fileName*]
      */
-    @SuppressWarnings("unused")
     private static void pushHomePageData() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+        PairwiseService service = context.getBean(PairwiseService.class);
+    	PathwayProcessor processor = new PathwayProcessor();
+    	processor.processPathwayIndex(service);
     	
+    	context.close();
     }
     
     /**
