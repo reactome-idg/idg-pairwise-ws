@@ -87,7 +87,7 @@ public class MainApp {
     
     /**
      * For adding data to Mongo db for use on the reactome idg homepage
-     * 1. Create PAIRWISE_INDEX collection
+     * 1. Create PATHWAY_INDEX collection
      * 	a. key value pair of stable id to index
      * 2. Create pathways collection
      * 	a.load in geneToUniprot Map (may need to reverse)
