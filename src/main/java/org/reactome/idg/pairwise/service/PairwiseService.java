@@ -43,6 +43,8 @@ public class PairwiseService {
     private MongoDatabase database;
     // Cached index to gene for performance
     private Map<Integer, String> indexToGene;
+    //Cached index to pathway for performance
+    private Map<Integer,String> indexToPathway;
     //TODO: One-to-one mapping between UniProt and gene symbols are most likely not right.
     // This should be improved in the future.
     // Cached uniprot to gene mapping
@@ -393,16 +395,33 @@ public class PairwiseService {
     public Map<Integer, String> getIndexToGene() {
         if (indexToGene != null)
             return indexToGene;
-        indexToGene = new HashMap<>();
-        Document indexDoc = database.getCollection(GENE_INDEX_COL_ID).find().first();
-        for (String key : indexDoc.keySet()) {
-            Object value = indexDoc.get(key);
-            if (value instanceof Integer)
-                indexToGene.put((Integer)value, recoverDotInGene(key)); 
-        }
+        indexToGene = makeValKeyMapFromDoc(database.getCollection(GENE_INDEX_COL_ID).find().first());
         return indexToGene;
     }
+    
+    public Map<Integer, String> getIndexToPathway() {
+    	if(indexToPathway != null)
+    		return indexToPathway;
+    	indexToPathway = makeValKeyMapFromDoc(database.getCollection(PATHWAY_INDEX_COL_ID).find().first());    	
+    	return indexToPathway;
+    }
 
+    /**
+     * Consumes a document of key:value were the value is a unique integer id
+     * Returns a Map<Integer, String>
+     * @param doc
+     * @return
+     */
+    private Map<Integer, String> makeValKeyMapFromDoc(Document doc){
+    	Map<Integer, String> rtn = new HashMap<>();
+    	for(String key : doc.keySet()) {
+    		Object value = doc.get(key);
+    		if(value instanceof Integer)
+    			rtn.put((Integer)value, key);
+    	}
+    	return rtn;
+    }
+    
     private void ensureGeneDoc(MongoCollection<Document> collection,
                                String gene) {
         // There shoul dbe only one document
