@@ -39,7 +39,7 @@ public class PathwayProcessor {
 				if(uniprotToGene.containsKey(tokens[0].contains("-") ? tokens[0].substring(0, tokens[0].indexOf("-")) : tokens[0] )) {
 					if(!pathwayStIdToGeneNameList.containsKey(tokens[1]))
 						pathwayStIdToGeneNameList.put(tokens[1], new ArrayList<>());
-					pathwayStIdToGeneNameList.get(tokens[1]).add(tokens[0]);
+					pathwayStIdToGeneNameList.get(tokens[1]).add(uniprotToGene.get(tokens[0]));
 				}
 			}			
 			br.close();
@@ -61,7 +61,7 @@ public class PathwayProcessor {
 		//want to persist Map of pathway to list of gene Index
 		Map<String, List<Integer>> pathwayToGeneIndexList = new HashMap<>();
 		
-		//convert from gene name to gene index 
+//		//convert from gene name to gene index 
 		pathwayStIdToGeneNameList.forEach((k,v) -> {
 			List<Integer> geneIndexes = new ArrayList<>();
 			v.forEach(gene -> {
