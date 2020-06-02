@@ -272,7 +272,7 @@ public class PairwiseService {
      * @return
      */
     public Map<String, Integer> ensurePathwayIndex(Collection<String> pathwayStIds){
-    	System.out.println("Ensuring " + pathwayStIds.size() + " reactome stable ids indexed");
+    	System.out.println("Ensuring " + pathwayStIds.size() + " pathways indexed");
     	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
     	Document document = collection.find().first(); //only one document in this collection
     	//if no document, add one
