@@ -104,7 +104,7 @@ public class MainApp {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
         PairwiseService service = context.getBean(PairwiseService.class);
     	PathwayProcessor processor = new PathwayProcessor();
-    	processor.processPathwayIndex(service);
+    	processor.processPathways(service);
     	
     	context.close();
     }

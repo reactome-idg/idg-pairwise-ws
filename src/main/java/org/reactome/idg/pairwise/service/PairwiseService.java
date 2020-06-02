@@ -11,6 +11,7 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
+import org.bson.types.ObjectId;
 import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
@@ -271,6 +272,7 @@ public class PairwiseService {
      * @return
      */
     public Map<String, Integer> ensurePathwayIndex(Collection<String> pathwayStIds){
+    	System.out.println("Ensuring " + pathwayStIds.size() + " reactome stable ids indexed");
     	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
     	Document document = collection.find().first(); //only one document in this collection
     	//if no document, add one
@@ -296,6 +298,7 @@ public class PairwiseService {
     		rtn.put(pathway, nextIndex);
     		nextIndex++;
     	}
+    	System.out.println("Persisted " + (nextIndex-originalMap.size()) + " pathways to database" );
     	return rtn;
     }
     
@@ -372,8 +375,22 @@ public class PairwiseService {
                              Updates.set(rel.getDataDesc().getId(), relDoc));
         logger.debug("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
+    
+    public void insertPathwayToGeneDoc(Map<String, List<Integer>> pathwayToGeneIndexList) {
+    	System.out.println("Inserting genes for " + pathwayToGeneIndexList.keySet().size() + " pathways into database");
+    	MongoCollection<Document> collection = database.getCollection(this.PATHWAYS_COL_ID);
+    	Document pathwayToGeneDoc = collection.find(Filters.eq("_id", "pathwayToGeneDoc")).first();
+    	if(pathwayToGeneDoc == null) { 
+    		pathwayToGeneDoc = new Document().append("_id", "pathwayToGeneDoc");
+    		collection.insertOne(pathwayToGeneDoc);
+    	}
+    	pathwayToGeneIndexList.forEach((k,v) -> {
+    		collection.updateOne(Filters.eq("_id", "pathwayToGeneDoc"), Updates.set(k, v));
+    	});
+    	System.out.println("Insert Complete.");
+    }
 
-    private Map<Integer, String> getIndexToGene() {
+    public Map<Integer, String> getIndexToGene() {
         if (indexToGene != null)
             return indexToGene;
         indexToGene = new HashMap<>();
