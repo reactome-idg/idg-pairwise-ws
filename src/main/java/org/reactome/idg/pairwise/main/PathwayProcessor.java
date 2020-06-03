@@ -31,51 +31,63 @@ public class PathwayProcessor {
     	try {
     		URL url = new URL(UNIPROT_2_REACTOME_URL);
         	BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
-        	Set<String> hsa = new HashSet<>();
         	String line = null;
 			while((line = br.readLine()) != null) {
 				String[] tokens = line.split("\t");
-				if(tokens[1].contains("R-HSA")) hsa.add(tokens[1]);
-				if(uniprotToGene.containsKey(tokens[0].contains("-") ? tokens[0].substring(0, tokens[0].indexOf("-")) : tokens[0] )) {
+				
+				//need to remove "-#" in any uniprot to get parent uniprot
+				String correctedUniprot = tokens[0].contains("-") ? tokens[0].substring(0, tokens[0].indexOf("-")) : tokens[0];
+				if(uniprotToGene.containsKey(correctedUniprot)) {
 					if(!pathwayStIdToGeneNameList.containsKey(tokens[1]))
 						pathwayStIdToGeneNameList.put(tokens[1], new ArrayList<>());
-					pathwayStIdToGeneNameList.get(tokens[1]).add(uniprotToGene.get(tokens[0]));
+					if(uniprotToGene.get(correctedUniprot) == null) System.out.println(tokens[0]);
+					pathwayStIdToGeneNameList.get(tokens[1]).add(uniprotToGene.get(correctedUniprot));
 				}
 			}			
 			br.close();
-			hsa.removeAll(pathwayStIdToGeneNameList.keySet());
-			System.out.println(hsa);
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 		}
     	
     	Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToGeneNameList.keySet());
-    	processPathwayToGene(pathwayStIdToGeneNameList, service);
-    	processGeneToFirstPathway(pathwayStIdToGeneNameList, service);
+    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
 	}
 
-	private void processPathwayToGene(Map<String,List<String>> pathwayStIdToGeneNameList,
+	/**
+	 * Creates two maps
+	 * Maps from pathway stId to list of genes by index
+	 * Maps from gene name to list of pathways by index
+	 * Directs service to insert these maps into the database
+	 * @param pathwayStIdToGeneNameList
+	 * @param pathwayToIndex
+	 * @param service
+	 */
+	private void processGenePathwayRelationship(Map<String,List<String>> pathwayStIdToGeneNameList,
+									  Map<String, Integer> pathwayToIndex,
 									  PairwiseService service) {
 		Map<String, Integer> geneToIndex = service.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
 		
 		//want to persist Map of pathway to list of gene Index
 		Map<String, List<Integer>> pathwayToGeneIndexList = new HashMap<>();
 		
-//		//convert from gene name to gene index 
+		//want to persist Map of gene name to list of pathway Indexes
+		Map<String, List<Integer>> geneToPathwayIndexList = new HashMap<>();
+		
+		//convert from gene name to gene index 
 		pathwayStIdToGeneNameList.forEach((k,v) -> {
 			List<Integer> geneIndexes = new ArrayList<>();
 			v.forEach(gene -> {
+				//add gene index to list for placement on pathwayToGeneIndexList
 				geneIndexes.add(geneToIndex.get(gene));
+				//next to lines for building geneToPathwayIndexList
+				if(!geneToPathwayIndexList.containsKey(gene)) geneToPathwayIndexList.put(gene, new ArrayList<>());
+				if(!geneToPathwayIndexList.get(gene).contains(pathwayToIndex.get(k))) geneToPathwayIndexList.get(gene).add(pathwayToIndex.get(k));
 			});
 			pathwayToGeneIndexList.put(k, geneIndexes);
 		});
 		
 		//persist pathwayToGeneIndexList to mongodb 
 		service.insertPathwayToGeneDoc(pathwayToGeneIndexList);
-	}
-	
-	private void processGeneToFirstPathway(Map<String, List<String>> pathwayStIdToGeneNameList,
-			   							   PairwiseService service) {
-
+		service.insertGeneToPathwayDoc(geneToPathwayIndexList);
 	}
 }

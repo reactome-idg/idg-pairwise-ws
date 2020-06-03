@@ -11,7 +11,6 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
-import org.bson.types.ObjectId;
 import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
@@ -36,6 +35,8 @@ public class PairwiseService {
     private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
     private final String PATHWAY_INDEX_COL_ID = "PATHWAY_INDEX";
     private final String PATHWAYS_COL_ID = "pathways";
+    private final String PATHWAYTOGENEDOC = "pathwayToGeneDoc";
+    private final String GENETOPATHWAYDOC = "geneToPathwayDoc";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
 
@@ -380,18 +381,37 @@ public class PairwiseService {
     
     public void insertPathwayToGeneDoc(Map<String, List<Integer>> pathwayToGeneIndexList) {
     	System.out.println("Inserting genes for " + pathwayToGeneIndexList.keySet().size() + " pathways into database");
-    	MongoCollection<Document> collection = database.getCollection(this.PATHWAYS_COL_ID);
-    	Document pathwayToGeneDoc = collection.find(Filters.eq("_id", "pathwayToGeneDoc")).first();
+    	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
+    	Document pathwayToGeneDoc = collection.find(Filters.eq("_id", PATHWAYTOGENEDOC)).first();
+    	
+    	//add if null
     	if(pathwayToGeneDoc == null) { 
-    		pathwayToGeneDoc = new Document().append("_id", "pathwayToGeneDoc");
+    		pathwayToGeneDoc = new Document().append("_id", PATHWAYTOGENEDOC);
     		collection.insertOne(pathwayToGeneDoc);
     	}
+    	
     	pathwayToGeneIndexList.forEach((k,v) -> {
-    		collection.updateOne(Filters.eq("_id", "pathwayToGeneDoc"), Updates.set(k, v));
+    		collection.updateOne(Filters.eq("_id", PATHWAYTOGENEDOC), Updates.set(k, v));
     	});
     	System.out.println("Insert Complete.");
     }
 
+    public void insertGeneToPathwayDoc(Map<String, List<Integer>> geneToPathwayIndexList) {
+    	System.out.println("Inserting pathway indexes for " + geneToPathwayIndexList.keySet().size() + " genes into database...");
+    	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
+    	Document geneToPathwayDoc = collection.find(Filters.eq("_id", GENETOPATHWAYDOC)).first();
+    	
+    	if(geneToPathwayDoc == null) {
+    		geneToPathwayDoc = new Document().append("_id", GENETOPATHWAYDOC);
+    		collection.insertOne(geneToPathwayDoc);
+    	}
+    	
+    	geneToPathwayIndexList.forEach((k,v) -> {
+    		collection.updateOne(Filters.eq("_id",GENETOPATHWAYDOC), Updates.addEachToSet(k, v));
+    	});
+    	System.out.println("Insert Complete.");
+    }
+    
     public Map<Integer, String> getIndexToGene() {
         if (indexToGene != null)
             return indexToGene;
@@ -407,8 +427,8 @@ public class PairwiseService {
     }
 
     /**
-     * Consumes a document of key:value were the value is a unique integer id
-     * Returns a Map<Integer, String>
+     * Consumes a document of key:value pairs.
+     * Returns a Map<Integer, String> of value to key
      * @param doc
      * @return
      */
