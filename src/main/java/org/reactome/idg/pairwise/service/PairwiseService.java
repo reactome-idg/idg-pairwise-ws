@@ -385,7 +385,6 @@ public class PairwiseService {
     	//Add gene to pathways relationships 1 by 1
     	relationships.forEach(rel -> {
     		ensureGeneDoc(collection, rel.getKey());
-    		Document relDoc = new Document();
     		if(rel.getPathways() != null && rel.getPathways().size() > 0)
     			collection.updateOne(Filters.eq("_id", rel.getKey()), Updates.set("pathways", rel.getPathways()));
     		if(rel.getSecondaryPathways() != null && rel.getSecondaryPathways().size() > 0)
