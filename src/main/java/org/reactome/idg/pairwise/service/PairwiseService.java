@@ -268,49 +268,21 @@ public class PairwiseService {
     public void performIndex() {
     }
     
-    /**
-     * Call this method to ensure all pathways in the list have been persisted to the database.
-     * @param pathwayStIds
-     * @return
-     */
-    public Map<String, Integer> ensurePathwayIndex(Collection<String> pathwayStIds){
-    	System.out.println("Ensuring " + pathwayStIds.size() + " pathways indexed");
-    	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
-    	Document document = collection.find().first(); //only one document in this collection
-    	//if no document, add one
-    	if(document == null) {
-    		document = new Document();
-    		collection.insertOne(document);
-    	}
-    	//get Existing content
-    	Map<String, Object> originalMap = new HashMap<>();
-    	document.forEach((pathway, index) -> originalMap.put(pathway, index));
-    	
-    	List<String> toBePersisted = new ArrayList<>();
-    	Map<String, Integer> rtn = new HashMap<>();
-    	for(String pathway : pathwayStIds) {
-    		Object obj = originalMap.get(pathway);
-    		if(obj == null) toBePersisted.add(pathway);
-    		else rtn.put(pathway, (Integer)obj); //obj should always be integer here.
-    	}
-    	int nextIndex = originalMap.size();
-    	for(String pathway : toBePersisted) {
-    		collection.updateOne(Filters.eq("_id", document.get("_id")),
-    							 Updates.set(pathway, nextIndex));
-    		rtn.put(pathway, nextIndex);
-    		nextIndex++;
-    	}
-    	System.out.println("Persisted " + (nextIndex-originalMap.size()) + " pathways to database" );
-    	return rtn;
+    public Map<String, Integer> ensurePathwayIndex(Collection<String> pathways){
+    	return ensureCollectionIndex(pathways, PATHWAY_INDEX_COL_ID);
+    }
+    
+    public Map<String, Integer> ensureGeneIndex(Collection<String> genes){
+    	return ensureCollectionIndex(genes, GENE_INDEX_COL_ID);
     }
     
     /**
-     * Call this method to make ensure all genes in the list have been persited in the database.
+     * Call this method to make ensure all keys in the list have been persited in the passed in collection.
      * @param genes
      * @return
      */
-    public Map<String, Integer> ensureGeneIndex(Collection<String> genes) {
-        MongoCollection<Document> collection = database.getCollection(GENE_INDEX_COL_ID);
+    private Map<String, Integer> ensureCollectionIndex(Collection<String> genes, String collectionName) {
+        MongoCollection<Document> collection = database.getCollection(collectionName);
         Document document = collection.find().first();
         // Only one document is expected in this collection
         if (document == null) {
