@@ -87,17 +87,8 @@ public class MainApp {
     
     
     /**
-     * For adding data to Mongo db for use on the reactome idg homepage
-     * 1. Create PATHWAY_INDEX collection
-     * 	a. key value pair of stable id to index
-     * 2. Create pathways collection
-     * 	a.load in geneToUniprot Map (may need to reverse)
-     * 	b. Load geneToIndex map (load indexToGeneMap and use stream to reverse)
-     * 3. Load uniprot2Reactome file
-     * 	a. iterate over and fill two maps
-     * 	  i. Map<String, List<int>> pathway to list of GENE_INDEX integer
-     *    ii. Map<String, List<int>> geneID to list of PATHWAY_INDEX integer
-     *    
+     * Used to insert pathway index data from Uniprot2Reactome.txt file
+     * Also caches Gene/Pathway relationships into a pathways collection
      * @param: args[] should be [*directory of UniProt2Pathway file*, *fileName*]
      */
     private static void pushHomePageData() {

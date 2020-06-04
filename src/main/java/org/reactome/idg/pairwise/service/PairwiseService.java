@@ -277,7 +277,9 @@ public class PairwiseService {
     }
     
     /**
-     * Call this method to make ensure all keys in the list have been persited in the passed in collection.
+     * Call this method to make ensure all keys in the list have been persisted in the passed in collection.
+     * Collection should be a single document of key:value pairss
+     * NOTE: Document maximum size is 16Mb
      * @param genes
      * @return
      */
