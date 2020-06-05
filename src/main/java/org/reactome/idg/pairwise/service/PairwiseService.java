@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -224,8 +225,27 @@ public class PairwiseService {
             rel.setNegGenes(geneList);
         }
     }
+    
+    public GenePathwayRelationship queryGenePathwayRelationship(String key) {
+		if(getIndexToGene().containsValue(key))
+			return queryGeneRelationship(key);
+		else if(getIndexToPathway().containsValue(key))
+			return queryPathwayRelationship(key);
+		return null;
+	}
 
-    private Map<String, DataDesc> createIdToDesc(List<String> descIds) {
+    //TODO: return with different class than queryPathwayRelationships
+    private GenePathwayRelationship queryGeneRelationship(String key) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+    
+    private GenePathwayRelationship queryPathwayRelationship(String key) {
+    	// TODO Auto-generated method stub
+    	return null;
+    }
+
+	private Map<String, DataDesc> createIdToDesc(List<String> descIds) {
         Map<String, DataDesc> idToDesc = new HashMap<>();
         for (String id : descIds) {
             // Just a very simple desc
@@ -351,23 +371,47 @@ public class PairwiseService {
                              Updates.set(rel.getDataDesc().getId(), relDoc));
         logger.debug("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
-
-    public void insertGenePathwayRelationships(List<GenePathwayRelationship> relationships) {
-    	logger.info("Inserting GenePathwayRelationships.");
+    
+    //TODO: Do we need to remove all documents not represented in keyset?
+    //		How do we combat db updates that remove relationships between pathways and genes
+    public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships) {
+    	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
-    	long time1 = System.currentTimeMillis();
-    	//Add gene to pathways relationships 1 by 1
-    	relationships.forEach(rel -> {
-    		ensureGeneDoc(collection, rel.getKey());
-    		if(rel.getPathways() != null && rel.getPathways().size() > 0)
-    			collection.updateOne(Filters.eq("_id", rel.getKey()), Updates.set("pathways", rel.getPathways()));
-    		if(rel.getSecondaryPathways() != null && rel.getSecondaryPathways().size() > 0)
-    			collection.updateOne(Filters.eq("_id", rel.getKey()), Updates.set("secondaryPathways", rel.getSecondaryPathways()));
-    		if(rel.getGenes() != null && rel.getGenes().size() > 0)
-    			collection.updateOne(Filters.eq("_id", rel.getKey()), Updates.set("genes", rel.getGenes()));
+    	
+    	pathwayRelationships.forEach((k, v) -> {
+    		//remove document if no genes for a pathway
+    		if(v.size() == 0) {
+    			collection.deleteOne(Filters.eq("_id", k)); //wont cause issue if 
+    			return;
+    			}
+    		ensureGeneDoc(collection, k);
+    		collection.updateOne(Filters.eq("_id" + k), Updates.set("genes", v));
     	});
-    	long time2 = System.currentTimeMillis();
-    	logger.info("Inserted " +relationships.size()+ " relationships! Total time: " + (time2 - time1));
+    	logger.info("Inserting patwhay relationships complete");
+    }
+    
+    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList, Map<String, Set<Integer>> geneToSecondPathway) {
+    	logger.info("Inserting gene relationships");
+    	
+    	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
+    	
+    	//iterate over secondPathway so no genes are missed. 
+    	geneToSecondPathway.forEach((k,v) -> {
+    		
+    		//delete document if no secondary pathways and no primary pathways
+    		if(v.size() == 0 && (geneToPathwayList.get(k) == null || geneToPathwayList.get(k).size() == 0)) {
+    			collection.deleteOne(Filters.eq("_id", k)); //wont cause issue if no document exists
+    			return;
+    		}
+    		ensureGeneDoc(collection, k);
+    		if(v.size() > 0)
+    			collection.updateOne(Filters.eq("_id", k), Updates.set("secondaryPathways", v));
+    		if(geneToPathwayList.get(k) != null && geneToPathwayList.get(k).size() > 0) 
+    			collection.updateOne(Filters.eq("_id", k), Updates.set("pathways", geneToPathwayList.get(k)));
+    	});
+    	
+    	logger.info(collection.count() + " documents in pathways collection");
+    	
     }
     
     public Map<Integer, String> getIndexToGene() {
@@ -429,5 +473,4 @@ public class PairwiseService {
         collection.insertOne(document);
         logger.info("Inserted DataDesc: " + desc.getId());
     }
-
 }

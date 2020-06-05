@@ -53,6 +53,8 @@ public class PathwayProcessor {
 		}
     	
     	Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToGeneNameList.keySet());
+    	//TODO: Do we want to remove all pathways from pathways collection before we process 
+    			//Use case in db update. Need to remove any relationships that no longer exist
     	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
 	}
 
@@ -72,6 +74,7 @@ public class PathwayProcessor {
 		
 		//Will be persisted into pathways table of mongoDb
 		List<GenePathwayRelationship> genePathwayRelationships = new ArrayList<>();
+		Map<String, List<Integer>> pathwayToGeneIndexList = new HashMap<>();
 		
 		//want to persist Map of gene name to list of pathway Indexes
 		Map<String, Set<Integer>> geneToPathwayIndexList = new HashMap<>();
@@ -79,8 +82,6 @@ public class PathwayProcessor {
 		//Makes GenePathwayRelationships for pathway to gene index
 		//also generates geneToPathwayIndexList to avoid having to loop again later
 		pathwayStIdToGeneNameList.forEach((k,v) -> {
-			GenePathwayRelationship relationship = new GenePathwayRelationship();
-			relationship.setKey(k);
 			List<Integer> geneIndexes = new ArrayList<>();
 			v.forEach(gene -> {
 				//add gene index to list for placement on pathwayToGeneIndexList
@@ -89,14 +90,11 @@ public class PathwayProcessor {
 				if(!geneToPathwayIndexList.containsKey(gene)) geneToPathwayIndexList.put(gene, new HashSet<>());
 				if(!geneToPathwayIndexList.get(gene).contains(pathwayToIndex.get(k))) geneToPathwayIndexList.get(gene).add(pathwayToIndex.get(k));
 			});
-			relationship.setGenes(geneIndexes);
-			genePathwayRelationships.add(relationship);
+			pathwayToGeneIndexList.put(k, new ArrayList<>(geneIndexes));
 		});
 		
-		genePathwayRelationships.addAll(getGeneToPathwaysRelationships(geneToPathwayIndexList, service));
-		
-		//persist List of GenePathwayRelationship to mongodb
-		service.insertGenePathwayRelationships(genePathwayRelationships);
+		service.insertPathwayRelationships(pathwayToGeneIndexList);
+		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayIndexList(geneToPathwayIndexList, service));
 	}
 
 	/**
@@ -106,42 +104,33 @@ public class PathwayProcessor {
 	 * @param service
 	 * @return
 	 */
-	private List<GenePathwayRelationship> getGeneToPathwaysRelationships(Map<String, Set<Integer>> geneToPathwayIndexList, PairwiseService service) {
-		List<GenePathwayRelationship> relationships = new ArrayList<>();
-		
+	private Map<String, Set<Integer>> getGeneToSecondPathwayIndexList(Map<String, Set<Integer>> geneToPathwayIndexList, PairwiseService service) {		
 		//should be a list of all descIds
 		List<String> dataDesc = service.listDataDesc().stream().map(DataDesc::getId).collect(Collectors.toList());
 		long time1 = System.currentTimeMillis();
-		geneToPathwayIndexList.forEach((k,v) -> {
-			//make object
-			GenePathwayRelationship relationship = new GenePathwayRelationship();
-			relationship.setKey(k);
-			//add primary pathways
-			List<Integer> primaryPathways = new ArrayList<Integer>(v);
-			relationship.setPathways(primaryPathways);
-			//load all interactors for a gene
-			List<PairwiseRelationship> pairwise = service.queryRelsForGenes(Collections.singletonList(k), dataDesc);
-			Set<Integer> secondaryPathwaysSet = new HashSet<>();
-			pairwise.forEach(r -> {
-				if(r.getPosGenes() != null && r.getPosGenes().size() > 0)
-					r.getPosGenes().forEach(g -> {
-						Set<Integer> toAdd = geneToPathwayIndexList.get(g);
-						if(toAdd != null)secondaryPathwaysSet.addAll(toAdd); //sometimes null, but probably shouldnt be.
-						});
-				if(r.getNegGenes() != null && r.getNegGenes().size() > 0)
-					r.getNegGenes().forEach(g -> {
-						Set<Integer> toAdd = geneToPathwayIndexList.get(g);
-						if(toAdd != null)secondaryPathwaysSet.addAll(toAdd);
-						});
+		
+		Map<String, Set<Integer>> geneToSecondPathwayList = new HashMap<>();
+		//loop over genes from geneToIndex to make sure all genes are checked for secondary pathways
+		//even if they have no pathways in geneToPathwayIndexList
+		service.getIndexToGene().values().forEach(gene -> {
+			Set<Integer> pathwayIndexList = new HashSet<>();
+			List<PairwiseRelationship> pairwise = service.queryRelsForGenes(Collections.singletonList(gene), dataDesc);
+			pairwise.forEach(rel -> {
+				if(rel.getPosGenes() != null) {
+					pathwayIndexList.addAll(rel.getPosGenes().stream()
+							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, new HashSet<>()).stream())
+							.collect(Collectors.toSet()));
+				}
+				if(rel.getNegGenes() != null)
+					pathwayIndexList.addAll(rel.getNegGenes().stream()
+							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, new HashSet<>()).stream())
+							.collect(Collectors.toSet()));
 			});
-			List<Integer> secondaryPathways = new ArrayList<>(secondaryPathwaysSet);
-			secondaryPathways.removeAll(primaryPathways);
-			relationship.setSecondaryPathways(secondaryPathways);
-			relationships.add(relationship);
+			geneToSecondPathwayList.put(gene, pathwayIndexList);
 		});
 		long time2 = System.currentTimeMillis();
 		logger.info("Total time: " + (time2 - time1));
 		
-		return relationships;
+		return geneToSecondPathwayList;
 	}
 }
