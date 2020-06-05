@@ -99,6 +99,14 @@ public class WSTests {
     	outputJSON(rtn);
     }
     
+    @Test
+    public void testQueryGenesForPathway() throws Exception {
+    	String url = HOST_URL + "/relationships/pathway/R-HSA-198753";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
     private void outputJSON(String json) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         Object obj = mapper.readValue(json, Object.class);

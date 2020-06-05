@@ -252,9 +252,19 @@ public class PairwiseService {
 		return rtn;
 	}
     
-    public PathwayToGeneRelationship queryPathwayToGeneRelationships(String key) {
-    	// TODO Auto-generated method stub
-    	return null;
+    public PathwayToGeneRelationship queryPathwayToGeneRelationships(String stId) {
+    	Map<Integer, String> indexToGene = getIndexToGene();
+    	PathwayToGeneRelationship rtn = new PathwayToGeneRelationship();
+    	rtn.setPathwayStId(stId);
+    	
+    	Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", stId)).first();
+    	List<Integer> indexList = (List<Integer>)doc.get("genes");
+    	if(indexList != null) {
+    		List<String> geneList = indexList.stream().map(i -> indexToGene.get(i)).collect(Collectors.toList());
+    		rtn.setGenes(geneList);
+    	}
+
+    	return rtn;
     }
 
 	private Map<String, DataDesc> createIdToDesc(List<String> descIds) {
@@ -395,7 +405,7 @@ public class PairwiseService {
     			return;
     			}
     		ensureGeneDoc(collection, k);
-    		collection.updateOne(Filters.eq("_id" + k), Updates.set("genes", v));
+    		collection.updateOne(Filters.eq("_id", k), Updates.set("genes", v));
     	});
     	logger.info("Inserting patwhay relationships complete");
     }
