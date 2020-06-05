@@ -6,7 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.reactome.idg.pairwise.model.DataDesc;
+import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
+import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -78,6 +80,21 @@ public class PairwiseController {
         List<String> descIds = Arrays.asList(lines[0].split(","));
         List<String> genes = Arrays.asList(lines[1].split(","));
         return service.queryRelsForProteins(genes, descIds, numberOnly);
+    }
+
+    @GetMapping("/relationships/gene/{gene}")
+    public GeneToPathwayRelationship queryGeneToPathwayRelationship(@PathVariable("gene") String gene) {
+    	return service.queryGeneToPathwayRelathinships(gene);
+    }
+    
+    @GetMapping("/relationships/pathway/{stId}")
+    public PathwayToGeneRelationship queryPathwayToGeneRelationship(@PathVariable("stId") String stId) {
+    	return service.queryPathwayToGeneRelationships(stId);
+    }
+    
+    @GetMapping("/realationships/uniprot/{uniprot}")
+    public GeneToPathwayRelationship queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
+    	return service.queryUniprotToPathwayRelationships(uniprot);
     }
 
 }

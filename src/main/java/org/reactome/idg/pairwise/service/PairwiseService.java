@@ -14,8 +14,9 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.GenePathwayRelationship;
+import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
+import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -226,21 +227,32 @@ public class PairwiseService {
         }
     }
     
-    public GenePathwayRelationship queryGenePathwayRelationship(String key) {
-		if(getIndexToGene().containsValue(key))
-			return queryGeneRelationship(key);
-		else if(getIndexToPathway().containsValue(key))
-			return queryPathwayRelationship(key);
-		return null;
-	}
+    public GeneToPathwayRelationship queryUniprotToPathwayRelationships(String uniprot) {
+    	GeneToPathwayRelationship rtn = queryGeneToPathwayRelathinships(this.getUniProtToGene().get(uniprot));
+    	rtn.setGene(uniprot);
+    	return rtn;
+    }
 
-    //TODO: return with different class than queryPathwayRelationships
-    private GenePathwayRelationship queryGeneRelationship(String key) {
-		// TODO Auto-generated method stub
-		return null;
+    public GeneToPathwayRelationship queryGeneToPathwayRelathinships(String geneName) {
+		Map<Integer, String> indexToPathway = getIndexToPathway();
+		GeneToPathwayRelationship rtn = new GeneToPathwayRelationship();
+		rtn.setGene(geneName);
+		//should only be one doc per id.
+		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", geneName)).first();
+		List<Integer> indexList =(List<Integer>) doc.get("pathways");
+		if(indexList != null) {
+			List<String> pathwayList = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
+			rtn.setPathways(pathwayList);
+		}
+		indexList = (List<Integer>) doc.get("secondaryPathways");
+		if(indexList != null) {
+			List<String> pathwayList = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
+			rtn.setSecondaryPathways(pathwayList);
+		}
+		return rtn;
 	}
     
-    private GenePathwayRelationship queryPathwayRelationship(String key) {
+    public PathwayToGeneRelationship queryPathwayToGeneRelationships(String key) {
     	// TODO Auto-generated method stub
     	return null;
     }
@@ -371,9 +383,7 @@ public class PairwiseService {
                              Updates.set(rel.getDataDesc().getId(), relDoc));
         logger.debug("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
-    
-    //TODO: Do we need to remove all documents not represented in keyset?
-    //		How do we combat db updates that remove relationships between pathways and genes
+
     public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships) {
     	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
@@ -446,7 +456,7 @@ public class PairwiseService {
     
     private void ensureGeneDoc(MongoCollection<Document> collection,
                                String gene) {
-        // There shoul dbe only one document
+        // There should be only one document
         Document geneDoc = collection.find(Filters.eq("_id", gene)).first();
         if (geneDoc != null)
             return;
@@ -473,4 +483,10 @@ public class PairwiseService {
         collection.insertOne(document);
         logger.info("Inserted DataDesc: " + desc.getId());
     }
+
+	public void regeneratePathwayCollection() {
+		MongoCollection<Document> collection = database.getCollection(this.PATHWAYS_COL_ID);
+		collection.drop();
+		database.createCollection(this.PATHWAYS_COL_ID);
+	}
 }

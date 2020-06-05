@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.GenePathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 
@@ -53,8 +52,8 @@ public class PathwayProcessor {
 		}
     	
     	Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToGeneNameList.keySet());
-    	//TODO: Do we want to remove all pathways from pathways collection before we process 
-    			//Use case in db update. Need to remove any relationships that no longer exist
+    	//regenerate pathway collection so that any no longer existing pathway-gene relationships are removed
+    	service.regeneratePathwayCollection();
     	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
 	}
 
@@ -73,13 +72,12 @@ public class PathwayProcessor {
 		Map<String, Integer> geneToIndex = service.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
 		
 		//Will be persisted into pathways table of mongoDb
-		List<GenePathwayRelationship> genePathwayRelationships = new ArrayList<>();
 		Map<String, List<Integer>> pathwayToGeneIndexList = new HashMap<>();
 		
 		//want to persist Map of gene name to list of pathway Indexes
 		Map<String, Set<Integer>> geneToPathwayIndexList = new HashMap<>();
 		
-		//Makes GenePathwayRelationships for pathway to gene index
+		//generates values for pathwayToGeneIndexList
 		//also generates geneToPathwayIndexList to avoid having to loop again later
 		pathwayStIdToGeneNameList.forEach((k,v) -> {
 			List<Integer> geneIndexes = new ArrayList<>();

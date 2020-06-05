@@ -83,6 +83,22 @@ public class WSTests {
         outputJSON(rtn);
     }
     
+    @Test
+    public void testQueryPathwaysForGene() throws Exception {
+    	String url = HOST_URL + "/relationships/gene/A1BG";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
+    @Test
+    public void testQueryPathwaysForUniprot() throws Exception {
+    	String url = HOST_URL + "/realationships/uniprot/P04217";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
     private void outputJSON(String json) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         Object obj = mapper.readValue(json, Object.class);
