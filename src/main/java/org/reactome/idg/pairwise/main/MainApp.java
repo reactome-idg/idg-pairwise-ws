@@ -26,7 +26,7 @@ public class MainApp {
     public static void main(String[] args) {
 //        pushDataIntoDB(args);
 //        pushMLFeatureIntoDB();
-    	  pushHomePageData();
+    	  pushPathwayData();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -91,7 +91,7 @@ public class MainApp {
      * Also caches Gene/Pathway relationships into a pathways collection
      * @param: args[] should be [*directory of UniProt2Pathway file*, *fileName*]
      */
-    private static void pushHomePageData() {
+    private static void pushPathwayData() {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
         PairwiseService service = context.getBean(PairwiseService.class);
     	PathwayProcessor processor = new PathwayProcessor();
