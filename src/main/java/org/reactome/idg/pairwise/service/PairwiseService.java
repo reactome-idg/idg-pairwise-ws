@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -397,37 +398,41 @@ public class PairwiseService {
     public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships) {
     	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
-    	
-    	pathwayRelationships.forEach((k, v) -> {
+    	//TODO: rename k and v for clarity
+    	pathwayRelationships.forEach((pathway, geneList) -> {
     		//remove document if no genes for a pathway
-    		if(v.size() == 0) {
-    			collection.deleteOne(Filters.eq("_id", k)); //wont cause issue if 
+    		if(geneList.size() == 0) {
+    			collection.deleteOne(Filters.eq("_id", pathway)); //wont cause issue if 
     			return;
     			}
-    		ensureGeneDoc(collection, k);
-    		collection.updateOne(Filters.eq("_id", k), Updates.set("genes", v));
+    		ensureGeneDoc(collection, pathway);
+    		collection.updateOne(Filters.eq("_id", pathway), Updates.set("genes", geneList));
     	});
     	logger.info("Inserting patwhay relationships complete");
     }
     
+    //TODO: If gene has pathways but no secondary pathway and no interactions, this may not create document correctly
+    // collect keyset of each argument for loop to ensure nothing is missed
     public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList, Map<String, Set<Integer>> geneToSecondPathway) {
     	logger.info("Inserting gene relationships");
     	
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
     	
-    	//iterate over secondPathway so no genes are missed. 
-    	geneToSecondPathway.forEach((k,v) -> {
+    	//TODO: iterate over secondPathway so no genes are missed. 
+    	Set<String> genes = new HashSet<>(geneToPathwayList.keySet());
+    	genes.addAll(geneToSecondPathway.keySet());
+    	genes.forEach((gene) -> {
     		
     		//delete document if no secondary pathways and no primary pathways
-    		if(v.size() == 0 && (geneToPathwayList.get(k) == null || geneToPathwayList.get(k).size() == 0)) {
-    			collection.deleteOne(Filters.eq("_id", k)); //wont cause issue if no document exists
+    		if(geneToSecondPathway.get(gene).size() == 0 && (geneToPathwayList.get(gene) == null || geneToPathwayList.get(gene).size() == 0)) {
+    			collection.deleteOne(Filters.eq("_id", gene)); //wont cause issue if no document exists
     			return;
     		}
-    		ensureGeneDoc(collection, k);
-    		if(v.size() > 0)
-    			collection.updateOne(Filters.eq("_id", k), Updates.set("secondaryPathways", v));
-    		if(geneToPathwayList.get(k) != null && geneToPathwayList.get(k).size() > 0) 
-    			collection.updateOne(Filters.eq("_id", k), Updates.set("pathways", geneToPathwayList.get(k)));
+    		ensureGeneDoc(collection, gene);
+    		if(geneToSecondPathway.get(gene).size() > 0)
+    			collection.updateOne(Filters.eq("_id", gene), Updates.set("secondaryPathways", geneToSecondPathway.get(gene)));
+    		if(geneToPathwayList.get(gene) != null && geneToPathwayList.get(gene).size() > 0) 
+    			collection.updateOne(Filters.eq("_id", gene), Updates.set("pathways", geneToPathwayList.get(gene)));
     	});
     	
     	logger.info(collection.count() + " documents in pathways collection");
