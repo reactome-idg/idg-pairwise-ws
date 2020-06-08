@@ -38,23 +38,25 @@ public class PathwayProcessor {
 				String[] tokens = line.split("\t");
 				
 				//need to remove "-#" in any uniprot to get parent uniprot
-				String correctedUniprot = tokens[0].contains("-") ? tokens[0].substring(0, tokens[0].indexOf("-")) : tokens[0];
+				//map.compute api to simplify (takes binary function)
+				String correctedUniprot = tokens[0].split("-")[0];
 				if(uniprotToGene.containsKey(correctedUniprot)) {
 					if(!pathwayStIdToGeneNameList.containsKey(tokens[1]))
 						pathwayStIdToGeneNameList.put(tokens[1], new ArrayList<>());
-					if(uniprotToGene.get(correctedUniprot) == null) System.out.println(tokens[0]);
 					pathwayStIdToGeneNameList.get(tokens[1]).add(uniprotToGene.get(correctedUniprot));
 				}
 			}			
 			br.close();
+			
+			Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToGeneNameList.keySet());
+	    	//regenerate pathway collection so that any no longer existing pathway-gene relationships are removed
+	    	service.regeneratePathwayCollection();
+	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
+			
 		} catch (IOException e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
+			return;
 		}
-    	
-    	Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToGeneNameList.keySet());
-    	//regenerate pathway collection so that any no longer existing pathway-gene relationships are removed
-    	service.regeneratePathwayCollection();
-    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
 	}
 
 	/**
@@ -110,20 +112,22 @@ public class PathwayProcessor {
 		Map<String, Set<Integer>> geneToSecondPathwayList = new HashMap<>();
 		//loop over genes from geneToIndex to make sure all genes are checked for secondary pathways
 		//even if they have no pathways in geneToPathwayIndexList
+		Set<Integer> emptySet = new HashSet<>();
 		service.getIndexToGene().values().forEach(gene -> {
 			Set<Integer> pathwayIndexList = new HashSet<>();
 			List<PairwiseRelationship> pairwise = service.queryRelsForGenes(Collections.singletonList(gene), dataDesc);
 			pairwise.forEach(rel -> {
 				if(rel.getPosGenes() != null) {
 					pathwayIndexList.addAll(rel.getPosGenes().stream()
-							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, new HashSet<>()).stream())
+							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, emptySet).stream())
 							.collect(Collectors.toSet()));
 				}
 				if(rel.getNegGenes() != null)
 					pathwayIndexList.addAll(rel.getNegGenes().stream()
-							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, new HashSet<>()).stream())
+							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, emptySet).stream())
 							.collect(Collectors.toSet()));
 			});
+			pathwayIndexList.removeAll(geneToPathwayIndexList.get(gene));
 			geneToSecondPathwayList.put(gene, pathwayIndexList);
 		});
 		long time2 = System.currentTimeMillis();
