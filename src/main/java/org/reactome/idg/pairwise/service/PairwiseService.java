@@ -399,11 +399,6 @@ public class PairwiseService {
     	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
     	pathwayRelationships.forEach((pathway, geneList) -> {
-    		//remove document if no genes for a pathway
-    		if(geneList.size() == 0) {
-    			collection.deleteOne(Filters.eq("_id", pathway)); //wont cause issue if 
-    			return;
-    			}
     		ensureGeneDoc(collection, pathway);
     		collection.updateOne(Filters.eq("_id", pathway), Updates.set("genes", geneList));
     	});
@@ -419,14 +414,8 @@ public class PairwiseService {
     	Set<String> genes = new HashSet<>(geneToPathwayList.keySet());
     	genes.addAll(geneToSecondPathway.keySet());
     	genes.forEach((gene) -> {
-    		
-    		//delete document if no secondary pathways and no primary pathways
-    		if(geneToSecondPathway.get(gene).size() == 0 && (geneToPathwayList.get(gene) == null || geneToPathwayList.get(gene).size() == 0)) {
-    			collection.deleteOne(Filters.eq("_id", gene)); //wont cause issue if no document exists
-    			return;
-    		}
     		ensureGeneDoc(collection, gene);
-    		if(geneToSecondPathway.get(gene).size() > 0)
+    		if(geneToSecondPathway.get(gene) != null && geneToSecondPathway.get(gene).size() > 0)
     			collection.updateOne(Filters.eq("_id", gene), Updates.set("secondaryPathways", geneToSecondPathway.get(gene)));
     		if(geneToPathwayList.get(gene) != null && geneToPathwayList.get(gene).size() > 0) 
     			collection.updateOne(Filters.eq("_id", gene), Updates.set("pathways", geneToPathwayList.get(gene)));

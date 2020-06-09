@@ -11,6 +11,7 @@ import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wug
  *
  */
+@CrossOrigin
 @RestController
 public class PairwiseController {
     
@@ -82,19 +84,21 @@ public class PairwiseController {
         return service.queryRelsForProteins(genes, descIds, numberOnly);
     }
 
+    @CrossOrigin
     @GetMapping("/relationships/gene/{gene}")
     public GeneToPathwayRelationship queryGeneToPathwayRelationship(@PathVariable("gene") String gene) {
     	return service.queryGeneToPathwayRelathinships(gene);
     }
     
+    @CrossOrigin
     @GetMapping("/relationships/pathway/{stId}")
     public PathwayToGeneRelationship queryPathwayToGeneRelationship(@PathVariable("stId") String stId) {
     	return service.queryPathwayToGeneRelationships(stId);
     }
     
+    @CrossOrigin
     @GetMapping("/realationships/uniprot/{uniprot}")
     public GeneToPathwayRelationship queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
     	return service.queryUniprotToPathwayRelationships(uniprot);
     }
-
 }

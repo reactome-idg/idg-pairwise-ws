@@ -127,7 +127,7 @@ public class PathwayProcessor {
 							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, emptySet).stream())
 							.collect(Collectors.toSet()));
 			});
-			pathwayIndexList.removeAll(geneToPathwayIndexList.get(gene));
+			pathwayIndexList.removeAll(geneToPathwayIndexList.getOrDefault(gene, emptySet));
 			geneToSecondPathwayList.put(gene, pathwayIndexList);
 		});
 		long time2 = System.currentTimeMillis();
