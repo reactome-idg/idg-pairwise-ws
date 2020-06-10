@@ -17,6 +17,7 @@ import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
+import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,13 +243,19 @@ public class PairwiseService {
 		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", geneName)).first();
 		List<Integer> indexList =(List<Integer>) doc.get("pathways");
 		if(indexList != null) {
-			List<String> pathwayList = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
-			rtn.setPathways(pathwayList);
+			List<Pathway> pathways = new ArrayList<>();
+			indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList()).forEach(pathway -> {
+				pathways.add(new Pathway(pathway,(String) database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", pathway)).first().get("name")));
+			});
+			rtn.setPathways(pathways);
 		}
 		indexList = (List<Integer>) doc.get("secondaryPathways");
 		if(indexList != null) {
-			List<String> pathwayList = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
-			rtn.setSecondaryPathways(pathwayList);
+			List<Pathway> pathways = new ArrayList<>();
+			indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList()).forEach(pathway -> {
+				pathways.add(new Pathway(pathway,(String) database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", pathway)).first().get("name")));
+			});
+			rtn.setSecondaryPathways(pathways);
 		}
 		return rtn;
 	}

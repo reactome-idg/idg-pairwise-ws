@@ -5,8 +5,8 @@ import java.util.List;
 public class GeneToPathwayRelationship {
 
 	String gene;
-	List<String> pathways;
-	List<String> secondaryPathways;
+	List<Pathway> pathways;
+	List<Pathway> secondaryPathways;
 	
 	public GeneToPathwayRelationship() {
 	}
@@ -19,19 +19,19 @@ public class GeneToPathwayRelationship {
 		this.gene = gene;
 	}
 
-	public List<String> getPathways() {
+	public List<Pathway> getPathways() {
 		return pathways;
 	}
 
-	public void setPathways(List<String> pathways) {
+	public void setPathways(List<Pathway> pathways) {
 		this.pathways = pathways;
 	}
 
-	public List<String> getSecondaryPathways() {
+	public List<Pathway> getSecondaryPathways() {
 		return secondaryPathways;
 	}
 
-	public void setSecondaryPathways(List<String> secondaryPathways) {
+	public void setSecondaryPathways(List<Pathway> secondaryPathways) {
 		this.secondaryPathways = secondaryPathways;
 	}
 }
