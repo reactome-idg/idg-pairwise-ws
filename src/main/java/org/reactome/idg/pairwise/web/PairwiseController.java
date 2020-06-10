@@ -87,18 +87,18 @@ public class PairwiseController {
     @CrossOrigin
     @GetMapping("/relationships/gene/{gene}")
     public GeneToPathwayRelationship queryGeneToPathwayRelationship(@PathVariable("gene") String gene) {
-    	return service.queryGeneToPathwayRelathinships(gene);
+    	return service.queryGeneToPathwayRelathinships(gene.toUpperCase());
     }
     
     @CrossOrigin
     @GetMapping("/relationships/pathway/{stId}")
     public PathwayToGeneRelationship queryPathwayToGeneRelationship(@PathVariable("stId") String stId) {
-    	return service.queryPathwayToGeneRelationships(stId);
+    	return service.queryPathwayToGeneRelationships(stId.toUpperCase());
     }
     
     @CrossOrigin
     @GetMapping("/realationships/uniprot/{uniprot}")
     public GeneToPathwayRelationship queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
-    	return service.queryUniprotToPathwayRelationships(uniprot);
+    	return service.queryUniprotToPathwayRelationships(uniprot.toUpperCase());
     }
 }

@@ -231,7 +231,7 @@ public class PairwiseService {
     
     public GeneToPathwayRelationship queryUniprotToPathwayRelationships(String uniprot) {
     	GeneToPathwayRelationship rtn = queryGeneToPathwayRelathinships(this.getUniProtToGene().get(uniprot));
-    	rtn.setGene(uniprot);
+    	if(rtn != null) rtn.setGene(uniprot);
     	return rtn;
     }
 
@@ -241,6 +241,9 @@ public class PairwiseService {
 		rtn.setGene(geneName);
 		//should only be one doc per id.
 		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", geneName)).first();
+		//must make sure doc exists before moving on
+		if(doc == null) return null;
+		
 		List<Integer> indexList =(List<Integer>) doc.get("pathways");
 		if(indexList != null) {
 			List<Pathway> pathways = new ArrayList<>();
@@ -266,6 +269,9 @@ public class PairwiseService {
     	rtn.setPathwayStId(stId);
     	
     	Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", stId)).first();
+    	//make sure doc exists
+    	if(doc == null) return null;
+    	
     	List<Integer> indexList = (List<Integer>)doc.get("genes");
     	if(indexList != null) {
     		List<String> geneList = indexList.stream().map(i -> indexToGene.get(i)).collect(Collectors.toList());
