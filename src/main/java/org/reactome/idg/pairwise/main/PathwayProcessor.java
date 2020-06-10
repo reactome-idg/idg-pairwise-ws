@@ -28,7 +28,8 @@ public class PathwayProcessor {
 	
 	public void processPathways(PairwiseService service){
 		Map<String, String> uniprotToGene = service.getUniProtToGene();
-    	Map<String, List<String>> pathwayStIdToGeneNameList = new HashMap<>(); 
+    	Map<String, List<String>> pathwayStIdToGeneNameList = new HashMap<>();
+    	Map<String, String> pathwayStIdToPathwayName = new HashMap<>();
     	
     	try {
     		URL url = new URL(UNIPROT_2_REACTOME_URL);
@@ -44,6 +45,8 @@ public class PathwayProcessor {
 					if(!pathwayStIdToGeneNameList.containsKey(tokens[1]))
 						pathwayStIdToGeneNameList.put(tokens[1], new ArrayList<>());
 					pathwayStIdToGeneNameList.get(tokens[1]).add(uniprotToGene.get(correctedUniprot));
+					if(!pathwayStIdToPathwayName.containsKey(tokens[1]))
+						pathwayStIdToPathwayName.put(tokens[1], tokens[3]);
 				}
 			}			
 			br.close();
@@ -51,7 +54,7 @@ public class PathwayProcessor {
 			Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToGeneNameList.keySet());
 	    	//regenerate pathway collection so that any no longer existing pathway-gene relationships are removed
 	    	service.regeneratePathwayCollection();
-	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
+	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayStIdToPathwayName, pathwayToIndex, service);
 			
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -69,8 +72,9 @@ public class PathwayProcessor {
 	 * @param service
 	 */
 	private void processGenePathwayRelationship(Map<String, List<String>> pathwayStIdToGeneNameList,
-									  Map<String, Integer> pathwayToIndex,
-									  PairwiseService service) {
+												Map<String, String> pathwayStIdToPathwayName,
+												Map<String, Integer> pathwayToIndex,
+												PairwiseService service) {
 		Map<String, Integer> geneToIndex = service.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
 		
 		//Will be persisted into pathways table of mongoDb
@@ -93,7 +97,7 @@ public class PathwayProcessor {
 			pathwayToGeneIndexList.put(k, new ArrayList<>(geneIndexes));
 		});
 		
-		service.insertPathwayRelationships(pathwayToGeneIndexList);
+		service.insertPathwayRelationships(pathwayToGeneIndexList, pathwayStIdToPathwayName);
 		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayIndexList(geneToPathwayIndexList, service));
 	}
 

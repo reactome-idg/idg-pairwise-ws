@@ -395,11 +395,12 @@ public class PairwiseService {
         logger.debug("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
 
-    public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships) {
+    public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships, Map<String, String> pathwayStIdToPathwayName) {
     	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
     	pathwayRelationships.forEach((pathway, geneList) -> {
     		ensureGeneDoc(collection, pathway);
+    		collection.updateOne(Filters.eq("_id", pathway), Updates.set("name", pathwayStIdToPathwayName.get(pathway)));
     		collection.updateOne(Filters.eq("_id", pathway), Updates.set("genes", geneList));
     	});
     	logger.info("Inserting patwhay relationships complete");
