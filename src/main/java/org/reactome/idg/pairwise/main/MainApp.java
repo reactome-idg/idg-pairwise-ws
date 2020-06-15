@@ -89,7 +89,6 @@ public class MainApp {
     /**
      * Used to insert pathway index data from Uniprot2Reactome.txt file
      * Also caches Gene/Pathway relationships into a pathways collection
-     * @param: args[] should be [*directory of UniProt2Pathway file*, *fileName*]
      */
     private static void pushPathwayData() {
         AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
