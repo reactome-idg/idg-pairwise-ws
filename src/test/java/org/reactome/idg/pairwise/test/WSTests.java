@@ -109,7 +109,7 @@ public class WSTests {
     
     @Test
     public void testQueryUniprotsForPathway() throws Exception { 
-    	String url = HOST_URL + "/relationships/uniprotsForPathway/P04217";
+    	String url = HOST_URL + "/relationships/uniprotsForPathway/R-HSA-198753";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);

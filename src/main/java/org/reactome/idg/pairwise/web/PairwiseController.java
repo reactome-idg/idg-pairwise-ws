@@ -102,12 +102,11 @@ public class PairwiseController {
     	return service.queryPathwayToGeneRelationships(stId.toUpperCase());
     }
     
-//	  TODO: This controller method is disabled because of an issue on the service level.
-//    @CrossOrigin
-//    @GetMapping("/relationships/uniprotsForPathway/{uniprot}")
-//    public PathwayToGeneRelationship queryPathwayToUniprotRelationship(@PathVariable("uniprot") String uniprot) {
-//    	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
-//    }
+    @CrossOrigin
+    @GetMapping("/relationships/uniprotsForPathway/{uniprot}")
+    public PathwayToGeneRelationship queryPathwayToUniprotRelationship(@PathVariable("uniprot") String uniprot) {
+    	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
+    }
     
     //swagger document for ws API design
 }

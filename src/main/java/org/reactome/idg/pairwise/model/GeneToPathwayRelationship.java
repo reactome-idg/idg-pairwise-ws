@@ -4,9 +4,9 @@ import java.util.List;
 
 public class GeneToPathwayRelationship {
 
-	String gene;
-	List<Pathway> pathways;
-	List<Pathway> secondaryPathways;
+	private String gene;
+	private List<Pathway> pathways;
+	private List<Pathway> secondaryPathways;
 	
 	public GeneToPathwayRelationship() {
 	}

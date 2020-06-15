@@ -51,7 +51,6 @@ public class PairwiseService {
     //Cached index to pathway for performance
     private Map<Integer,String> indexToPathway;
     //TODO: One-to-one mapping between UniProt and gene symbols are most likely not right.
-    //TODO: As it stands, this map cannot be reversed because it is not 1:1
     // This should be improved in the future.
     // Cached uniprot to gene mapping
     private Map<String, String> uniprotToGene;
@@ -66,7 +65,12 @@ public class PairwiseService {
         }
         return uniprotToGene;
     }
-
+    
+    public Map<String, String> getGenneToUniProt(){
+    	if(geneToUniprot == null) loadUniProtToGene();
+    	return geneToUniprot;
+    }
+ 
     private void loadUniProtToGene() {
         uniprotToGene = new HashMap<>();
         InputStream is = getClass().getClassLoader().getResourceAsStream(UNIPROT_TO_GENE_FILE_NAME);
@@ -238,7 +242,7 @@ public class PairwiseService {
     }
 
     public GeneToPathwayRelationship queryGeneToPathwayRelathinships(String geneName) {
-		Map<Integer, String> indexToPathway = getIndexToPathway();
+		Map<Integer, String> indexToPathway = getIndexToPathway(); //cache index to pathway object, short cut
 		GeneToPathwayRelationship rtn = new GeneToPathwayRelationship();
 		rtn.setGene(geneName);
 		//should only be one doc per id.
@@ -249,6 +253,7 @@ public class PairwiseService {
 		List<Integer> indexList =(List<Integer>) doc.get("pathways");
 		if(indexList != null) {
 			List<Pathway> pathways = new ArrayList<>();
+			//Get Collection once, instead of every time
 			indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList()).forEach(pathway -> {
 				pathways.add(new Pathway(pathway,(String) database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", pathway)).first().get("name")));
 			});
@@ -284,8 +289,7 @@ public class PairwiseService {
     }
     
     public PathwayToGeneRelationship queryPathwayToUniprotRelationships(String stId) {
-    	//TODO: this stream breaks because the map is not perfectly 1:1.  Throws error if a key already exists. This is fixed in JDK 11 and will rewrite new value
-		Map<String, String> geneToUniprot = this.getUniProtToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
+		Map<String, String> geneToUniprot = getGenneToUniProt();
 		PathwayToGeneRelationship rtn = queryPathwayToGeneRelationships(stId);
 		if(rtn == null) return null;
 		List<String> uniprotList = rtn.getGenes().stream().map(i -> geneToUniprot.get(i)).collect(Collectors.toList());
