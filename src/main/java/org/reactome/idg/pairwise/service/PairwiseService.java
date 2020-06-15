@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
@@ -280,6 +281,15 @@ public class PairwiseService {
 
     	return rtn;
     }
+    
+    public PathwayToGeneRelationship queryPathwayToUniprotRelationships(String stId) {
+		Map<String, String> geneToUniprot = this.getUniProtToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
+		PathwayToGeneRelationship rtn = queryPathwayToGeneRelationships(stId);
+		if(rtn == null) return null;
+		List<String> uniprotList = rtn.getGenes().stream().map(i -> geneToUniprot.get(i)).collect(Collectors.toList());
+		rtn.setGenes(uniprotList);
+		return rtn;
+	}
 
 	private Map<String, DataDesc> createIdToDesc(List<String> descIds) {
         Map<String, DataDesc> idToDesc = new HashMap<>();
