@@ -51,10 +51,11 @@ public class PathwayProcessor {
 			}			
 			br.close();
 			
-			Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToGeneNameList.keySet());
-	    	//regenerate pathway collection so that any no longer existing pathway-gene relationships are removed
-	    	service.regeneratePathwayCollection();
-	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayStIdToPathwayName, pathwayToIndex, service);
+			//regenerate pathway collection and PATHWAY_INDEX so that any no longer existing pathway-gene relationships are removed
+	    	service.regeneratePathwayCollections();
+			
+			Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToPathwayName);
+	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
 			
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -72,7 +73,6 @@ public class PathwayProcessor {
 	 * @param service
 	 */
 	private void processGenePathwayRelationship(Map<String, List<String>> pathwayStIdToGeneNameList,
-												Map<String, String> pathwayStIdToPathwayName,
 												Map<String, Integer> pathwayToIndex,
 												PairwiseService service) {
 		Map<String, Integer> geneToIndex = service.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
@@ -97,7 +97,7 @@ public class PathwayProcessor {
 			pathwayToGeneIndexList.put(k, new ArrayList<>(geneIndexes));
 		});
 		
-		service.insertPathwayRelationships(pathwayToGeneIndexList, pathwayStIdToPathwayName);
+		service.insertPathwayRelationships(pathwayToGeneIndexList);
 		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayIndexList(geneToPathwayIndexList, service));
 	}
 

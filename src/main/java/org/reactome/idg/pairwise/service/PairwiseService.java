@@ -27,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
@@ -49,7 +50,7 @@ public class PairwiseService {
     // Cached index to gene for performance
     private Map<Integer, String> indexToGene;
     //Cached index to pathway for performance
-    private Map<Integer,String> indexToPathway;
+    private Map<Integer,Pathway> indexToPathway;
     //TODO: One-to-one mapping between UniProt and gene symbols are most likely not right.
     // This should be improved in the future.
     // Cached uniprot to gene mapping
@@ -242,7 +243,7 @@ public class PairwiseService {
     }
 
     public GeneToPathwayRelationship queryGeneToPathwayRelathinships(String geneName) {
-		Map<Integer, String> indexToPathway = getIndexToPathway(); //cache index to pathway object, short cut
+		Map<Integer, Pathway> indexToPathway = getIndexToPathway();
 		GeneToPathwayRelationship rtn = new GeneToPathwayRelationship();
 		rtn.setGene(geneName);
 		//should only be one doc per id.
@@ -254,17 +255,13 @@ public class PairwiseService {
 		if(indexList != null) {
 			List<Pathway> pathways = new ArrayList<>();
 			//Get Collection once, instead of every time
-			indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList()).forEach(pathway -> {
-				pathways.add(new Pathway(pathway,(String) database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", pathway)).first().get("name")));
-			});
+			pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 			rtn.setPathways(pathways);
 		}
 		indexList = (List<Integer>) doc.get("secondaryPathways");
 		if(indexList != null) {
 			List<Pathway> pathways = new ArrayList<>();
-			indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList()).forEach(pathway -> {
-				pathways.add(new Pathway(pathway,(String) database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", pathway)).first().get("name")));
-			});
+			pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 			rtn.setSecondaryPathways(pathways);
 		}
 		return rtn;
@@ -340,8 +337,19 @@ public class PairwiseService {
     public void performIndex() {
     }
     
-    public Map<String, Integer> ensurePathwayIndex(Collection<String> pathways){
-    	return ensureCollectionIndex(pathways, PATHWAY_INDEX_COL_ID);
+    public Map<String, Integer> ensurePathwayIndex(Map<String, String> pathwayStIdToPathwayName){
+    	Map<String, Integer> rtn = new HashMap<>();
+    	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
+    	int nextIndex = 0;
+    	for(Entry<String,String> entry : pathwayStIdToPathwayName.entrySet()){
+    		ensureCollectionDoc(collection, entry.getKey());
+    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("index", nextIndex));
+    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("name", entry.getValue()));
+    		rtn.put(entry.getKey(), nextIndex);
+    		nextIndex++;
+    	}
+    	
+    	return rtn;
     }
     
     public Map<String, Integer> ensureGeneIndex(Collection<String> genes){
@@ -412,7 +420,7 @@ public class PairwiseService {
             return; 
         }
         MongoCollection<Document> collection = database.getCollection(RELATIONSHIP_COL_ID);
-        ensureGeneDoc(collection, rel.getGene());
+        ensureCollectionDoc(collection, rel.getGene());
         // Need to push the values via a Document
         Document relDoc = new Document();
         if (rel.getPos() != null && rel.getPos().size() > 0) 
@@ -424,12 +432,11 @@ public class PairwiseService {
         logger.debug("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
 
-    public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships, Map<String, String> pathwayStIdToPathwayName) {
+    public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships) {
     	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
     	pathwayRelationships.forEach((pathway, geneList) -> {
-    		ensureGeneDoc(collection, pathway);
-    		collection.updateOne(Filters.eq("_id", pathway), Updates.set("name", pathwayStIdToPathwayName.get(pathway)));
+    		ensureCollectionDoc(collection, pathway);
     		collection.updateOne(Filters.eq("_id", pathway), Updates.set("genes", geneList));
     	});
     	logger.info("Inserting patwhay relationships complete");
@@ -444,7 +451,7 @@ public class PairwiseService {
     	Set<String> genes = new HashSet<>(geneToPathwayList.keySet());
     	genes.addAll(geneToSecondPathway.keySet());
     	genes.forEach((gene) -> {
-    		ensureGeneDoc(collection, gene);
+    		ensureCollectionDoc(collection, gene);
     		if(geneToSecondPathway.get(gene) != null && geneToSecondPathway.get(gene).size() > 0)
     			collection.updateOne(Filters.eq("_id", gene), Updates.set("secondaryPathways", geneToSecondPathway.get(gene)));
     		if(geneToPathwayList.get(gene) != null && geneToPathwayList.get(gene).size() > 0) 
@@ -462,10 +469,16 @@ public class PairwiseService {
         return indexToGene;
     }
     
-    public Map<Integer, String> getIndexToPathway() {
+    public Map<Integer, Pathway> getIndexToPathway() {
     	if(indexToPathway != null)
     		return indexToPathway;
-    	indexToPathway = makeValKeyMapFromDoc(database.getCollection(PATHWAY_INDEX_COL_ID).find().first());    	
+    	MongoCursor<Document> cursor = database.getCollection(PATHWAY_INDEX_COL_ID).find().iterator();
+    	indexToPathway = new HashMap<>();
+    	
+    	while(cursor.hasNext()) {
+    		Document nextDoc = cursor.next();
+    		indexToPathway.put((Integer)nextDoc.get("index"), new Pathway((String)nextDoc.get("_id"), (String)nextDoc.getString("name")));
+    	}
     	return indexToPathway;
     }
 
@@ -485,7 +498,7 @@ public class PairwiseService {
     	return rtn;
     }
     
-    private void ensureGeneDoc(MongoCollection<Document> collection,
+    private void ensureCollectionDoc(MongoCollection<Document> collection,
                                String gene) {
         // There should be only one document
         Document geneDoc = collection.find(Filters.eq("_id", gene)).first();
@@ -515,9 +528,10 @@ public class PairwiseService {
         logger.info("Inserted DataDesc: " + desc.getId());
     }
 
-	public void regeneratePathwayCollection() {
-		MongoCollection<Document> collection = database.getCollection(this.PATHWAYS_COL_ID);
-		collection.drop();
+	public void regeneratePathwayCollections() {
+		database.getCollection(this.PATHWAY_INDEX_COL_ID).drop();
+		database.getCollection(this.PATHWAYS_COL_ID).drop();
+		database.createCollection(this.PATHWAY_INDEX_COL_ID);
 		database.createCollection(this.PATHWAYS_COL_ID);
 	}
 }
