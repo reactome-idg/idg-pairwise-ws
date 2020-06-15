@@ -253,15 +253,12 @@ public class PairwiseService {
 		
 		List<Integer> indexList =(List<Integer>) doc.get("pathways");
 		if(indexList != null) {
-			List<Pathway> pathways = new ArrayList<>();
-			//Get Collection once, instead of every time
-			pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
+			List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 			rtn.setPathways(pathways);
 		}
 		indexList = (List<Integer>) doc.get("secondaryPathways");
 		if(indexList != null) {
-			List<Pathway> pathways = new ArrayList<>();
-			pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
+			List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 			rtn.setSecondaryPathways(pathways);
 		}
 		return rtn;
