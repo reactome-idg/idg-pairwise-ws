@@ -51,6 +51,7 @@ public class PairwiseService {
     //Cached index to pathway for performance
     private Map<Integer,String> indexToPathway;
     //TODO: One-to-one mapping between UniProt and gene symbols are most likely not right.
+    //TODO: As it stands, this map cannot be reversed because it is not 1:1
     // This should be improved in the future.
     // Cached uniprot to gene mapping
     private Map<String, String> uniprotToGene;
@@ -283,6 +284,7 @@ public class PairwiseService {
     }
     
     public PathwayToGeneRelationship queryPathwayToUniprotRelationships(String stId) {
+    	//TODO: this stream breaks because the map is not perfectly 1:1.  Throws error if a key already exists. This is fixed in JDK 11 and will rewrite new value
 		Map<String, String> geneToUniprot = this.getUniProtToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
 		PathwayToGeneRelationship rtn = queryPathwayToGeneRelationships(stId);
 		if(rtn == null) return null;

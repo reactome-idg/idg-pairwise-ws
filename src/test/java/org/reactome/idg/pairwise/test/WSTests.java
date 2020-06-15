@@ -85,7 +85,7 @@ public class WSTests {
     
     @Test
     public void testQueryPathwaysForGene() throws Exception {
-    	String url = HOST_URL + "/relationships/gene/A1BG";
+    	String url = HOST_URL + "/relationships/pathwaysForGene/A1BG";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
@@ -93,7 +93,7 @@ public class WSTests {
     
     @Test
     public void testQueryPathwaysForUniprot() throws Exception {
-    	String url = HOST_URL + "/realationships/uniprot/P04217";
+    	String url = HOST_URL + "/realationships/pathwaysForUniprot/P04217";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
@@ -101,7 +101,15 @@ public class WSTests {
     
     @Test
     public void testQueryGenesForPathway() throws Exception {
-    	String url = HOST_URL + "/relationships/pathway/R-HSA-198753";
+    	String url = HOST_URL + "/relationships/genesForPathway/R-HSA-198753";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
+    @Test
+    public void testQueryUniprotsForPathway() throws Exception { 
+    	String url = HOST_URL + "/relationships/uniprotsForPathway/P04217";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
