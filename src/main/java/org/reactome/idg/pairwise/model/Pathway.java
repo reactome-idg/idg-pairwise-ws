@@ -9,17 +9,17 @@ public class Pathway {
 	private String stId;
 	private Integer index;
 	private String name;
-	private String fdr;
+	private Double fdr;
 	private Double pVal;
 	
-	public Pathway(String stId, String name, String fdr, Double pVal) {
+	public Pathway(String stId, String name, Double fdr, Double pVal) {
 		this.stId = stId;
 		this.name = name;
 		this.fdr = fdr;
 		this.pVal = pVal;
 	}
 	
-	public Pathway(Integer index, String fdr, Double pVal) {
+	public Pathway(Integer index, Double fdr, Double pVal) {
 		this.index = index;
 		this.fdr = fdr;
 		this.pVal = pVal;
@@ -54,11 +54,11 @@ public class Pathway {
 		this.name = name;
 	}
 
-	public String getFdr() {
+	public Double getFdr() {
 		return fdr;
 	}
 
-	public void setFdr(String fdr) {
+	public void setFdr(Double fdr) {
 		this.fdr = fdr;
 	}
 

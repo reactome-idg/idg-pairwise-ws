@@ -161,7 +161,7 @@ public class PathwayProcessor {
 			annotations.forEach(x -> {
 				Integer index = pathwayToIndex.get(x.getTopic());
 				if(!primaryPathways.contains(index))
-					pathways.add(new Pathway(pathwayToIndex.get(x.getTopic()), x.getFdr(), x.getPValue()));
+					pathways.add(new Pathway(pathwayToIndex.get(x.getTopic()), Double.parseDouble(x.getFdr()), x.getPValue()));
 			});
 		} catch (Exception e) {
 			logger.info("Error analyzing genes: " + e.getMessage());
