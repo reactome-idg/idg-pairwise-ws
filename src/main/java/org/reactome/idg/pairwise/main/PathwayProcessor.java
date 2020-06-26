@@ -1,8 +1,11 @@
 package org.reactome.idg.pairwise.main;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,13 +19,21 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.reactome.annotate.AnnotationType;
+import org.reactome.annotate.GeneSetAnnotation;
+import org.reactome.annotate.PathwayBasedAnnotator;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
+import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.service.PairwiseService;
 
 public class PathwayProcessor {
     private final static Logger logger = LoggerFactory.getLogger(PathwayProcessor.class);
     private final String UNIPROT_2_REACTOME_URL = "https://reactome.org/download/current/UniProt2Reactome.txt";
+    
+    
+    private PathwayBasedAnnotator analyzer;
+	private Map<String, Integer> pathwayToIndex;
 	
 	public PathwayProcessor() {}
 	
@@ -51,11 +62,15 @@ public class PathwayProcessor {
 			}			
 			br.close();
 			
+			//want tos set this up before regenerating any of the database
+			analyzer = new PathwayBasedAnnotator();
+			setAnalysisFile(analyzer, pathwayStIdToGeneNameList);
+			
 			//regenerate pathway collection and PATHWAY_INDEX so that any no longer existing pathway-gene relationships are removed
 	    	service.regeneratePathwayCollections();
 			
-			Map<String, Integer> pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToPathwayName);
-	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, pathwayToIndex, service);
+			pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToPathwayName);
+	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, service);
 			
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
@@ -73,7 +88,6 @@ public class PathwayProcessor {
 	 * @param service
 	 */
 	private void processGenePathwayRelationship(Map<String, List<String>> pathwayStIdToGeneNameList,
-												Map<String, Integer> pathwayToIndex,
 												PairwiseService service) {
 		Map<String, Integer> geneToIndex = service.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
 		
@@ -98,7 +112,7 @@ public class PathwayProcessor {
 		});
 		
 		service.insertPathwayRelationships(pathwayToGeneIndexList);
-		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayIndexList(geneToPathwayIndexList, service));
+		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayList(geneToPathwayIndexList, pathwayStIdToGeneNameList, service));
 	}
 
 	/**
@@ -108,35 +122,75 @@ public class PathwayProcessor {
 	 * @param service
 	 * @return
 	 */
-	private Map<String, Set<Integer>> getGeneToSecondPathwayIndexList(Map<String, Set<Integer>> geneToPathwayIndexList, PairwiseService service) {		
+	private Map<String, Set<Pathway>> getGeneToSecondPathwayList(Map<String, Set<Integer>> geneToPathwayIndexList, Map<String, List<String>> pathwayStIdToGeneNameList, PairwiseService service) {		
 		//should be a list of all descIds
 		List<String> dataDesc = service.listDataDesc().stream().map(DataDesc::getId).collect(Collectors.toList());
 		long time1 = System.currentTimeMillis();
+		logger.info("Beginning creation of GeneToSecondaryPathwayList");
 		
-		Map<String, Set<Integer>> geneToSecondPathwayList = new HashMap<>();
+		Map<String, Set<Pathway>> geneToSecondPathwayList = new HashMap<>();
 		//loop over genes from geneToIndex to make sure all genes are checked for secondary pathways
 		//even if they have no pathways in geneToPathwayIndexList
 		Set<Integer> emptySet = new HashSet<>();
 		service.getIndexToGene().values().forEach(gene -> {
-			Set<Integer> pathwayIndexList = new HashSet<>();
+			Set<String> interactorGenes = new HashSet<>();
 			List<PairwiseRelationship> pairwise = service.queryRelsForGenes(Collections.singletonList(gene), dataDesc);
 			pairwise.forEach(rel -> {
 				if(rel.getPosGenes() != null) {
-					pathwayIndexList.addAll(rel.getPosGenes().stream()
-							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, emptySet).stream())
-							.collect(Collectors.toSet()));
+					interactorGenes.addAll(rel.getPosGenes());
 				}
 				if(rel.getNegGenes() != null)
-					pathwayIndexList.addAll(rel.getNegGenes().stream()
-							.flatMap(key -> geneToPathwayIndexList.getOrDefault(key, emptySet).stream())
-							.collect(Collectors.toSet()));
+					interactorGenes.addAll(rel.getNegGenes());
 			});
-			pathwayIndexList.removeAll(geneToPathwayIndexList.getOrDefault(gene, emptySet));
-			geneToSecondPathwayList.put(gene, pathwayIndexList);
+			
+			geneToSecondPathwayList.put(gene, analyzeGeneSet(interactorGenes, geneToPathwayIndexList.getOrDefault(gene, emptySet)));
 		});
 		long time2 = System.currentTimeMillis();
 		logger.info("Total time: " + (time2 - time1));
 		
 		return geneToSecondPathwayList;
+	}
+
+	private Set<Pathway> analyzeGeneSet(Set<String> interactorGenes, Set<Integer> primaryPathways) {
+		
+		if(interactorGenes.isEmpty()) return new HashSet<>();
+		
+		Set<Pathway> pathways = new HashSet<>();
+		try {
+			List<GeneSetAnnotation> annotations = analyzer.annotateGenesWithFDR(interactorGenes, AnnotationType.Pathway);
+			annotations.forEach(x -> {
+				Integer index = pathwayToIndex.get(x.getTopic());
+				if(!primaryPathways.contains(index))
+					pathways.add(new Pathway(pathwayToIndex.get(x.getTopic()), x.getFdr(), x.getPValue()));
+			});
+		} catch (Exception e) {
+			logger.info("Error analyzing genes: " + e.getMessage());
+		}
+
+		
+		return pathways;
+	}
+
+	/**
+	 * Sets protein name to pathway File for gene expression analysis
+	 * @param analyzer
+	 * @param pathwayStIdToGeneNameList
+	 */
+	private void setAnalysisFile(PathwayBasedAnnotator analyzer, Map<String, List<String>> pathwayStIdToGeneNameList) throws IOException{
+		String geneToPathwayFileName = "temp/geneToPathway.txt";
+			File geneToPathwayFile = new File(geneToPathwayFileName);
+			geneToPathwayFile.getParentFile().mkdirs();
+			geneToPathwayFile.createNewFile();
+			geneToPathwayFile.deleteOnExit();
+			FileWriter fos = new FileWriter(geneToPathwayFileName);
+			PrintWriter dos = new PrintWriter(fos);
+			pathwayStIdToGeneNameList.forEach((stId,genes) -> {
+				genes.stream().distinct().forEach(gene -> {
+					dos.println(gene + "\t" + stId);
+				});
+			});
+			dos.close();
+			fos.close();
+			analyzer.getAnnotationHelper().setProteinNameToPathwayFile(geneToPathwayFileName);
 	}
 }

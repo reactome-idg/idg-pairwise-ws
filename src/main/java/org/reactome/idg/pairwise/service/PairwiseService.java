@@ -256,9 +256,16 @@ public class PairwiseService {
 			List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 			rtn.setPathways(pathways);
 		}
-		indexList = (List<Integer>) doc.get("secondaryPathways");
-		if(indexList != null) {
-			List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
+		Document secondaryList = (Document) doc.get("secondaryPathways");
+		if(secondaryList != null) {
+			List<Pathway> pathways = new ArrayList<>();
+			secondaryList.forEach((index, secondary) -> {
+				Document secondaryDoc = (Document) secondary;
+				Pathway pathway = indexToPathway.get(secondaryDoc.get("index"));
+				pathway.setFdr(secondaryDoc.getString("fdr"));
+				pathway.setpVal(secondaryDoc.getDouble("pVal"));
+				pathways.add(pathway);
+			});
 			rtn.setSecondaryPathways(pathways);
 		}
 		return rtn;
@@ -439,8 +446,12 @@ public class PairwiseService {
     	logger.info("Inserting patwhay relationships complete");
     }
     
-    // collect keyset of each argument for loop to ensure nothing is missed
-    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList, Map<String, Set<Integer>> geneToSecondPathway) {
+    /**
+     * Collect keyset of each argument for loop to ensure nothing is missed
+     * @param geneToPathwayList
+     * @param geneToSecondPathway
+     */
+    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList, Map<String, Set<Pathway>> geneToSecondPathway) {
     	logger.info("Inserting gene relationships");
     	
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
@@ -449,8 +460,19 @@ public class PairwiseService {
     	genes.addAll(geneToSecondPathway.keySet());
     	genes.forEach((gene) -> {
     		ensureCollectionDoc(collection, gene);
-    		if(geneToSecondPathway.get(gene) != null && geneToSecondPathway.get(gene).size() > 0)
-    			collection.updateOne(Filters.eq("_id", gene), Updates.set("secondaryPathways", geneToSecondPathway.get(gene)));
+    		if(geneToSecondPathway.get(gene) != null && geneToSecondPathway.get(gene).size() > 0) {
+    			int index = 0;
+    			Document secondaryPathwayDoc = new Document();
+    			for(Pathway pathway : geneToSecondPathway.get(gene)){
+    				Document doc = new Document();
+    				doc.append("index", pathway.getIndex());
+    				doc.append("fdr", pathway.getFdr());
+    				doc.append("pVal", pathway.getpVal());
+    				secondaryPathwayDoc.append(index+"", doc);
+    				index++;
+    			}
+    			collection.updateOne(Filters.eq("_id", gene), Updates.set("secondaryPathways", secondaryPathwayDoc));
+    		}
     		if(geneToPathwayList.get(gene) != null && geneToPathwayList.get(gene).size() > 0) 
     			collection.updateOne(Filters.eq("_id", gene), Updates.set("pathways", geneToPathwayList.get(gene)));
     	});

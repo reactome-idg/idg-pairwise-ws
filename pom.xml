@@ -78,6 +78,12 @@
 <!-- 			<scope>test</scope> -->
 		</dependency>
 
+        <dependency>
+            <groupId>org.reactome.fi</groupId>
+            <artifactId>foundation</artifactId>
+            <version>1.0.0</version>
+        </dependency>
+
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
