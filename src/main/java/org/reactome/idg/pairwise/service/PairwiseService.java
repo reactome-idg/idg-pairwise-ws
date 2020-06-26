@@ -496,7 +496,7 @@ public class PairwiseService {
     	
     	while(cursor.hasNext()) {
     		Document nextDoc = cursor.next();
-    		indexToPathway.put((Integer)nextDoc.get("index"), new Pathway((String)nextDoc.get("_id"), (String)nextDoc.getString("name")));
+    		indexToPathway.put(nextDoc.getInteger("index"), new Pathway(nextDoc.getString("_id"), nextDoc.getString("name")));
     	}
     	return indexToPathway;
     }

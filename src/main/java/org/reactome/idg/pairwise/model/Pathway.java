@@ -30,7 +30,7 @@ public class Pathway {
 		this.name = name;
 	}
 
-	public int getIndex() {
+	public Integer getIndex() {
 		return index;
 	}
 
