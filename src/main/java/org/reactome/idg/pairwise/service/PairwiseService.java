@@ -259,7 +259,7 @@ public class PairwiseService {
 		Document secondaryList = (Document) doc.get("secondaryPathways");
 		if(secondaryList != null) {
 			List<Pathway> pathways = new ArrayList<>();
-			secondaryList.forEach((index, secondary) -> {
+			secondaryList.values().forEach(secondary -> {
 				Document secondaryDoc = (Document) secondary;
 				Pathway pathway = indexToPathway.get(secondaryDoc.get("index"));
 				pathway.setFdr(secondaryDoc.getDouble("fdr"));
