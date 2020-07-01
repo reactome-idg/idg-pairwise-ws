@@ -250,12 +250,6 @@ public class PairwiseService {
     	if(rtn ==  null) return null;
     	
 		rtn.setGene(uniprot);
-		rtn.getPathways().forEach(pathway -> {
-			pathway.setName(geneToUniprot.getOrDefault(pathway.getName(), pathway.getName()));
-		});
-		rtn.getSecondaryPathways().forEach(pathway -> {
-			pathway.setName(geneToUniprot.getOrDefault(pathway.getName(), pathway.getName()));
-		});
 		
     	return rtn;
     }
