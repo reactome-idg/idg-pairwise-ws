@@ -34,6 +34,7 @@ public class PathwayProcessor {
     
     private PathwayBasedAnnotator analyzer;
 	private Map<String, Integer> pathwayToIndex;
+	private Map<String, Set<Integer>> geneToPathwayIndexList;
 	
 	public PathwayProcessor() {}
 	
@@ -95,7 +96,7 @@ public class PathwayProcessor {
 		Map<String, List<Integer>> pathwayToGeneIndexList = new HashMap<>();
 		
 		//want to persist Map of gene name to list of pathway Indexes
-		Map<String, Set<Integer>> geneToPathwayIndexList = new HashMap<>();
+		geneToPathwayIndexList = new HashMap<>();
 		
 		//generates values for pathwayToGeneIndexList
 		//also generates geneToPathwayIndexList to avoid having to loop again later
@@ -112,7 +113,7 @@ public class PathwayProcessor {
 		});
 		
 		service.insertPathwayRelationships(pathwayToGeneIndexList);
-		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayList(geneToPathwayIndexList, pathwayStIdToGeneNameList, service));
+		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayList(pathwayStIdToGeneNameList, service));
 	}
 
 	/**
@@ -122,7 +123,7 @@ public class PathwayProcessor {
 	 * @param service
 	 * @return
 	 */
-	private Map<String, Set<Pathway>> getGeneToSecondPathwayList(Map<String, Set<Integer>> geneToPathwayIndexList, Map<String, List<String>> pathwayStIdToGeneNameList, PairwiseService service) {		
+	private Map<String, Set<Pathway>> getGeneToSecondPathwayList(Map<String, List<String>> pathwayStIdToGeneNameList, PairwiseService service) {		
 		//should be a list of all descIds
 		List<String> dataDesc = service.listDataDesc().stream().map(DataDesc::getId).collect(Collectors.toList());
 		long time1 = System.currentTimeMillis();
@@ -143,7 +144,7 @@ public class PathwayProcessor {
 					interactorGenes.addAll(rel.getNegGenes());
 			});
 			
-			geneToSecondPathwayList.put(gene, analyzeGeneSet(interactorGenes, geneToPathwayIndexList.getOrDefault(gene, emptySet)));
+			geneToSecondPathwayList.put(gene, analyzeGeneSet(gene, interactorGenes));
 		});
 		long time2 = System.currentTimeMillis();
 		logger.info("Total time: " + (time2 - time1));
@@ -151,9 +152,10 @@ public class PathwayProcessor {
 		return geneToSecondPathwayList;
 	}
 
-	private Set<Pathway> analyzeGeneSet(Set<String> interactorGenes, Set<Integer> primaryPathways) {
+	private Set<Pathway> analyzeGeneSet(String gene, Set<String> interactorGenes) {
 		
 		if(interactorGenes.isEmpty()) return new HashSet<>();
+		Set<Integer> primaryPathways = geneToPathwayIndexList.getOrDefault(gene, new HashSet<>());
 		
 		Set<Pathway> pathways = new HashSet<>();
 		try {
@@ -167,7 +169,6 @@ public class PathwayProcessor {
 			logger.info("Error analyzing genes: " + e.getMessage());
 		}
 
-		
 		return pathways;
 	}
 
