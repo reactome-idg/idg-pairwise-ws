@@ -243,7 +243,6 @@ public class PairwiseService {
      * @return
      */
     public GeneToPathwayRelationship queryUniprotToPathwayRelationships(String uniprot) {
-    	Map<String, String> geneToUniprot = getGenneToUniProt().entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     	GeneToPathwayRelationship rtn = queryGeneToPathwayRelathinships(this.getUniProtToGene().get(uniprot));
     	
     	//null check
