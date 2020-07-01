@@ -27,10 +27,14 @@ import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.service.PairwiseService;
 
+/**
+ * 
+ * @author brunsont
+ *
+ */
 public class PathwayProcessor {
     private final static Logger logger = LoggerFactory.getLogger(PathwayProcessor.class);
     private final String UNIPROT_2_REACTOME_URL = "https://reactome.org/download/current/UniProt2Reactome.txt";
-    
     
     private PathwayBasedAnnotator analyzer;
 	private Map<String, Integer> pathwayToIndex;
@@ -38,6 +42,10 @@ public class PathwayProcessor {
 	
 	public PathwayProcessor() {}
 	
+	/**
+	 * Gets Uniprot2Reactome.txt file and directs creation of PATHWAY_INDEX and pathways collection
+	 * @param service
+	 */
 	public void processPathways(PairwiseService service){
 		Map<String, String> uniprotToGene = service.getUniProtToGene();
     	Map<String, List<String>> pathwayStIdToGeneNameList = new HashMap<>();
@@ -63,7 +71,8 @@ public class PathwayProcessor {
 			}			
 			br.close();
 			
-			//want tos set this up before regenerating any of the database
+			//want to set this up before regenerating any of the database
+			//avoids clearing PATHWAY_INDEX and pathways collection before analysis service is set up
 			analyzer = new PathwayBasedAnnotator();
 			setAnalysisFile(analyzer, pathwayStIdToGeneNameList);
 			
@@ -132,7 +141,6 @@ public class PathwayProcessor {
 		Map<String, Set<Pathway>> geneToSecondPathwayList = new HashMap<>();
 		//loop over genes from geneToIndex to make sure all genes are checked for secondary pathways
 		//even if they have no pathways in geneToPathwayIndexList
-		Set<Integer> emptySet = new HashSet<>();
 		service.getIndexToGene().values().forEach(gene -> {
 			Set<String> interactorGenes = new HashSet<>();
 			List<PairwiseRelationship> pairwise = service.queryRelsForGenes(Collections.singletonList(gene), dataDesc);
@@ -152,6 +160,13 @@ public class PathwayProcessor {
 		return geneToSecondPathwayList;
 	}
 
+	/**
+	 * Performs annotateGenesWithFDR for set of interacting genes to get pValue and FDR.
+	 * Used to grade quality of secondary pathway connections
+	 * @param gene
+	 * @param interactorGenes
+	 * @return
+	 */
 	private Set<Pathway> analyzeGeneSet(String gene, Set<String> interactorGenes) {
 		
 		if(interactorGenes.isEmpty()) return new HashSet<>();
@@ -173,7 +188,7 @@ public class PathwayProcessor {
 	}
 
 	/**
-	 * Sets protein name to pathway File for gene expression analysis
+	 * Sets protein name to pathway stId File for gene expression analysis
 	 * @param analyzer
 	 * @param pathwayStIdToGeneNameList
 	 */
