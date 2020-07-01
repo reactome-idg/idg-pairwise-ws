@@ -236,9 +236,24 @@ public class PairwiseService {
         }
     }
     
+    /**
+     * returns uniprot pairwise relatonships through queryGeneToPathwyRelationships
+     * after getting gene relationships, convert all gene names to uniprot
+     * @param uniprot
+     * @return
+     */
     public GeneToPathwayRelationship queryUniprotToPathwayRelationships(String uniprot) {
+    	Map<String, String> geneToUniprot = getGenneToUniProt().entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     	GeneToPathwayRelationship rtn = queryGeneToPathwayRelathinships(this.getUniProtToGene().get(uniprot));
-    	if(rtn != null) rtn.setGene(uniprot);
+    	if(rtn != null) { 
+    		rtn.setGene(uniprot);
+    		rtn.getPathways().forEach(pathway -> {
+    			pathway.setName(geneToUniprot.getOrDefault(pathway.getName(), pathway.getName()));
+    		});
+    		rtn.getSecondaryPathways().forEach(pathway -> {
+    			pathway.setName(geneToUniprot.getOrDefault(pathway.getName(), pathway.getName()));
+    		});
+    	}
     	return rtn;
     }
 
