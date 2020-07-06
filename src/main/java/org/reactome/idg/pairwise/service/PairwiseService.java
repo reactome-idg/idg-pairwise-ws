@@ -243,7 +243,9 @@ public class PairwiseService {
      * @return
      */
     public GeneToPathwayRelationship queryUniprotToPathwayRelationships(String uniprot) {
-    	GeneToPathwayRelationship rtn = queryGeneToPathwayRelathinships(this.getUniProtToGene().get(uniprot));
+    	String gene = this.getUniProtToGene().get(uniprot);
+    	if(gene == null) return null;
+    	GeneToPathwayRelationship rtn = queryGeneToPathwayRelathinships(gene);
     	
     	//null check
     	if(rtn ==  null) return null;

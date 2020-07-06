@@ -10,6 +10,7 @@ import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
+import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -87,13 +88,17 @@ public class PairwiseController {
     @CrossOrigin
     @GetMapping("/relationships/pathwaysForGene/{gene}")
     public GeneToPathwayRelationship queryGeneToPathwayRelationship(@PathVariable("gene") String gene) {
-    	return service.queryGeneToPathwayRelathinships(gene.toUpperCase());
+    	GeneToPathwayRelationship rtn =service.queryGeneToPathwayRelathinships(gene.toUpperCase());
+    	if(rtn == null) throw new ResourceNotFoundException(gene + " not found.");
+    	else return rtn;
     }
     
     @CrossOrigin
-    @GetMapping("/realationships/pathwaysForUniprot/{uniprot}")
+    @GetMapping("/relationships/pathwaysForUniprot/{uniprot}")
     public GeneToPathwayRelationship queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
-    	return service.queryUniprotToPathwayRelationships(uniprot.toUpperCase());
+    	GeneToPathwayRelationship rtn = service.queryUniprotToPathwayRelationships(uniprot.toUpperCase());
+    	if(rtn == null) throw new ResourceNotFoundException(uniprot + " not found.");
+    	else return rtn;
     }
     
     @CrossOrigin
@@ -108,5 +113,5 @@ public class PairwiseController {
     	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
     }
     
-    //swagger document for ws API design
+    //TODO: swagger document for ws API design
 }
