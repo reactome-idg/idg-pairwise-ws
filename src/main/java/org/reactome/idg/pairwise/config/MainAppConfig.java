@@ -37,7 +37,7 @@ public class MainAppConfig {
     @Value("${mongo.pwd}")
     private String password;
     
-    @Value("${mondo.authentication.db}")
+    @Value("${mongo.authentication.db}")
     private String authenticaionDb;
 
     @Bean

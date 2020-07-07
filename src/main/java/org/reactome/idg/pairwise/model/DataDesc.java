@@ -1,5 +1,7 @@
 package org.reactome.idg.pairwise.model;
 
+import org.reactome.idg.model.FeatureType;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -11,7 +13,7 @@ public class DataDesc {
     // The original data source, e.g. GTEx or TCGA
     private String provenance; 
     // Data type: e.g. co-expression or PPI
-    private DataType dataType;
+    private FeatureType dataType;
     // Tissue or cancer type
     private String bioSource;
     // For harmonizome data, this field is used to track the original
@@ -54,12 +56,12 @@ public class DataDesc {
         this.provenance = provenance;
     }
 
-    public DataType getDataType() {
+    public FeatureType getDataType() {
         return dataType;
     }
 
-    public void setDataType(DataType dataType) {
-        this.dataType = dataType;
+    public void setDataType(FeatureType featureType) {
+        this.dataType = featureType;
     }
 
     public String getBioSource() {

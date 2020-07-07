@@ -13,14 +13,13 @@ import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
+import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.DataType;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-//TODO: There is a bug in the first load of this data and need to fix it.
 public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
     private final static Logger logger = LoggerFactory.getLogger(HarmonizomeDataProcessor.class);
 
@@ -34,16 +33,43 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
 
     @Override
     public DataDesc createDataDesc(String fileName) {
-        DataDesc desc = new DataDesc();
-        desc.setProvenance("Harmonizome");
-        desc.setDataType(DataType.Gene_Similarity);
         // Need to get the origin from the file name
         int index = fileName.indexOf("_");
         String origin = fileName.substring(0, index);
+        return createDataDescFromOrigin(origin);
+    }
+
+    public DataDesc createDataDescFromOrigin(String origin) {
+        DataDesc desc = new DataDesc();
+        desc.setProvenance("Harmonizome");
+        desc.setDataType(FeatureType.Gene_Similarity);
         desc.setOrigin(origin);
         // Use human for all data collected from harmonizome
         desc.setBioSource("human");
         return desc;
+    }
+    
+    @Override
+    public void processPairs(Set<String> pairs,
+                             DataDesc desc,
+                             PairwiseService service) throws Exception {
+        Set<String> genes = grepGenesFromPairs(pairs);
+        Map<String, Integer> geneToIndex = service.ensureGeneIndex(genes);
+        logger.info("Total indexed genes: " + geneToIndex.size());
+        Map<String, List<Integer>> posRels = new HashMap<>();
+        Map<String, List<Integer>> negRels = new HashMap<>();
+        loadRelationships(pairs, posRels, negRels, geneToIndex);
+        dumpRelationships(posRels, negRels, desc, geneToIndex, service);
+    }
+    
+    protected Set<String> grepGenesFromPairs(Set<String> pairs) {
+        Set<String> genes = new HashSet<>();
+        pairs.stream().forEach(pair -> {
+            String[] tokens = pair.split("\t");
+            genes.add(tokens[0]);
+            genes.add(tokens[1]);
+        });
+        return genes;
     }
 
     @Override
@@ -58,13 +84,21 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
         loadRelationships(fileName, dirName, posRels, negRels, geneToIndex);
         logger.info("Relationships have been loaded.");
         
+        dumpRelationships(posRels, negRels, desc, geneToIndex, service);
+    }
+
+    public void dumpRelationships(Map<String, List<Integer>> posRels,
+                                  Map<String, List<Integer>> negRels,
+                                  DataDesc desc,
+                                  Map<String, Integer> geneToIndex,
+                                  PairwiseService service) {
         long time1 = System.currentTimeMillis();
         int c = 0;
         for (String gene : geneToIndex.keySet()) {
             PairwiseRelationship rel = new PairwiseRelationship();
             rel.setGene(gene);
             rel.setPos(posRels.get(gene));
-            rel.setNeg(posRels.get(gene));
+            rel.setNeg(negRels.get(gene));
             if (rel.getNeg() == null && rel.getPos() == null) {
                 continue;
             }
@@ -75,6 +109,19 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
         long time2 = System.currentTimeMillis();
         logger.info("Total inserted genes: " + c);
         logger.info("Total time: " + (time2 - time1) / (1000.0 * 60.0d) + " minutes.");
+    }
+    
+    private void loadRelationships(Set<String> pairs,
+                                   Map<String, List<Integer>> posRels,
+                                   Map<String, List<Integer>> negRels,
+                                   Map<String, Integer> geneToIndex) throws IOException {
+        for (String pair : pairs) {
+            String[] tokens = pair.split("\t");
+            if (tokens[2].equals("+")) 
+                pushRel(tokens, posRels, geneToIndex);
+            else if (tokens[2].equals("-")) 
+                pushRel(tokens, negRels, geneToIndex);
+        }
     }
 
     private void loadRelationships(String fileName, 
@@ -154,7 +201,9 @@ public class HarmonizomeDataProcessor implements PairwiseDataProcessor {
         loadRelationships(fileName, dirName);
     }
     
-    protected void pushRel(String[] tokens, Map<String, List<Integer>> map, Map<String, Integer> geneToIndex) {
+    protected void pushRel(String[] tokens, 
+                           Map<String, List<Integer>> map, 
+                           Map<String, Integer> geneToIndex) {
         map.compute(tokens[0], (key, set) -> {
             if (set == null)
                 set = new ArrayList<>();

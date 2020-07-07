@@ -2,6 +2,7 @@ package org.reactome.idg.pairwise.service;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -10,8 +11,8 @@ import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import org.bson.Document;
+import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.DataType;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import com.mongodb.client.model.Projections;
 import com.mongodb.client.model.Updates;
 
 @Service
+@SuppressWarnings("unchecked")
 public class PairwiseService {
     private final String DATA_DESCRIPTIONS_COL_ID = "datadescriptions";
     private final String GENE_INDEX_COL_ID = "GENE_INDEX";
@@ -84,28 +86,42 @@ public class PairwiseService {
                                       .map(p -> uniprotToGenes.get(p))
                                       .distinct() // Remove duplication
                                       .collect(Collectors.toList());
-         List<PairwiseRelationship> rels = queryRelsForGenes(genes, descIds, numberOnly);
+         // Since in rare cases, more than one gene may be mapped to the same UniProt id.
+         // Therefore, we may get inconsistent numbers using genes. So always query 
+         // full genes first. 
+         List<PairwiseRelationship> rels = queryRelsForGenes(genes, descIds, false);
          // Need to add UniProt ids back to relationships
          for (PairwiseRelationship rel : rels) {
              rel.setGene(geneToUniprot.get(rel.getGene()));
-             if (!numberOnly) {
-                 // Need to add UniProt ids back to relationships
-                 List<String> posGenes = rel.getPosGenes();
-                 if (posGenes != null) {
-                     List<String> posProteins = posGenes.stream()
-                             .map(g -> geneToUniprot.get(g))
-                             .distinct()
-                             .collect(Collectors.toList());
+             // Need to add UniProt ids back to relationships
+             List<String> posGenes = rel.getPosGenes();
+             if (posGenes != null) {
+                 List<String> posProteins = posGenes.stream()
+                         .map(g -> geneToUniprot.get(g))
+                         .distinct()
+                         .filter(x-> x!=null)
+                         .collect(Collectors.toList());
+                 if (numberOnly) {
+                     rel.setPosNum(posProteins.size());
+                     rel.setPosGenes(null); // Reset it so that they will not be returned
+                 }
+                 else
                      rel.setPosGenes(posProteins);
+                 
+             }
+             List<String> negGenes = rel.getNegGenes();
+             if (negGenes != null) {
+                 List<String> negProteins = negGenes.stream()
+                         .map(g -> geneToUniprot.get(g))
+                         .distinct()
+                         .filter(x-> x!=null)
+                         .collect(Collectors.toList());
+                 if (numberOnly) {
+                     rel.setNegNum(negProteins.size());
+                     rel.setNegGenes(null);
                  }
-                 List<String> negGenes = rel.getNegGenes();
-                 if (negGenes != null) {
-                     List<String> negProteins = negGenes.stream()
-                             .map(g -> geneToUniprot.get(g))
-                             .distinct()
-                             .collect(Collectors.toList());
+                 else
                      rel.setNegGenes(negProteins);
-                 }
              }
          }
          return rels;
@@ -231,7 +247,7 @@ public class PairwiseService {
                 desc.setProvenance((String)value);
             value = doc.get("dataType");
             if (value != null)
-                desc.setDataType(DataType.valueOf((String)value));
+                desc.setDataType(FeatureType.valueOf((String)value));
             value = doc.get("origin");
             if (value != null)
                 desc.setOrigin((String)value);
@@ -252,7 +268,7 @@ public class PairwiseService {
      * @param genes
      * @return
      */
-    public Map<String, Integer> ensureGeneIndex(List<String> genes) {
+    public Map<String, Integer> ensureGeneIndex(Collection<String> genes) {
         MongoCollection<Document> collection = database.getCollection(GENE_INDEX_COL_ID);
         Document document = collection.find().first();
         // Only one document is expected in this collection

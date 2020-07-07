@@ -24,9 +24,9 @@
 
     <logger name="org.springframework" level="INFO" />
 
-    <root level="WARN">
-<!--         <appender-ref ref="STDOUT" /> -->
-        <appender-ref ref="FILE" />
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+<!--         <appender-ref ref="FILE" /> -->
     </root>
     
 </configuration>

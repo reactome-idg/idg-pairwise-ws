@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
+import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.DataType;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * @author wug
  *
  */
-public class GTExDataProcessor implements PairwiseDataProcessor {
+public class GTExDataProcessor extends HarmonizomeDataProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(GTExDataProcessor.class);
 
@@ -115,12 +115,17 @@ public class GTExDataProcessor implements PairwiseDataProcessor {
 
     @Override
     public DataDesc createDataDesc(String fileName) {
-        DataDesc desc = new DataDesc();
-        desc.setProvenance("GTEx");
-        desc.setDataType(DataType.Gene_Coexpression);
         // Need to get the tissue from the file name
         String tissue = parseBioSource(fileName);
+        return createDataDescForSource(tissue, "GTEx");
+    }
+
+    public DataDesc createDataDescForSource(String tissue,
+                                            String provenance) {
+        DataDesc desc = new DataDesc();
         desc.setBioSource(tissue);
+        desc.setProvenance(provenance);
+        desc.setDataType(FeatureType.Gene_Coexpression);
         return desc;
     }
 
