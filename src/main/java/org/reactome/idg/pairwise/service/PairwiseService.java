@@ -1,5 +1,6 @@
 package org.reactome.idg.pairwise.service;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -13,6 +14,9 @@ import java.util.Set;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
 import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.model.DataDesc;
@@ -25,6 +29,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -44,7 +51,7 @@ public class PairwiseService {
     private final String PATHWAYS_COL_ID = "pathways";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
-
+    
     @Autowired
     private MongoDatabase database;
     // Cached index to gene for performance
@@ -204,7 +211,70 @@ public class PairwiseService {
         return rtn;
     }
     
-    public List<PairwiseRelationship> queryRelsForGenes(List<String> genes,
+    public Set<String> queryPEsForInteractor(String stId, String gene) throws IOException {
+		
+    	Document interactorsDoc = database.getCollection(RELATIONSHIP_COL_ID)
+    			.find(Filters.eq("_id", gene)).first();
+    	Map<String, List<String>> geneToPEMap = callGeneToIdsInPathwayDiagram(stId);
+    	
+    	
+    	if(interactorsDoc == null || geneToPEMap == null) return new HashSet<>();
+    	
+    	Map<Integer, String> indexToGene = getIndexToGene();
+    	
+    	Set<String> interactorGenes = new HashSet<>();
+    	Set<String> keys = interactorsDoc.keySet();
+    	for(String key : keys) {
+    		if(key == "\"_id\"") continue;
+    		Document dataDoc = (Document)interactorsDoc.get(key);
+    		if(dataDoc.containsKey("pos"))
+    			interactorGenes.addAll(((List<Integer>)dataDoc.get("pos")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
+    		if(dataDoc.containsKey("neg"))
+    			interactorGenes.addAll(((List<Integer>)dataDoc.get("neg")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
+    	}
+    	
+		return null;
+	}
+ 
+ 	private Map<String, List<String>> callGeneToIdsInPathwayDiagram(String pathwayDbId) throws IOException{
+ 		String dbId = pathwayDbId.split("-")[2];
+ 		GetMethod method = new GetMethod("http://localhost:8080/corews/FIService/network/getGeneToIdsInPathwayDiagram/"+dbId);
+ 		method.setRequestHeader("Accept", "application/json");
+ 		
+ 		HttpClient client = new HttpClient();
+ 		int responseCode = client.executeMethod(method);
+ 		if(responseCode != HttpStatus.SC_OK) return null;
+ 		return structureGeneToPEMap(method.getResponseBodyAsString());
+ 	}
+     
+    private Map<String, List<String>> structureGeneToPEMap(String responseBodyAsString)  throws IOException{
+		ObjectMapper mapper = new ObjectMapper();
+		
+		JsonNode response = mapper.readTree(responseBodyAsString);
+		if(!response.get("geneToPEIds").isArray()) return null;
+		
+		Map<String, List<String>> rtn = new HashMap<>();
+		
+		for(final JsonNode node : response.get("geneToPEIds")) {
+			List<String> pes = new ArrayList<>();
+			String gene = node.get("gene").asText();
+			//node.get("peDBIds") will either be a List of String or a String
+			//either case add all options to pes
+			if(node.get("peDbIds").isArray())
+				for(JsonNode value : node.get("peDbIds"))
+					pes.add(value.asText());
+			else
+				pes.add(node.get("peDbIds").asText());
+				
+			if(!rtn.keySet().contains(gene))
+				rtn.put(gene, new ArrayList<>());
+			rtn.get(gene).addAll(pes);
+		}
+		
+		return rtn;
+	}
+
+	public List<PairwiseRelationship> queryRelsForGenes(List<String> genes,
                                                         List<String> descIds) {
         return queryRelsForGenes(genes, descIds, false);
     }

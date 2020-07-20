@@ -1,15 +1,18 @@
 package org.reactome.idg.pairwise.web;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
+import org.reactome.idg.pairwise.web.errors.InternalServerError;
 import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -111,6 +114,19 @@ public class PairwiseController {
     @GetMapping("/relationships/uniprotsForPathway/{uniprot}")
     public PathwayToGeneRelationship queryPathwayToUniprotRelationship(@PathVariable("uniprot") String uniprot) {
     	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
+    }
+    
+    @CrossOrigin
+    @GetMapping("/relationships/pathwaysForInteractor/{pathwayStId}/{gene}")
+    public Set<String> queryPEsForInteractor(@PathVariable("pathwayStId") String stId, @PathVariable("gene") String gene){
+    	Set<String> rtn;
+		try {
+			rtn = service.queryPEsForInteractor(stId, gene);
+		} catch (IOException e) {
+			throw new InternalServerError();
+		}
+    	if(rtn == null) throw new ResourceNotFoundException("Physical entities not found for " + gene);
+    	return rtn;
     }
     
     //TODO: swagger document for ws API design
