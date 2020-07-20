@@ -115,6 +115,14 @@ public class WSTests {
     	outputJSON(rtn);
     }
     
+    @Test
+    public void testGetPEsForPathwayAndInteractor() throws Exception {
+    	String url = HOST_URL + "/relationships/pathwaysForInteractor/R-HSA-5251050/NTN1";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
     private void outputJSON(String json) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         Object obj = mapper.readValue(json, Object.class);
