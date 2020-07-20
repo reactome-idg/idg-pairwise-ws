@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -223,17 +222,22 @@ public class PairwiseService {
     	Map<Integer, String> indexToGene = getIndexToGene();
     	
     	Set<String> interactorGenes = new HashSet<>();
-    	Set<String> keys = interactorsDoc.keySet();
-    	for(String key : keys) {
-    		if(key == "\"_id\"") continue;
-    		Document dataDoc = (Document)interactorsDoc.get(key);
+    	for(String key : interactorsDoc.keySet()) {
+    		if(key.contains("_id")) continue;
+    		Document dataDoc = (Document) interactorsDoc.get(key);
     		if(dataDoc.containsKey("pos"))
     			interactorGenes.addAll(((List<Integer>)dataDoc.get("pos")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
     		if(dataDoc.containsKey("neg"))
     			interactorGenes.addAll(((List<Integer>)dataDoc.get("neg")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
     	}
     	
-		return null;
+    	Set<String> peIds = new HashSet<>();
+    	interactorGenes.forEach(geneName -> {
+    		if(geneToPEMap.containsKey(geneName))
+    			peIds.addAll(geneToPEMap.getOrDefault(geneName, new ArrayList<>()));
+    	});
+    	
+		return peIds;
 	}
  
  	private Map<String, List<String>> callGeneToIdsInPathwayDiagram(String pathwayDbId) throws IOException{
