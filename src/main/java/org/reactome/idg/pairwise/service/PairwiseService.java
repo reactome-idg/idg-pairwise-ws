@@ -18,7 +18,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
-import org.reactome.idg.model.FeatureType;
+import org.reactome.idg.model.*;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
@@ -53,6 +53,10 @@ public class PairwiseService {
     
     @Autowired
     private MongoDatabase database;
+    
+    @Autowired
+    private PairwiseServiceConfig config;
+    
     // Cached index to gene for performance
     private Map<Integer, String> indexToGene;
     //Cached index to pathway for performance
@@ -210,11 +214,11 @@ public class PairwiseService {
         return rtn;
     }
     
-    public Set<String> queryPEsForInteractor(String stId, String gene) throws IOException {
+    public Set<String> queryPEsForInteractor(Long dbId, String gene) throws IOException {
 		
     	Document interactorsDoc = database.getCollection(RELATIONSHIP_COL_ID)
     			.find(Filters.eq("_id", gene)).first();
-    	Map<String, List<String>> geneToPEMap = callGeneToIdsInPathwayDiagram(stId);
+    	Map<String, List<String>> geneToPEMap = callGeneToIdsInPathwayDiagram(dbId);
     	
     	
     	if(interactorsDoc == null || geneToPEMap == null) return new HashSet<>();
@@ -240,14 +244,13 @@ public class PairwiseService {
 		return peIds;
 	}
  
- 	private Map<String, List<String>> callGeneToIdsInPathwayDiagram(String pathwayDbId) throws IOException{
- 		String dbId = pathwayDbId.split("-")[2];
- 		GetMethod method = new GetMethod("http://localhost:8080/corews/FIService/network/getGeneToIdsInPathwayDiagram/"+dbId);
+ 	private Map<String, List<String>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
+ 		GetMethod method = new GetMethod(config.getCoreWSURL() + "/network/getGeneToIdsInPathway/"+pathwayDbId);
  		method.setRequestHeader("Accept", "application/json");
  		
  		HttpClient client = new HttpClient();
  		int responseCode = client.executeMethod(method);
- 		if(responseCode != HttpStatus.SC_OK) return null;
+ 		if(responseCode != HttpStatus.SC_OK && method.getResponseBodyAsString() != "null") return null;
  		return structureGeneToPEMap(method.getResponseBodyAsString());
  	}
      

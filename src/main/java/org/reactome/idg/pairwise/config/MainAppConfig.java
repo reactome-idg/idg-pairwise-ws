@@ -2,6 +2,7 @@ package org.reactome.idg.pairwise.config;
 
 import java.util.Arrays;
 
+import org.reactome.idg.pairwise.service.PairwiseServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -39,6 +40,9 @@ public class MainAppConfig {
     
     @Value("${mongo.authentication.db}")
     private String authenticaionDb;
+    
+    @Value("${core.ws.service}")
+    private String coreWSUrl;
 
     @Bean
     public MongoClient mongoClient() {
@@ -50,6 +54,13 @@ public class MainAppConfig {
     @Bean
     public MongoDatabase database() {
         return mongoClient().getDatabase(dbName);
+    }
+    
+    @Bean
+    public PairwiseServiceConfig getPairwiseServiceConfig() {
+    	PairwiseServiceConfig config = new PairwiseServiceConfig();
+    	config.setCoreWSURL(coreWSUrl);
+    	return config;
     }
     
 }

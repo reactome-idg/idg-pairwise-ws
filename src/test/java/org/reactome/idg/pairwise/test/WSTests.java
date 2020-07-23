@@ -117,7 +117,7 @@ public class WSTests {
     
     @Test
     public void testGetPEsForPathwayAndInteractor() throws Exception {
-    	String url = HOST_URL + "/relationships/pathwaysForInteractor/R-HSA-5251050/NTN1";
+    	String url = HOST_URL + "/relationships/pathwaysForInteractor/R-HSA-373755/NTN1";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
