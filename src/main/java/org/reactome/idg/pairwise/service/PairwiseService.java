@@ -214,11 +214,11 @@ public class PairwiseService {
         return rtn;
     }
     
-    public Set<String> queryPEsForInteractor(Long dbId, String gene) throws IOException {
+    public Set<Long> queryPEsForInteractor(Long dbId, String gene) throws IOException {
 		
     	Document interactorsDoc = database.getCollection(RELATIONSHIP_COL_ID)
     			.find(Filters.eq("_id", gene)).first();
-    	Map<String, List<String>> geneToPEMap = callGeneToIdsInPathwayDiagram(dbId);
+    	Map<String, List<Long>> geneToPEMap = callGeneToIdsInPathwayDiagram(dbId);
     	
     	
     	if(interactorsDoc == null || geneToPEMap == null) return new HashSet<>();
@@ -235,7 +235,7 @@ public class PairwiseService {
     			interactorGenes.addAll(((List<Integer>)dataDoc.get("neg")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
     	}
     	
-    	Set<String> peIds = new HashSet<>();
+    	Set<Long> peIds = new HashSet<>();
     	interactorGenes.forEach(geneName -> {
     		if(geneToPEMap.containsKey(geneName))
     			peIds.addAll(geneToPEMap.getOrDefault(geneName, new ArrayList<>()));
@@ -244,8 +244,8 @@ public class PairwiseService {
 		return peIds;
 	}
  
- 	private Map<String, List<String>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
- 		GetMethod method = new GetMethod(config.getCoreWSURL() + "/network/getGeneToIdsInPathway/"+pathwayDbId);
+ 	private Map<String, List<Long>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
+ 		GetMethod method = new GetMethod(config.getCoreWSURL() + "/getGeneToIdsInPathway/"+pathwayDbId);
  		method.setRequestHeader("Accept", "application/json");
  		
  		HttpClient client = new HttpClient();
@@ -254,24 +254,24 @@ public class PairwiseService {
  		return structureGeneToPEMap(method.getResponseBodyAsString());
  	}
      
-    private Map<String, List<String>> structureGeneToPEMap(String responseBodyAsString)  throws IOException{
+    private Map<String, List<Long>> structureGeneToPEMap(String responseBodyAsString)  throws IOException{
 		ObjectMapper mapper = new ObjectMapper();
 		
 		JsonNode response = mapper.readTree(responseBodyAsString);
 		if(!response.get("geneToPEIds").isArray()) return null;
 		
-		Map<String, List<String>> rtn = new HashMap<>();
+		Map<String, List<Long>> rtn = new HashMap<>();
 		
 		for(final JsonNode node : response.get("geneToPEIds")) {
-			List<String> pes = new ArrayList<>();
+			List<Long> pes = new ArrayList<>();
 			String gene = node.get("gene").asText();
 			//node.get("peDBIds") will either be a List of String or a String
 			//either case add all options to pes
 			if(node.get("peDbIds").isArray())
 				for(JsonNode value : node.get("peDbIds"))
-					pes.add(value.asText());
+					pes.add(value.asLong());
 			else
-				pes.add(node.get("peDbIds").asText());
+				pes.add(node.get("peDbIds").asLong());
 				
 			if(!rtn.keySet().contains(gene))
 				rtn.put(gene, new ArrayList<>());

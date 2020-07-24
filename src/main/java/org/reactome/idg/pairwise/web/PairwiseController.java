@@ -118,8 +118,8 @@ public class PairwiseController {
     
     @CrossOrigin
     @GetMapping("/relationships/pathwaysForInteractor/{pathwayStId}/{gene}")
-    public Set<String> queryPEsForInteractor(@PathVariable("pathwayStId") Long dbId, @PathVariable("gene") String gene){
-    	Set<String> rtn;
+    public Set<Long> queryPEsForInteractor(@PathVariable("pathwayStId") Long dbId, @PathVariable("gene") String gene){
+    	Set<Long> rtn;
 		try {
 			rtn = service.queryPEsForInteractor(dbId, gene);
 		} catch (IOException e) {
