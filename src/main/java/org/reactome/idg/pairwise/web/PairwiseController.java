@@ -116,6 +116,8 @@ public class PairwiseController {
     	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
     }
     
+    
+    //TODO: log any exceptions and rename to exception instead of error.
     @CrossOrigin
     @GetMapping("/relationships/pathwaysForInteractor/{pathwayStId}/{gene}")
     public Set<Long> queryPEsForInteractor(@PathVariable("pathwayStId") Long dbId, @PathVariable("gene") String gene){
@@ -123,7 +125,7 @@ public class PairwiseController {
 		try {
 			rtn = service.queryPEsForInteractor(dbId, gene);
 		} catch (IOException e) {
-			throw new InternalServerError();
+			throw new InternalServerError(e.getMessage());
 		}
     	if(rtn == null) throw new ResourceNotFoundException("Physical entities not found for " + gene);
     	return rtn;

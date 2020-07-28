@@ -16,4 +16,8 @@ public class InternalServerError extends RuntimeException{
 	 */
 	private static final long serialVersionUID = 316926435659593174L;
 
+	public InternalServerError(String message) {
+		super(message);
+	}
+	
 }

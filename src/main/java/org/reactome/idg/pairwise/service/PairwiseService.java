@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -24,6 +25,8 @@ import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
+import org.reactome.idg.pairwise.web.errors.InternalServerError;
+import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -216,18 +219,27 @@ public class PairwiseService {
     
     public Set<Long> queryPEsForInteractor(Long dbId, String gene) throws IOException {
 		
+    	//get pairwise doc for gene and throw exception if no doc found.
     	Document interactorsDoc = database.getCollection(RELATIONSHIP_COL_ID)
     			.find(Filters.eq("_id", gene)).first();
+    	if(interactorsDoc == null) {
+    		String infomsg = "No interactors found for gene: " + gene;
+    		logger.info(infomsg);
+    		throw new ResourceNotFoundException(infomsg);
+    	}
+    	
     	Map<String, List<Long>> geneToPEMap = callGeneToIdsInPathwayDiagram(dbId);
-    	
-    	
-    	if(interactorsDoc == null || geneToPEMap == null) return new HashSet<>();
+    	if(geneToPEMap == null) {
+    		String errormsg = "Physical Entity Map could not be created.";
+    		logger.error(errormsg);
+    		throw new InternalServerError("Physical Entity Map could not be created.");
+    	}
     	
     	Map<Integer, String> indexToGene = getIndexToGene();
     	
     	Set<String> interactorGenes = new HashSet<>();
     	for(String key : interactorsDoc.keySet()) {
-    		if(key.contains("_id")) continue;
+    		if(key.equals("_id")) continue; //TODO: fix this line
     		Document dataDoc = (Document) interactorsDoc.get(key);
     		if(dataDoc.containsKey("pos"))
     			interactorGenes.addAll(((List<Integer>)dataDoc.get("pos")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
@@ -238,19 +250,27 @@ public class PairwiseService {
     	Set<Long> peIds = new HashSet<>();
     	interactorGenes.forEach(geneName -> {
     		if(geneToPEMap.containsKey(geneName))
-    			peIds.addAll(geneToPEMap.getOrDefault(geneName, new ArrayList<>()));
+    			peIds.addAll(geneToPEMap.get(geneName));
     	});
     	
 		return peIds;
 	}
  
  	private Map<String, List<Long>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
- 		GetMethod method = new GetMethod(config.getCoreWSURL() + "/getGeneToIdsInPathway/"+pathwayDbId);
+ 		String url = config.getCoreWSURL() + "/getGeneToIdsInPathway/"+pathwayDbId;
+ 		System.out.println(url);
+ 		GetMethod method = new GetMethod(url);
  		method.setRequestHeader("Accept", "application/json");
  		
  		HttpClient client = new HttpClient();
  		int responseCode = client.executeMethod(method);
- 		if(responseCode != HttpStatus.SC_OK && method.getResponseBodyAsString() != "null") return null;
+ 		if(responseCode != HttpStatus.SC_OK) {
+ 			logger.error(method.getStatusText());
+ 			if(responseCode == HttpStatus.SC_NOT_FOUND)
+ 				throw new ResourceNotFoundException("Pathway does not exist");
+ 			else
+ 				throw new InternalServerError("Unable to retrieve physical entities for pathway " + pathwayDbId);		
+ 		}
  		return structureGeneToPEMap(method.getResponseBodyAsString());
  	}
      
