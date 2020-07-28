@@ -14,6 +14,8 @@ import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
 import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,6 +35,8 @@ public class PairwiseController {
     
     @Autowired
     private PairwiseService service;
+    
+    private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
     
     public PairwiseController() {
     }
@@ -125,9 +129,15 @@ public class PairwiseController {
 		try {
 			rtn = service.queryPEsForInteractor(dbId, gene);
 		} catch (IOException e) {
+			logger.error(e.getMessage());
 			throw new InternalServerError(e.getMessage());
 		}
-    	if(rtn == null) throw new ResourceNotFoundException("Physical entities not found for " + gene);
+    	if(rtn == null) {
+    		String msg = "Physical entities not found for " + gene;
+    		logger.info(msg);
+    		throw new ResourceNotFoundException(msg);
+    	}
+
     	return rtn;
     }
     
