@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
+import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
@@ -121,7 +123,6 @@ public class PairwiseController {
     }
     
     
-    //TODO: log any exceptions and rename to exception instead of error.
     @CrossOrigin
     @GetMapping("/relationships/pathwaysForInteractor/{pathwayStId}/{gene}")
     public Set<Long> queryPEsForInteractor(@PathVariable("pathwayStId") Long dbId, @PathVariable("gene") String gene){
@@ -139,6 +140,21 @@ public class PairwiseController {
     	}
 
     	return rtn;
+    }
+    
+    /**
+     * Performs an enrichment analysis on interactors for a gene based on passed in data descriptions
+     * Line 1: gene to get interactors for
+     * Line 2: "," separated list of data descriptions
+     * @param text
+     * @return
+     */
+    @CrossOrigin
+    @PostMapping(path="/relationships/enrichPathwaysForGene", consumes="application/json")
+    public GeneToPathwayRelationship enrichPathwaysForGene(@RequestBody GeneToPathwaysRequestWrapper request) {
+    	if(request == null || request.getGene() == null || request.getDataDescs() == null)
+    		return new GeneToPathwayRelationship();
+    	return service.queryGeneToPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
     }
     
     //TODO: swagger document for ws API design

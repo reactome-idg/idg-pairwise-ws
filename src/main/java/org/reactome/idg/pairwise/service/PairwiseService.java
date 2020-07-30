@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -19,6 +18,8 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
+import org.reactome.annotate.AnnotationType;
+import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.idg.model.*;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
@@ -69,6 +70,7 @@ public class PairwiseService {
     // Cached uniprot to gene mapping
     private Map<String, String> uniprotToGene;
     private Map<String, String> geneToUniprot;
+    private Map<String, String> pathwayStIdToName;
 
     public PairwiseService() {
     }
@@ -220,13 +222,7 @@ public class PairwiseService {
     public Set<Long> queryPEsForInteractor(Long dbId, String gene) throws IOException {
 		
     	//get pairwise doc for gene and throw exception if no doc found.
-    	Document interactorsDoc = database.getCollection(RELATIONSHIP_COL_ID)
-    			.find(Filters.eq("_id", gene)).first();
-    	if(interactorsDoc == null) {
-    		String infomsg = "No interactors found for gene: " + gene;
-    		logger.info(infomsg);
-    		throw new ResourceNotFoundException(infomsg);
-    	}
+    	Document interactorsDoc = getRelationshipDocForGene(gene);
     	
     	Map<String, List<Long>> geneToPEMap = callGeneToIdsInPathwayDiagram(dbId);
     	if(geneToPEMap == null) {
@@ -234,17 +230,12 @@ public class PairwiseService {
     		logger.error(errormsg);
     		throw new InternalServerError("Physical Entity Map could not be created.");
     	}
-    	
-    	Map<Integer, String> indexToGene = getIndexToGene();
-    	
+    	    	
     	Set<String> interactorGenes = new HashSet<>();
     	for(String key : interactorsDoc.keySet()) {
-    		if(key.equals("_id")) continue; //TODO: fix this line
+    		if(key.equals("_id")) continue;
     		Document dataDoc = (Document) interactorsDoc.get(key);
-    		if(dataDoc.containsKey("pos"))
-    			interactorGenes.addAll(((List<Integer>)dataDoc.get("pos")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
-    		if(dataDoc.containsKey("neg"))
-    			interactorGenes.addAll(((List<Integer>)dataDoc.get("neg")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
+    		interactorGenes.addAll(getGenesFromRelDoc(dataDoc));
     	}
     	
     	Set<Long> peIds = new HashSet<>();
@@ -331,6 +322,97 @@ public class PairwiseService {
                     .collect(Collectors.toList());
             rel.setNegGenes(geneList);
         }
+    }
+    
+    /**
+     * Returns document from relationships doc for gene
+     * @param gene
+     * @return
+     */
+    private Document getRelationshipDocForGene(String gene) {
+    	Document doc = database.getCollection(RELATIONSHIP_COL_ID)
+    			.find(Filters.eq("_id", gene)).first();
+    	if(doc == null) {
+    		String infomsg = "No interactors found for gene: " + gene;
+    		logger.info(infomsg);
+    		throw new ResourceNotFoundException(infomsg);
+    	}
+    	return doc;
+    }
+    
+    private Set<String> getGenesFromRelDoc(Document relDoc){
+    	Set<String> rtn = new HashSet<>();
+    	
+    	Map<Integer, String> indexToGene = getIndexToGene();
+    	    	
+		if(relDoc.containsKey("pos"))
+			rtn.addAll(((List<Integer>)relDoc.get("pos")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
+		if(relDoc.containsKey("neg"))
+			rtn.addAll(((List<Integer>)relDoc.get("neg")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));	
+    	
+    	return rtn;
+    }
+    
+    public GeneToPathwayRelationship queryGeneToPathwaysWithEnrichment(String gene, List<String> dataDescs) {
+    	Map<Integer, Pathway> indexToPathway = getIndexToPathway();
+		GeneToPathwayRelationship rtn = new GeneToPathwayRelationship();
+		rtn.setGene(gene);
+		//should only be one doc per id.
+		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", gene)).first();
+		//must make sure doc exists before moving on
+		if(doc == null) return null;
+		
+		List<Integer> indexList =(List<Integer>) doc.get("pathways");
+		if(indexList != null) {
+			List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
+			rtn.setPathways(pathways);
+		}
+		
+		rtn.setSecondaryPathways(getEnrichedSecondaryPathways(gene, dataDescs));
+		return rtn;
+	}
+    
+    public List<Pathway> getEnrichedSecondaryPathways(String gene, List<String> descIds) {
+    	Document relDoc = getRelationshipDocForGene(gene);
+    	    	
+    	Set<String> interactors = new HashSet<>();
+    	for(String key : relDoc.keySet()) {
+    		if(!descIds.contains(key)) continue;
+    		Document doc = (Document) relDoc.get(key);
+    		interactors.addAll(getGenesFromRelDoc(doc));
+    	}
+    	//if there are no interactors
+    	if(interactors.size() < 1) {
+    		return new ArrayList<>();
+    	}
+    	
+    	//get enrichment analysis results
+    	List<GeneSetAnnotation> annotations = performEnrichment(interactors, gene);
+    	
+    	//convert enrichment analysis results into a list of Pathway objects
+    	List<Pathway> rtnPathways = new ArrayList<>();
+    	Map<String, String> pathwayNameToStId = this.getPathwayNameToStId();
+    	annotations.forEach(annotation -> {
+    		if(!pathwayNameToStId.containsKey(annotation.getTopic())) return;
+    		rtnPathways.add(new Pathway(pathwayNameToStId.get(annotation.getTopic()),
+    									annotation.getTopic(),
+    									Double.parseDouble(annotation.getFdr()),
+    									annotation.getPValue()));
+    	});
+    	
+    	return rtnPathways;
+    }
+    
+    private List<GeneSetAnnotation> performEnrichment(Set<String> interactors, String gene){
+    	List<GeneSetAnnotation> annotations;
+    	try {
+    		annotations = config.getAnnotator().annotateGenesWithFDR(interactors, AnnotationType.Pathway);
+    	} catch(Exception e) {
+    		logger.error(e.getMessage());
+    		e.printStackTrace();
+    		throw new InternalServerError("Could not annotate interactors for " + gene);
+    	}
+    	return annotations;
     }
     
     /**
@@ -609,6 +691,21 @@ public class PairwiseService {
     		indexToPathway.put(nextDoc.getInteger("index"), new Pathway(nextDoc.getString("_id"), nextDoc.getString("name")));
     	}
     	return indexToPathway;
+    }
+    
+    public Map<String, String> getPathwayNameToStId(){
+    	if(pathwayStIdToName != null)
+    		return pathwayStIdToName;
+    	
+    	MongoCursor<Document> cursor = database.getCollection(PATHWAY_INDEX_COL_ID).find().iterator();
+    	pathwayStIdToName = new HashMap<>();
+    	
+    	while(cursor.hasNext()) {
+    		Document nextDoc = cursor.next();
+    		pathwayStIdToName.put(nextDoc.getString("name"), nextDoc.getString("_id"));
+    	}
+    	
+    	return pathwayStIdToName;
     }
 
     /**

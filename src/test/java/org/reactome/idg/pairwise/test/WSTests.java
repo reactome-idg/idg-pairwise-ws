@@ -123,6 +123,15 @@ public class WSTests {
     	outputJSON(rtn);
     }
     
+    @Test
+    public void testEnrichInteractorsForGene() throws Exception {
+    	String url = HOST_URL + "/relationships/enrichPathwaysForGene";
+    	System.out.println(url);
+    	String post = "EGFR\nBioGridBioPlexStringDB|Homo_sapiens|Protein_Interaction";
+    	String rtn = callHttp(url, HTTP_POST, post);
+    	outputJSON(rtn);
+    }
+    
     private void outputJSON(String json) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         Object obj = mapper.readValue(json, Object.class);

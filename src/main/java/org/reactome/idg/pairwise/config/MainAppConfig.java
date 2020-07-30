@@ -2,6 +2,7 @@ package org.reactome.idg.pairwise.config;
 
 import java.util.Arrays;
 
+import org.reactome.annotate.PathwayBasedAnnotator;
 import org.reactome.idg.pairwise.service.PairwiseServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -43,6 +44,9 @@ public class MainAppConfig {
     
     @Value("${core.ws.service}")
     private String coreWSUrl;
+    
+    @Value("${gene.to.pathway.name}")
+    private String geneToPathwayNameFile;
 
     @Bean
     public MongoClient mongoClient() {
@@ -58,8 +62,15 @@ public class MainAppConfig {
     
     @Bean
     public PairwiseServiceConfig getPairwiseServiceConfig() {
+    	//url for fi service
     	PairwiseServiceConfig config = new PairwiseServiceConfig();
     	config.setCoreWSURL(coreWSUrl);
+    	
+    	//creating PathwayBasedAnnotator for on the fly enrichment analysis
+    	PathwayBasedAnnotator annotator = new PathwayBasedAnnotator();
+    	annotator.getAnnotationHelper().setProteinNameToPathwayFile(geneToPathwayNameFile);
+    	config.setAnnotator(annotator);
+    	
     	return config;
     }
     
