@@ -353,26 +353,20 @@ public class PairwiseService {
     	return rtn;
     }
     
-    public GeneToPathwayRelationship queryGeneToPathwaysWithEnrichment(String gene, List<String> dataDescs) {
-    	Map<Integer, Pathway> indexToPathway = getIndexToPathway();
-		GeneToPathwayRelationship rtn = new GeneToPathwayRelationship();
-		rtn.setGene(gene);
-		//should only be one doc per id.
+    public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
+		Map<Integer, Pathway> indexToPathway = getIndexToPathway();
 		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", gene)).first();
-		//must make sure doc exists before moving on
 		if(doc == null) return null;
 		
-		List<Integer> indexList =(List<Integer>) doc.get("pathways");
-		if(indexList != null) {
-			List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
-			rtn.setPathways(pathways);
-		}
+		List<Integer> indexList=(List<Integer>) doc.get("pathways");
+		if(indexList == null) return null;
 		
-		rtn.setSecondaryPathways(getEnrichedSecondaryPathways(gene, dataDescs));
-		return rtn;
+		List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
+		
+		return pathways;
 	}
     
-    public List<Pathway> getEnrichedSecondaryPathways(String gene, List<String> descIds) {
+    public List<Pathway> queryGeneToSecondaryPathwaysWithEnrichment(String gene, List<String> descIds) {
     	Document relDoc = getRelationshipDocForGene(gene);
     	    	
     	Set<String> interactors = new HashSet<>();

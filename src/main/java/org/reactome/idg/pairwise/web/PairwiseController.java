@@ -12,6 +12,7 @@ import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
+import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
@@ -142,6 +143,18 @@ public class PairwiseController {
     	return rtn;
     }
     
+    @CrossOrigin
+    @GetMapping("relationships/primaryPathwaysForGene/{gene}")
+    public List<Pathway> queryPrimaryPathwaysForGene(@PathVariable("gene") String gene){
+    	List<Pathway> rtn = service.queryPrimaryPathwaysForGene(gene);
+    	if(rtn == null) {
+    		String msg = "No primary pathways found for " + gene;
+    		logger.info(msg);
+    		throw new ResourceNotFoundException(msg);
+    	}
+    	return rtn;
+    }
+    
     /**
      * Performs an enrichment analysis on interactors for a gene based on passed in data descriptions
      * Line 1: gene to get interactors for
@@ -150,11 +163,11 @@ public class PairwiseController {
      * @return
      */
     @CrossOrigin
-    @PostMapping(path="/relationships/enrichPathwaysForGene", consumes="application/json")
-    public GeneToPathwayRelationship enrichPathwaysForGene(@RequestBody GeneToPathwaysRequestWrapper request) {
+    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForGene", consumes="application/json")
+    public List<Pathway> enrichPathwaysForGene(@RequestBody GeneToPathwaysRequestWrapper request) {
     	if(request == null || request.getGene() == null || request.getDataDescs() == null)
-    		return new GeneToPathwayRelationship();
-    	return service.queryGeneToPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
+    		return new ArrayList<>();
+    	return service.queryGeneToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
     }
     
     //TODO: swagger document for ws API design
