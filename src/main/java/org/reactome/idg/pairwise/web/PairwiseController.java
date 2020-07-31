@@ -140,7 +140,7 @@ public class PairwiseController {
     @CrossOrigin
     @GetMapping("/relationships/primaryPathwaysForUniprot/{uniprot}")
     public List<Pathway> queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
-    	List<Pathway> rtn = service.queryUniprotToPathwayRelationships(uniprot.toUpperCase());
+    	List<Pathway> rtn = service.queryPrimaryPathwaysForUniprot(uniprot.toUpperCase());
     	if(rtn == null || rtn.size() == 0) throw new ResourceNotFoundException(uniprot + " not found.");
     	else return rtn;
     }

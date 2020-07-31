@@ -22,7 +22,6 @@ import org.reactome.annotate.AnnotationType;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.idg.model.*;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
@@ -366,6 +365,17 @@ public class PairwiseService {
 		return pathways;
 	}
     
+    public List<Pathway> queryPrimaryPathwaysForUniprot(String uniprot) {
+    	String gene = this.getUniProtToGene().get(uniprot);
+    	if(gene == null) return null;
+    	List<Pathway> rtn = this.queryPrimaryPathwaysForGene(gene);
+    	
+    	//null check
+    	if(rtn ==  null || rtn.size() == 0) return null;
+    			
+    	return rtn;
+    }
+    
     public List<Pathway> queryUniprotToSecondaryPathwaysWithEnrichment(String uniprot, List<String> dataDescs) {
     	String gene = this.getUniProtToGene().get(uniprot);
     	if(gene == null) return null;
@@ -418,23 +428,6 @@ public class PairwiseService {
     		throw new InternalServerError("Could not annotate interactors for " + gene);
     	}
     	return annotations;
-    }
-    
-    /**
-     * returns uniprot pairwise relatonships through queryGeneToPathwyRelationships
-     * after getting gene relationships, convert all gene names to uniprot
-     * @param uniprot
-     * @return
-     */
-    public List<Pathway> queryUniprotToPathwayRelationships(String uniprot) {
-    	String gene = this.getUniProtToGene().get(uniprot);
-    	if(gene == null) return null;
-    	List<Pathway> rtn = this.queryPrimaryPathwaysForGene(gene);
-    	
-    	//null check
-    	if(rtn ==  null || rtn.size() == 0) return null;
-    			
-    	return rtn;
     }
     
     public PathwayToGeneRelationship queryPathwayToGeneRelationships(String stId) {
