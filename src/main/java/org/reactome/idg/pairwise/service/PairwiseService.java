@@ -366,6 +366,17 @@ public class PairwiseService {
 		return pathways;
 	}
     
+    public List<Pathway> queryUniprotToSecondaryPathwaysWithEnrichment(String uniprot, List<String> dataDescs) {
+    	String gene = this.getUniProtToGene().get(uniprot);
+    	if(gene == null) return null;
+    	List<Pathway> rtn = this.queryGeneToSecondaryPathwaysWithEnrichment(gene, dataDescs);
+    	
+    	//null check
+    	if(rtn ==  null || rtn.size() == 0) return null;
+    			
+    	return rtn;
+	}
+    
     public List<Pathway> queryGeneToSecondaryPathwaysWithEnrichment(String gene, List<String> descIds) {
     	Document relDoc = getRelationshipDocForGene(gene);
     	    	
@@ -415,47 +426,16 @@ public class PairwiseService {
      * @param uniprot
      * @return
      */
-    public GeneToPathwayRelationship queryUniprotToPathwayRelationships(String uniprot) {
+    public List<Pathway> queryUniprotToPathwayRelationships(String uniprot) {
     	String gene = this.getUniProtToGene().get(uniprot);
     	if(gene == null) return null;
-    	GeneToPathwayRelationship rtn = queryGeneToPathwayRelathinships(gene);
+    	List<Pathway> rtn = this.queryPrimaryPathwaysForGene(gene);
     	
     	//null check
-    	if(rtn ==  null) return null;
-    	
-		rtn.setGene(uniprot);
-		
+    	if(rtn ==  null || rtn.size() == 0) return null;
+    			
     	return rtn;
     }
-
-    public GeneToPathwayRelationship queryGeneToPathwayRelathinships(String geneName) {
-		Map<Integer, Pathway> indexToPathway = getIndexToPathway();
-		GeneToPathwayRelationship rtn = new GeneToPathwayRelationship();
-		rtn.setGene(geneName);
-		//should only be one doc per id.
-		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", geneName)).first();
-		//must make sure doc exists before moving on
-		if(doc == null) return null;
-		
-		List<Integer> indexList =(List<Integer>) doc.get("pathways");
-		if(indexList != null) {
-			List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
-			rtn.setPathways(pathways);
-		}
-		Document secondaryList = (Document) doc.get("secondaryPathways");
-		if(secondaryList != null) {
-			List<Pathway> pathways = new ArrayList<>();
-			secondaryList.values().forEach(secondary -> {
-				Document secondaryDoc = (Document) secondary;
-				Pathway pathway = indexToPathway.get(secondaryDoc.get("index"));
-				pathway.setFdr(secondaryDoc.getDouble("fdr"));
-				pathway.setpVal(secondaryDoc.getDouble("pVal"));
-				pathways.add(pathway);
-			});
-			rtn.setSecondaryPathways(pathways);
-		}
-		return rtn;
-	}
     
     public PathwayToGeneRelationship queryPathwayToGeneRelationships(String stId) {
     	Map<Integer, String> indexToGene = getIndexToGene();

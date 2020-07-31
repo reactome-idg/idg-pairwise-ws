@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.GeneToPathwayRelationship;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
@@ -94,22 +92,6 @@ public class PairwiseController {
         List<String> genes = Arrays.asList(lines[1].split(","));
         return service.queryRelsForProteins(genes, descIds, numberOnly);
     }
-
-    @CrossOrigin
-    @GetMapping("/relationships/pathwaysForGene/{gene}")
-    public GeneToPathwayRelationship queryGeneToPathwayRelationship(@PathVariable("gene") String gene) {
-    	GeneToPathwayRelationship rtn =service.queryGeneToPathwayRelathinships(gene.toUpperCase());
-    	if(rtn == null) throw new ResourceNotFoundException(gene + " not found.");
-    	else return rtn;
-    }
-    
-    @CrossOrigin
-    @GetMapping("/relationships/pathwaysForUniprot/{uniprot}")
-    public GeneToPathwayRelationship queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
-    	GeneToPathwayRelationship rtn = service.queryUniprotToPathwayRelationships(uniprot.toUpperCase());
-    	if(rtn == null) throw new ResourceNotFoundException(uniprot + " not found.");
-    	else return rtn;
-    }
     
     @CrossOrigin
     @GetMapping("/relationships/genesForPathway/{stId}")
@@ -155,6 +137,14 @@ public class PairwiseController {
     	return rtn;
     }
     
+    @CrossOrigin
+    @GetMapping("/relationships/primaryPathwaysForUniprot/{uniprot}")
+    public List<Pathway> queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
+    	List<Pathway> rtn = service.queryUniprotToPathwayRelationships(uniprot.toUpperCase());
+    	if(rtn == null || rtn.size() == 0) throw new ResourceNotFoundException(uniprot + " not found.");
+    	else return rtn;
+    }
+    
     /**
      * Performs an enrichment analysis on interactors for a gene based on passed in data descriptions
      * Line 1: gene to get interactors for
@@ -168,6 +158,21 @@ public class PairwiseController {
     	if(request == null || request.getGene() == null || request.getDataDescs() == null)
     		return new ArrayList<>();
     	return service.queryGeneToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
+    }
+    
+    /**
+     * Performs an enrichment analysis on interactors for a gene based on passed in data descriptions
+     * Line 1: Uniprot to get interactors for
+     * Line 2: "," separated list of data descriptions
+     * @param text
+     * @return
+     */
+    @CrossOrigin
+    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForUniprot", consumes="application/json")
+    public List<Pathway> enrichPathwaysForUniprot(@RequestBody GeneToPathwaysRequestWrapper request){
+    	if(request == null || request.getGene() == null || request.getDataDescs() == null)
+    		return new ArrayList<>();
+    	return service.queryUniprotToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
     }
     
     //TODO: swagger document for ws API design
