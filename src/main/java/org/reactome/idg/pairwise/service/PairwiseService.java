@@ -355,10 +355,10 @@ public class PairwiseService {
     public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
 		Map<Integer, Pathway> indexToPathway = getIndexToPathway();
 		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", gene)).first();
-		if(doc == null) return null;
+		if(doc == null) return new ArrayList<>();
 		
 		List<Integer> indexList=(List<Integer>) doc.get("pathways");
-		if(indexList == null) return null;
+		if(indexList == null) return new ArrayList<>();
 		
 		List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 		

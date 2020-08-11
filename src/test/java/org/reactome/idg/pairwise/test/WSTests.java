@@ -84,8 +84,8 @@ public class WSTests {
     }
     
     @Test
-    public void testQueryPathwaysForGene() throws Exception {
-    	String url = HOST_URL + "/relationships/pathwaysForGene/A1BG";
+    public void testQueryPrimaryPathwaysForGene() throws Exception {
+    	String url = HOST_URL + "/relationships/primaryPathwaysForGene/TMEM81";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
@@ -117,7 +117,7 @@ public class WSTests {
     
     @Test
     public void testGetPEsForPathwayAndInteractor() throws Exception {
-    	String url = HOST_URL + "/relationships/pathwaysForInteractor/373755/NTN1";
+    	String url = HOST_URL + "/relationships/pathwaysForInteractor/4839726/PRKY";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
