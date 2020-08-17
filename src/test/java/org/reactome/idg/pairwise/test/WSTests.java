@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.Arrays;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -14,6 +15,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.Test;
+import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -125,11 +127,18 @@ public class WSTests {
     
     @Test
     public void testEnrichInteractorsForGene() throws Exception {
-    	String url = HOST_URL + "/relationships/enrichPathwaysForGene";
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForGene";
     	System.out.println(url);
-    	String post = "EGFR\nBioGridBioPlexStringDB|Homo_sapiens|Protein_Interaction";
-    	String rtn = callHttp(url, HTTP_POST, post);
+    	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
+    	postData.setGene("EGFR");
+    	postData.setDataDescs(Arrays.asList("BioGridBioPlexStringDB|Homo_sapiens|Protein_Interaction"));
+    	String json = mapper.writeValueAsString(postData);
+    	Long time1 = System.currentTimeMillis();
+    	String rtn = callHttp(url, HTTP_POST, json);
+    	Long time2 = System.currentTimeMillis() - time1;
     	outputJSON(rtn);
+    	System.out.println(time2);
     }
     
     private void outputJSON(String json) throws JsonProcessingException, IOException {
