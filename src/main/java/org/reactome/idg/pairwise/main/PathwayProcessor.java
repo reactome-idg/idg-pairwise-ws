@@ -34,7 +34,7 @@ import org.reactome.idg.pairwise.service.PairwiseService;
  */
 public class PathwayProcessor {
     private final static Logger logger = LoggerFactory.getLogger(PathwayProcessor.class);
-    private final String UNIPROT_2_REACTOME_URL = "https://reactome.org/download/current/UniProt2Reactome.txt";
+    private final String UNIPROT_2_REACTOME_URL = "https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt";
     
     private PathwayBasedAnnotator analyzer;
 	private Map<String, Integer> pathwayToIndex;
@@ -43,7 +43,7 @@ public class PathwayProcessor {
 	public PathwayProcessor() {}
 	
 	/**
-	 * Gets Uniprot2Reactome.txt file and directs creation of PATHWAY_INDEX and pathways collection
+	 * Gets Uniprot2Reactome_All_Levels.txt file and directs creation of PATHWAY_INDEX and pathways collection
 	 * @param service
 	 */
 	public void processPathways(PairwiseService service){
