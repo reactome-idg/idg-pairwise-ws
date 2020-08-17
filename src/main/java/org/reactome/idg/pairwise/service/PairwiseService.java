@@ -610,28 +610,14 @@ public class PairwiseService {
      * @param geneToPathwayList
      * @param geneToSecondPathway
      */
-    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList, Map<String, Set<Pathway>> geneToSecondPathway) {
+    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList) {
     	logger.info("Inserting gene relationships");
     	
     	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
     	
     	Set<String> genes = new HashSet<>(geneToPathwayList.keySet());
-    	genes.addAll(geneToSecondPathway.keySet());
     	genes.forEach((gene) -> {
     		ensureCollectionDoc(collection, gene);
-    		if(geneToSecondPathway.get(gene) != null && geneToSecondPathway.get(gene).size() > 0) {
-    			int index = 0;
-    			Document secondaryPathwayDoc = new Document();
-    			for(Pathway pathway : geneToSecondPathway.get(gene)){
-    				Document doc = new Document();
-    				doc.append("index", pathway.getIndex());
-    				doc.append("fdr", pathway.getFdr());
-    				doc.append("pVal", pathway.getpVal());
-    				secondaryPathwayDoc.append(index+"", doc);
-    				index++;
-    			}
-    			collection.updateOne(Filters.eq("_id", gene), Updates.set("secondaryPathways", secondaryPathwayDoc));
-    		}
     		if(geneToPathwayList.get(gene) != null && geneToPathwayList.get(gene).size() > 0) 
     			collection.updateOne(Filters.eq("_id", gene), Updates.set("pathways", geneToPathwayList.get(gene)));
     	});

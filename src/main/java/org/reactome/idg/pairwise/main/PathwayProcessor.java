@@ -122,69 +122,7 @@ public class PathwayProcessor {
 		});
 		
 		service.insertPathwayRelationships(pathwayToGeneIndexList);
-		service.insertGeneRelationships(geneToPathwayIndexList, getGeneToSecondPathwayList(pathwayStIdToGeneNameList, service));
-	}
-
-	/**
-	 * Makes relationships for gene to pathway and secondary pathway
-	 * Returns a list of these pathways
-	 * @param geneToPathwayIndexList
-	 * @param service
-	 * @return
-	 */
-	private Map<String, Set<Pathway>> getGeneToSecondPathwayList(Map<String, List<String>> pathwayStIdToGeneNameList, PairwiseService service) {		
-		//should be a list of all descIds
-		List<String> dataDesc = service.listDataDesc().stream().map(DataDesc::getId).collect(Collectors.toList());
-		long time1 = System.currentTimeMillis();
-		logger.info("Beginning creation of GeneToSecondaryPathwayList");
-		
-		Map<String, Set<Pathway>> geneToSecondPathwayList = new HashMap<>();
-		//loop over genes from geneToIndex to make sure all genes are checked for secondary pathways
-		//even if they have no pathways in geneToPathwayIndexList
-		service.getIndexToGene().values().forEach(gene -> {
-			Set<String> interactorGenes = new HashSet<>();
-			List<PairwiseRelationship> pairwise = service.queryRelsForGenes(Collections.singletonList(gene), dataDesc);
-			pairwise.forEach(rel -> {
-				if(rel.getPosGenes() != null) {
-					interactorGenes.addAll(rel.getPosGenes());
-				}
-				if(rel.getNegGenes() != null)
-					interactorGenes.addAll(rel.getNegGenes());
-			});
-			
-			geneToSecondPathwayList.put(gene, analyzeGeneSet(gene, interactorGenes));
-		});
-		long time2 = System.currentTimeMillis();
-		logger.info("Total time: " + (time2 - time1));
-		
-		return geneToSecondPathwayList;
-	}
-
-	/**
-	 * Performs annotateGenesWithFDR for set of interacting genes to get pValue and FDR.
-	 * Used to grade quality of secondary pathway connections
-	 * @param gene
-	 * @param interactorGenes
-	 * @return
-	 */
-	private Set<Pathway> analyzeGeneSet(String gene, Set<String> interactorGenes) {
-		
-		if(interactorGenes.isEmpty()) return new HashSet<>();
-		Set<Integer> primaryPathways = geneToPathwayIndexList.getOrDefault(gene, new HashSet<>());
-		
-		Set<Pathway> pathways = new HashSet<>();
-		try {
-			List<GeneSetAnnotation> annotations = analyzer.annotateGenesWithFDR(interactorGenes, AnnotationType.Pathway);
-			annotations.forEach(x -> {
-				Integer index = pathwayToIndex.get(x.getTopic());
-				if(!primaryPathways.contains(index))
-					pathways.add(new Pathway(pathwayToIndex.get(x.getTopic()), Double.parseDouble(x.getFdr()), x.getPValue()));
-			});
-		} catch (Exception e) {
-			logger.info("Error analyzing genes: " + e.getMessage());
-		}
-
-		return pathways;
+		service.insertGeneRelationships(geneToPathwayIndexList);
 	}
 
 	/**
