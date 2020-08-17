@@ -87,7 +87,7 @@ public class WSTests {
     
     @Test
     public void testQueryPrimaryPathwaysForGene() throws Exception {
-    	String url = HOST_URL + "/relationships/primaryPathwaysForGene/TMEM81";
+    	String url = HOST_URL + "/relationships/primaryPathwaysForGene/NTN1";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
