@@ -34,9 +34,8 @@ import org.reactome.idg.pairwise.service.PairwiseService;
  */
 public class PathwayProcessor {
     private final static Logger logger = LoggerFactory.getLogger(PathwayProcessor.class);
-    private final String UNIPROT_2_REACTOME_URL = "https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt";
+    private final String UNIPROT_2_REACTOME_ALL_LEVELS_URL = "https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt";
     
-    private PathwayBasedAnnotator analyzer;
 	private Map<String, Integer> pathwayToIndex;
 	private Map<String, Set<Integer>> geneToPathwayIndexList;
 	
@@ -52,7 +51,7 @@ public class PathwayProcessor {
     	Map<String, String> pathwayStIdToPathwayName = new HashMap<>();
     	
     	try {
-    		URL url = new URL(UNIPROT_2_REACTOME_URL);
+    		URL url = new URL(UNIPROT_2_REACTOME_ALL_LEVELS_URL);
         	BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
         	String line = null;
 			while((line = br.readLine()) != null) {
@@ -70,11 +69,6 @@ public class PathwayProcessor {
 				}
 			}			
 			br.close();
-			
-			//want to set this up before regenerating any of the database
-			//avoids clearing PATHWAY_INDEX and pathways collection before analysis service is set up
-			analyzer = new PathwayBasedAnnotator();
-			setAnalysisFile(analyzer, pathwayStIdToGeneNameList);
 			
 			//regenerate pathway collection and PATHWAY_INDEX so that any no longer existing pathway-gene relationships are removed
 	    	service.regeneratePathwayCollections();
@@ -123,28 +117,5 @@ public class PathwayProcessor {
 		
 		service.insertPathwayRelationships(pathwayToGeneIndexList);
 		service.insertGeneRelationships(geneToPathwayIndexList);
-	}
-
-	/**
-	 * Sets protein name to pathway stId File for gene expression analysis
-	 * @param analyzer
-	 * @param pathwayStIdToGeneNameList
-	 */
-	private void setAnalysisFile(PathwayBasedAnnotator analyzer, Map<String, List<String>> pathwayStIdToGeneNameList) throws IOException{
-		String geneToPathwayFileName = "temp/geneToPathway.txt";
-			File geneToPathwayFile = new File(geneToPathwayFileName);
-			geneToPathwayFile.getParentFile().mkdirs();
-			geneToPathwayFile.createNewFile();
-			geneToPathwayFile.deleteOnExit();
-			FileWriter fos = new FileWriter(geneToPathwayFileName);
-			PrintWriter dos = new PrintWriter(fos);
-			pathwayStIdToGeneNameList.forEach((stId,genes) -> {
-				genes.stream().distinct().forEach(gene -> {
-					dos.println(gene + "\t" + stId);
-				});
-			});
-			dos.close();
-			fos.close();
-			analyzer.getAnnotationHelper().setProteinNameToPathwayFile(geneToPathwayFileName);
 	}
 }
