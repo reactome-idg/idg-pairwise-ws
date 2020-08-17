@@ -107,7 +107,7 @@ public class PairwiseController {
     
     
     @CrossOrigin
-    @GetMapping("/relationships/pathwaysForInteractor/{pathwayStId}/{gene}")
+    @GetMapping("/relationships/PEsForTermInteractors/{pathwayStId}/{gene}")
     public Set<Long> queryPEsForInteractor(@PathVariable("pathwayStId") Long dbId, @PathVariable("gene") String gene){
     	Set<Long> rtn;
 		try {
@@ -173,6 +173,12 @@ public class PairwiseController {
     	if(request == null || request.getGene() == null || request.getDataDescs() == null)
     		return new ArrayList<>();
     	return service.queryUniprotToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
+    }
+    
+    @CrossOrigin
+    @GetMapping("/relationships/PathwaysForTermInteractors/{gene}")
+    public List<String> queryPathwaysForTermInteractors(@PathVariable("gene")String gene){
+    	return new ArrayList<>();
     }
     
     //TODO: swagger document for ws API design
