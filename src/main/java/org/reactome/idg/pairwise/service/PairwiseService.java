@@ -360,6 +360,8 @@ public class PairwiseService {
 		List<Integer> indexList=(List<Integer>) doc.get("pathways");
 		if(indexList == null) return new ArrayList<>();
 		
+		//Check and remove all pathways that are not bottom level
+		//Could also accomplish by including bottomLevel boolean on Pathway object, but we don't send that information to front end, so this is simpler
 		List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 		
 		return pathways;
@@ -371,7 +373,7 @@ public class PairwiseService {
     	List<Pathway> rtn = this.queryPrimaryPathwaysForGene(gene);
     	
     	//null check
-    	if(rtn ==  null || rtn.size() == 0) return null;
+    	if(rtn ==  null) return null;
     			
     	return rtn;
     }
@@ -409,16 +411,23 @@ public class PairwiseService {
     	Map<String, String> pathwayNameToStId = this.getPathwayNameToStId();
     	annotations.forEach(annotation -> {
     		if(!pathwayNameToStId.containsKey(annotation.getTopic())) return;
-    		rtnPathways.add(new Pathway(pathwayNameToStId.get(annotation.getTopic()),
+    		String stId = pathwayNameToStId.get(annotation.getTopic());
+    		rtnPathways.add(new Pathway(stId,
     									annotation.getTopic(),
     									Double.parseDouble(annotation.getFdr()),
-    									annotation.getPValue()));
+    									annotation.getPValue(),
+    									isBottomLevel(stId)));
     	});
     	
     	return rtnPathways;
     }
     
-    private List<GeneSetAnnotation> performEnrichment(Set<String> interactors, String gene){
+    private boolean isBottomLevel(String stId) {
+		Document doc = database.getCollection(PATHWAY_INDEX_COL_ID).find(Filters.eq("_id", stId)).first();
+		return doc.getBoolean("bottomLevel", true); //TODO: assume true or false?
+	}
+
+	private List<GeneSetAnnotation> performEnrichment(Set<String> interactors, String gene){
     	List<GeneSetAnnotation> annotations;
     	try {
     		annotations = config.getAnnotator().annotateGenesWithFDR(interactors, AnnotationType.Pathway);
@@ -500,7 +509,7 @@ public class PairwiseService {
     public void performIndex() {
     }
     
-    public Map<String, Integer> ensurePathwayIndex(Map<String, String> pathwayStIdToPathwayName){
+    public Map<String, Integer> ensurePathwayIndex(Map<String, String> pathwayStIdToPathwayName, Set<String> bottomPathways){
     	Map<String, Integer> rtn = new HashMap<>();
     	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
     	int nextIndex = 0;
@@ -508,6 +517,10 @@ public class PairwiseService {
     		ensureCollectionDoc(collection, entry.getKey());
     		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("index", nextIndex));
     		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("name", entry.getValue()));
+    		
+    		boolean bottomLevel = bottomPathways.contains(entry.getKey()) ? true:false; //make boolean that is true if entry pathway is a bottom level pathway
+    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("bottomLevel", bottomLevel));
+    		
     		rtn.put(entry.getKey(), nextIndex);
     		nextIndex++;
     	}
@@ -641,7 +654,7 @@ public class PairwiseService {
     	
     	while(cursor.hasNext()) {
     		Document nextDoc = cursor.next();
-    		indexToPathway.put(nextDoc.getInteger("index"), new Pathway(nextDoc.getString("_id"), nextDoc.getString("name")));
+    		indexToPathway.put(nextDoc.getInteger("index"), new Pathway(nextDoc.getString("_id"), nextDoc.getString("name"), nextDoc.getBoolean("bottomLevel")));
     	}
     	return indexToPathway;
     }
@@ -660,6 +673,7 @@ public class PairwiseService {
     	
     	return pathwayStIdToName;
     }
+
 
     /**
      * Consumes a document of key:value pairs.

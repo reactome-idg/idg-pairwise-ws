@@ -1,14 +1,11 @@
 package org.reactome.idg.pairwise.main;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -19,12 +16,6 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.reactome.annotate.AnnotationType;
-import org.reactome.annotate.GeneSetAnnotation;
-import org.reactome.annotate.PathwayBasedAnnotator;
-import org.reactome.idg.pairwise.model.DataDesc;
-import org.reactome.idg.pairwise.model.PairwiseRelationship;
-import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.service.PairwiseService;
 
 /**
@@ -34,6 +25,7 @@ import org.reactome.idg.pairwise.service.PairwiseService;
  */
 public class PathwayProcessor {
     private final static Logger logger = LoggerFactory.getLogger(PathwayProcessor.class);
+    private final String UNIPROT_2_REACTOME_BASE_LEVEL_URL = "https://reactome.org/download/current/UniProt2Reactome.txt";
     private final String UNIPROT_2_REACTOME_ALL_LEVELS_URL = "https://reactome.org/download/current/UniProt2Reactome_All_Levels.txt";
     
 	private Map<String, Integer> pathwayToIndex;
@@ -70,16 +62,35 @@ public class PathwayProcessor {
 			}			
 			br.close();
 			
+			//Need to get a list of the bottom level pathways for flaggin in PATHWAY_INDEX
+			Set<String> basePathways = getBasePathways(uniprotToGene);
+			
 			//regenerate pathway collection and PATHWAY_INDEX so that any no longer existing pathway-gene relationships are removed
 	    	service.regeneratePathwayCollections();
 			
-			pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToPathwayName);
+			pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToPathwayName, basePathways);
 	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, service);
 			
 		} catch (IOException e) {
 			logger.error(e.getMessage(), e);
 			return;
 		}
+	}
+
+	private Set<String> getBasePathways(Map<String, String> uniprotToGene) throws IOException {
+		Set<String> rtn = new HashSet<>();
+		URL url = new URL(UNIPROT_2_REACTOME_BASE_LEVEL_URL);
+		BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()));
+		String line = null;
+		while((line = br.readLine()) != null) {
+			String[] tokens = line.split("\t");
+			String correctedUniprot = tokens[0].split("-")[0]; //fix for uniprots with isophorms
+			if(uniprotToGene.containsKey(correctedUniprot))
+				rtn.add(tokens[1]);
+		}
+		br.close();
+		
+		return rtn;
 	}
 
 	/**

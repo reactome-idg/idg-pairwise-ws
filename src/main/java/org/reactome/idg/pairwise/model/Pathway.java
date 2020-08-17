@@ -11,23 +11,20 @@ public class Pathway {
 	private String name;
 	private Double fdr;
 	private Double pVal;
+	private boolean bottomLevel;
 	
-	public Pathway(String stId, String name, Double fdr, Double pVal) {
+	public Pathway(String stId, String name, Double fdr, Double pVal, boolean bottomLevel) {
 		this.stId = stId;
 		this.name = name;
 		this.fdr = fdr;
 		this.pVal = pVal;
-	}
-	
-	public Pathway(Integer index, Double fdr, Double pVal) {
-		this.index = index;
-		this.fdr = fdr;
-		this.pVal = pVal;
+		this.bottomLevel = bottomLevel;
 	}
 
-	public Pathway(String stId, String name) {
+	public Pathway(String stId, String name, boolean bottomLevel) {
 		this.stId = stId;
 		this.name = name;
+		this.bottomLevel = bottomLevel;
 	}
 
 	public Integer getIndex() {
@@ -68,5 +65,14 @@ public class Pathway {
 
 	public void setpVal(Double pVal) {
 		this.pVal = pVal;
+	}
+
+	public boolean isBottomLevel() {
+		return bottomLevel;
+	}
+
+	public void setBottomLevel(boolean bottomLevel) {
+		this.bottomLevel = bottomLevel;
 	}	
+	
 }
