@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
+import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
@@ -107,17 +108,17 @@ public class PairwiseController {
     
     
     @CrossOrigin
-    @GetMapping("/relationships/PEsForTermInteractors/{pathwayStId}/{gene}")
-    public Set<Long> queryPEsForInteractor(@PathVariable("pathwayStId") Long dbId, @PathVariable("gene") String gene){
+    @PostMapping("/relationships/PEsForTermInteractors")
+    public Set<Long> queryPEsForInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
     	Set<Long> rtn;
 		try {
-			rtn = service.queryPEsForInteractor(dbId, gene);
+			rtn = service.queryPEsForInteractor(request.getDbId(), request.getGene(), request.getDataDescs());
 		} catch (IOException e) {
 			logger.error(e.getMessage());
 			throw new InternalServerError(e.getMessage());
 		}
     	if(rtn == null) {
-    		String msg = "Physical entities not found for " + gene;
+    		String msg = "Physical entities not found for " + request.getGene();
     		logger.info(msg);
     		throw new ResourceNotFoundException(msg);
     	}
@@ -153,7 +154,7 @@ public class PairwiseController {
      * @return
      */
     @CrossOrigin
-    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForGene", consumes="application/json")
+    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForGene")
     public List<Pathway> enrichPathwaysForGene(@RequestBody GeneToPathwaysRequestWrapper request) {
     	if(request == null || request.getGene() == null || request.getDataDescs() == null)
     		return new ArrayList<>();
@@ -168,7 +169,7 @@ public class PairwiseController {
      * @return
      */
     @CrossOrigin
-    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForUniprot", consumes="application/json")
+    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForUniprot")
     public List<Pathway> enrichPathwaysForUniprot(@RequestBody GeneToPathwaysRequestWrapper request){
     	if(request == null || request.getGene() == null || request.getDataDescs() == null)
     		return new ArrayList<>();

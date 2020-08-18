@@ -218,7 +218,7 @@ public class PairwiseService {
         return rtn;
     }
     
-    public Set<Long> queryPEsForInteractor(Long dbId, String gene) throws IOException {
+    public Set<Long> queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException {
 		
     	//get pairwise doc for gene and throw exception if no doc found.
     	Document interactorsDoc = getRelationshipDocForGene(gene);
@@ -232,7 +232,7 @@ public class PairwiseService {
     	    	
     	Set<String> interactorGenes = new HashSet<>();
     	for(String key : interactorsDoc.keySet()) {
-    		if(key.equals("_id")) continue;
+    		if(!dataDescs.contains(key)) continue;
     		Document dataDoc = (Document) interactorsDoc.get(key);
     		interactorGenes.addAll(getGenesFromRelDoc(dataDoc));
     	}
