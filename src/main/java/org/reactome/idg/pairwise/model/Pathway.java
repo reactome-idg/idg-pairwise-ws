@@ -31,7 +31,7 @@ public class Pathway {
 		this.name = name;
 		this.bottomLevel = bottomLevel;
 	}
-
+	
 	public Integer getIndex() {
 		return index;
 	}
