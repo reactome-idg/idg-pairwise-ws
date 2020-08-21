@@ -176,11 +176,5 @@ public class PairwiseController {
     	return service.queryUniprotToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
     }
     
-    @CrossOrigin
-    @GetMapping("/relationships/PathwaysForTermInteractors/{gene}")
-    public List<String> queryPathwaysForTermInteractors(@PathVariable("gene")String gene){
-    	return new ArrayList<>();
-    }
-    
     //TODO: swagger document for ws API design
 }
