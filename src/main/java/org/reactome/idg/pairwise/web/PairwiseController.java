@@ -108,7 +108,7 @@ public class PairwiseController {
     
     
     @CrossOrigin
-    @PostMapping("/relationships/PEsForTermInteractors")
+    @PostMapping("/relationships/PEsForGeneInteractors")
     public Set<Long> queryPEsForInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
     	Set<Long> rtn;
 		try {
@@ -123,6 +123,24 @@ public class PairwiseController {
     		throw new ResourceNotFoundException(msg);
     	}
 
+    	return rtn;
+    }
+    
+    @CrossOrigin
+    @PostMapping("/relationships/PEsForUniprotInteractors")
+    public Set<Long> queryPEsForUniprotInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
+    	Set<Long> rtn;
+    	try {
+    		rtn = service.queryPEsForUniprotInteractor(request.getDbId(), request.getGene(), request.getDataDescs());
+    	} catch(IOException e) {
+    		logger.error(e.getMessage());
+    		throw new InternalServerError(e.getMessage());
+    	}
+    	if(rtn == null ) {
+    		String msg = "Physical entities not found for " + request.getGene();
+    		logger.info(msg);
+    		throw new ResourceNotFoundException(msg);
+    	}
     	return rtn;
     }
     

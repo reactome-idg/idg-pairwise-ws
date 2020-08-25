@@ -218,6 +218,12 @@ public class PairwiseService {
         return rtn;
     }
     
+    public Set<Long> queryPEsForUniprotInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException{
+    	String term = this.getUniProtToGene().get(gene);
+    	
+    	return queryPEsForInteractor(dbId, term, dataDescs);
+    }
+    
     public Set<Long> queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException {
 		
     	//get pairwise doc for gene and throw exception if no doc found.
@@ -410,8 +416,8 @@ public class PairwiseService {
     	List<Pathway> rtnPathways = new ArrayList<>();
     	Map<String, String> pathwayNameToStId = this.getPathwayNameToStId();
     	annotations.forEach(annotation -> {
-    		if(!pathwayNameToStId.containsKey(annotation.getTopic())) return;
     		String stId = pathwayNameToStId.get(annotation.getTopic());
+    		if(stId == null) return;
     		rtnPathways.add(new Pathway(stId,
     									annotation.getTopic(),
     									Double.parseDouble(annotation.getFdr()),
@@ -424,7 +430,7 @@ public class PairwiseService {
     
     private boolean isBottomLevel(String stId) {
 		Document doc = database.getCollection(PATHWAY_INDEX_COL_ID).find(Filters.eq("_id", stId)).first();
-		return doc.getBoolean("bottomLevel", true); //TODO: assume true or false?
+		return doc.getBoolean("bottomLevel", false);
 	}
 
 	private List<GeneSetAnnotation> performEnrichment(Set<String> interactors, String gene){
