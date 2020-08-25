@@ -414,12 +414,11 @@ public class PairwiseService {
     	
     	//convert enrichment analysis results into a list of Pathway objects
     	List<Pathway> rtnPathways = new ArrayList<>();
-    	Map<String, String> pathwayNameToStId = this.getPathwayNameToStId();
+    	Map<String, String> stIdToPathwayName = this.getPathwayNameToStId().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
     	annotations.forEach(annotation -> {
-    		String stId = pathwayNameToStId.get(annotation.getTopic());
-    		if(stId == null) return;
+    		String stId = annotation.getTopic();
     		rtnPathways.add(new Pathway(stId,
-    									annotation.getTopic(),
+    									stIdToPathwayName.get(stId),
     									Double.parseDouble(annotation.getFdr()),
     									annotation.getPValue(),
     									isBottomLevel(stId)));

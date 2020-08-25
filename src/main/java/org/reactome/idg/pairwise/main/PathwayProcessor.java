@@ -1,8 +1,11 @@
 package org.reactome.idg.pairwise.main;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -64,6 +67,9 @@ public class PathwayProcessor {
 			
 			//Need to get a list of the bottom level pathways for flaggin in PATHWAY_INDEX
 			Set<String> basePathways = getBasePathways(uniprotToGene);
+			
+			//generate file to be used for on the fly analysis in ws
+	    	generateProteinNameToPathwayFile(pathwayStIdToGeneNameList);
 			
 			//regenerate pathway collection and PATHWAY_INDEX so that any no longer existing pathway-gene relationships are removed
 	    	service.regeneratePathwayCollections();
@@ -128,5 +134,22 @@ public class PathwayProcessor {
 		
 		service.insertPathwayRelationships(pathwayToGeneIndexList);
 		service.insertGeneRelationships(geneToPathwayIndexList);
+	}
+	
+	private void generateProteinNameToPathwayFile(Map<String, List<String>> pathwayStIdToGeneNameList) throws IOException {
+		String fileName = "src/main/resources/ProteinNameToPathwayStId.txt";
+		File geneToPathwaysFile = new File(fileName);
+		geneToPathwaysFile.createNewFile();
+		FileWriter fos = new FileWriter(geneToPathwaysFile);
+		PrintWriter dos = new PrintWriter(fos);
+		pathwayStIdToGeneNameList.forEach((stId,genes) -> {
+			genes.stream().distinct().forEach(gene -> {
+				dos.println(gene + "\t" + stId);
+			});
+		});
+		dos.close();
+		fos.close();
+		
+		
 	}
 }
