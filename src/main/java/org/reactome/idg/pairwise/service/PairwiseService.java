@@ -301,7 +301,7 @@ public class PairwiseService {
                                                         List<String> descIds) {
         return queryRelsForGenes(genes, descIds, false);
     }
-    
+	
     private void fillGeneNumbersForRel(PairwiseRelationship rel, Document relDoc) {
         List<Integer> indexList = (List<Integer>) relDoc.get("pos");
         if (indexList != null)
