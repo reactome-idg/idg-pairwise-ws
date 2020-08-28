@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,6 +23,7 @@ import org.reactome.annotate.AnnotationType;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.idg.model.*;
 import org.reactome.idg.pairwise.model.DataDesc;
+import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
@@ -218,13 +220,13 @@ public class PairwiseService {
         return rtn;
     }
     
-    public Set<Long> queryPEsForUniprotInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException{
+    public PEsForInteractorResponse queryPEsForUniprotInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException{
     	String term = this.getUniProtToGene().get(gene);
     	
     	return queryPEsForInteractor(dbId, term, dataDescs);
     }
     
-    public Set<Long> queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException {
+    public PEsForInteractorResponse queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException {
 		
     	//get pairwise doc for gene and throw exception if no doc found.
     	Document interactorsDoc = getRelationshipDocForGene(gene);
@@ -249,12 +251,13 @@ public class PairwiseService {
     			peIds.addAll(geneToPEMap.get(geneName));
     	});
     	
-		return peIds;
+    	PEsForInteractorResponse rtn = new PEsForInteractorResponse(new ArrayList<>(peIds), new ArrayList<>(interactorGenes));
+    	
+		return rtn;
 	}
  
  	private Map<String, List<Long>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
  		String url = config.getCoreWSURL() + "/getGeneToIdsInPathway/"+pathwayDbId;
- 		System.out.println(url);
  		GetMethod method = new GetMethod(url);
  		method.setRequestHeader("Accept", "application/json");
  		

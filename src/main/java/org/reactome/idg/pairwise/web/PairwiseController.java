@@ -9,6 +9,7 @@ import java.util.Set;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
+import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelRequest;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
@@ -101,17 +102,18 @@ public class PairwiseController {
     
     @CrossOrigin
     @PostMapping("/relationships/PEsForGeneInteractors")
-    public Set<Long> queryPEsForInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
-    	Set<Long> rtn;
+    public PEsForInteractorResponse queryPEsForInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
+    	PEsForInteractorResponse rtn;
 		try {
 			rtn = service.queryPEsForInteractor(request.getDbId(), request.getGene(), request.getDataDescs());
 		} catch (IOException e) {
-			logger.error(e.getMessage());
+			logger.error(e.getMessage(), e);
 			throw new InternalServerError(e.getMessage());
 		}
-    	if(rtn == null) {
+    	if(rtn.getPeIds() == null) {
     		String msg = "Physical entities not found for " + request.getGene();
-    		logger.info(msg);
+    		//TODO: add exception as a variable and pass into warn
+    		logger.warn(msg);
     		throw new ResourceNotFoundException(msg);
     	}
 
@@ -120,18 +122,19 @@ public class PairwiseController {
     
     @CrossOrigin
     @PostMapping("/relationships/PEsForUniprotInteractors")
-    public Set<Long> queryPEsForUniprotInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
-    	Set<Long> rtn;
+    public PEsForInteractorResponse queryPEsForUniprotInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
+    	PEsForInteractorResponse rtn;
     	try {
     		rtn = service.queryPEsForUniprotInteractor(request.getDbId(), request.getGene(), request.getDataDescs());
     	} catch(IOException e) {
-    		logger.error(e.getMessage());
+    		logger.error(e.getMessage(), e);
     		throw new InternalServerError(e.getMessage());
     	}
-    	if(rtn == null ) {
+    	if(rtn.getPeIds() == null ) {
     		String msg = "Physical entities not found for " + request.getGene();
-    		logger.info(msg);
-    		throw new ResourceNotFoundException(msg);
+    		ResourceNotFoundException e = new ResourceNotFoundException(msg);
+    		logger.warn(msg, e);
+    		throw e;
     	}
     	return rtn;
     }
@@ -142,8 +145,9 @@ public class PairwiseController {
     	List<Pathway> rtn = service.queryPrimaryPathwaysForGene(gene);
     	if(rtn == null) {
     		String msg = "No primary pathways found for " + gene;
-    		logger.info(msg);
-    		throw new ResourceNotFoundException(msg);
+    		ResourceNotFoundException e = new ResourceNotFoundException(msg);
+    		logger.info(msg, e);
+    		throw e;
     	}
     	return rtn;
     }
