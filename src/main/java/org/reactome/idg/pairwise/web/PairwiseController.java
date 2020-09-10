@@ -142,7 +142,7 @@ public class PairwiseController {
     @CrossOrigin
     @GetMapping("relationships/primaryPathwaysForGene/{gene}")
     public List<Pathway> queryPrimaryPathwaysForGene(@PathVariable("gene") String gene){
-    	List<Pathway> rtn = service.queryPrimaryPathwaysForGene(gene);
+    	List<Pathway> rtn = service.queryPrimaryPathwaysForGene(gene.toUpperCase());
     	if(rtn == null) {
     		String msg = "No primary pathways found for " + gene;
     		ResourceNotFoundException e = new ResourceNotFoundException(msg);
