@@ -83,7 +83,7 @@ public class PairwiseService {
         return uniprotToGene;
     }
     
-    public Map<String, String> getGenneToUniProt(){
+    public Map<String, String> getGeneToUniProt(){
     	if(geneToUniprot == null) loadUniProtToGene();
     	return geneToUniprot;
     }
@@ -466,7 +466,7 @@ public class PairwiseService {
     }
     
     public PathwayToGeneRelationship queryPathwayToUniprotRelationships(String stId) {
-		Map<String, String> geneToUniprot = getGenneToUniProt();
+		Map<String, String> geneToUniprot = getGeneToUniProt();
 		PathwayToGeneRelationship rtn = queryPathwayToGeneRelationships(stId);
 		if(rtn == null) return null;
 		List<String> uniprotList = rtn.getGenes().stream().map(i -> geneToUniprot.get(i)).collect(Collectors.toList());
