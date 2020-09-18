@@ -1,9 +1,7 @@
 package org.reactome.idg.pairwise.model.pathway;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -12,14 +10,14 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(value = { "parents" })
 //TODO: add idRef annotation for stId
-public class GraphPathway {
+public class GraphPathway implements Comparable<GraphPathway>{
 
 	private String stId;
 	private String name;
 	private String species;
 	private String type;
-	private Set<GraphPathway> parents = new HashSet<>();
-	private Set<GraphPathway> children = new HashSet<>();
+	private Set<GraphPathway> parents = new TreeSet<>();
+	private Set<GraphPathway> children = new TreeSet<>();
 	
 	public GraphPathway(String stId, String name, String species, String type) {
 		this.stId = stId;
@@ -90,5 +88,10 @@ public class GraphPathway {
 	
 	public void setChildren(Set<GraphPathway> children) {
 		this.children = children;
+	}
+
+	@Override
+	public int compareTo(GraphPathway o) {
+		return getStId().compareTo(o.getStId());
 	}
 }
