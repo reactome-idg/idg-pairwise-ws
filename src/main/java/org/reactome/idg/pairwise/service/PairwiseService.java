@@ -3,6 +3,7 @@ package org.reactome.idg.pairwise.service;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -16,9 +17,11 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
+import org.junit.Test;
 import org.reactome.annotate.AnnotationType;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.idg.model.*;
@@ -27,6 +30,9 @@ import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
+import org.reactome.idg.pairwise.model.pathway.GraphHierarchy;
+import org.reactome.idg.pairwise.model.pathway.GraphPathway;
+import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
 import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -72,6 +78,9 @@ public class PairwiseService {
     private Map<String, String> uniprotToGene;
     private Map<String, String> geneToUniprot;
     private Map<String, String> pathwayStIdToName;
+    
+    //catched EventHierarchy
+    private GraphHierarchy graphHierarchy;
 
     public PairwiseService() {
     }
@@ -87,7 +96,34 @@ public class PairwiseService {
     	if(geneToUniprot == null) loadUniProtToGene();
     	return geneToUniprot;
     }
- 
+
+    /**
+     * Loads Event hierarchy from server and initializes GraphHierarchy object
+     */
+    private void loadGraphHierarchy() {
+		GetMethod method = new GetMethod(config.getEventHierarchyUrl());
+		method.setRequestHeader("Accept", "application/json");
+		HttpClient client = new HttpClient();
+		int responseCode;
+		try {
+			responseCode = client.executeMethod(method);
+			if(responseCode != HttpStatus.SC_OK) {
+				logger.error(method.getStatusText());
+			}
+			graphHierarchy = new GraphHierarchy(method.getResponseBodyAsString());
+		} catch (HttpException e) {
+			logger.error(e.getMessage());
+			throw new InternalServerError("Internal Server Error");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			logger.error(e.getMessage());
+			throw new InternalServerError("Internal Server Error");
+		}
+	}
+    
+	/**
+     * Actually fills uniprotToGene and geneToUniprot map
+     */
     private void loadUniProtToGene() {
         uniprotToGene = new HashMap<>();
         InputStream is = getClass().getClassLoader().getResourceAsStream(UNIPROT_TO_GENE_FILE_NAME);
@@ -361,7 +397,14 @@ public class PairwiseService {
     	return rtn;
     }
     
-    public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
+    public HierarchyResponseWrapper queryHierarchyForGene(String gene) {
+    	if(graphHierarchy == null) loadGraphHierarchy();
+    	
+    	List<String> stIds = queryPrimaryPathwaysForGene(gene).stream().map(Pathway::getStId).collect(Collectors.toList());
+    	return new HierarchyResponseWrapper(gene, stIds, graphHierarchy.getBranches(stIds));
+    }
+
+	public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
 		Map<Integer, Pathway> indexToPathway = getIndexToPathway();
 		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", gene)).first();
 		if(doc == null) return new ArrayList<>();
@@ -369,8 +412,6 @@ public class PairwiseService {
 		List<Integer> indexList=(List<Integer>) doc.get("pathways");
 		if(indexList == null) return new ArrayList<>();
 		
-		//Check and remove all pathways that are not bottom level
-		//Could also accomplish by including bottomLevel boolean on Pathway object, but we don't send that information to front end, so this is simpler
 		List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
 		
 		return pathways;

@@ -47,6 +47,9 @@ public class MainAppConfig {
     
     @Value("${gene.to.pathway.name}")
     private String geneToPathwayNameFile;
+    
+    @Value("${event.hierarchy.url}")
+    private String eventHierarchyUrl;
 
     @Bean
     public MongoClient mongoClient() {
@@ -65,6 +68,7 @@ public class MainAppConfig {
     	//url for fi service
     	PairwiseServiceConfig config = new PairwiseServiceConfig();
     	config.setCoreWSURL(coreWSUrl);
+    	config.setEventHierarchyUrl(eventHierarchyUrl);
     	
     	//creating PathwayBasedAnnotator for on the fly enrichment analysis
     	PathwayBasedAnnotator annotator = new PathwayBasedAnnotator();

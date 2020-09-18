@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
@@ -14,6 +13,8 @@ import org.reactome.idg.pairwise.model.PairwiseRelRequest;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
+import org.reactome.idg.pairwise.model.pathway.GraphPathway;
+import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
 import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
@@ -189,6 +190,13 @@ public class PairwiseController {
     		return new ArrayList<>();
     	return service.queryUniprotToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
     }
+    
+    @CrossOrigin
+    @GetMapping("/relationships/hierarchyForGene/{gene}")
+    public HierarchyResponseWrapper queryHierarchyForGene(@PathVariable("gene")String gene) {
+    	return service.queryHierarchyForGene(gene);
+    }
+    
     
     //TODO: swagger document for ws API design
 }

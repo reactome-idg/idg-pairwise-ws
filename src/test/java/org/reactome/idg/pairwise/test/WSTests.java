@@ -141,6 +141,14 @@ public class WSTests {
     	System.out.println(time2);
     }
     
+    @Test
+    public void testGetHierarchyForGene() throws Exception {
+    	String url = HOST_URL + "/relationships/hierarchyForGene/NTN1";
+    	System.out.println(url);
+    	String rtn = callHttp(url,HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
     private void outputJSON(String json) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         Object obj = mapper.readValue(json, Object.class);

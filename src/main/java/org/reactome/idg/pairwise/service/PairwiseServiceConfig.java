@@ -10,6 +10,7 @@ import org.reactome.annotate.PathwayBasedAnnotator;
 public class PairwiseServiceConfig {
 
 	private String coreWSURL;
+	private String eventHierarchyUrl;
 	private PathwayBasedAnnotator annotator;
 	
 	public PairwiseServiceConfig() {
@@ -22,6 +23,14 @@ public class PairwiseServiceConfig {
 
 	public void setCoreWSURL(String coreWSURL) {
 		this.coreWSURL = coreWSURL;
+	}
+
+	public String getEventHierarchyUrl() {
+		return eventHierarchyUrl;
+	}
+
+	public void setEventHierarchyUrl(String eventHierarchyUrl) {
+		this.eventHierarchyUrl = eventHierarchyUrl;
 	}
 
 	public PathwayBasedAnnotator getAnnotator() {
