@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.junit.Test;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -78,28 +79,25 @@ public class GraphHierarchy {
 		return stIdToPathway.get(stId);
 	}
 	
-	
 	public List<GraphPathway> getBranches(List<String> stIds){
 		Map<GraphPathway, GraphPathway> visited = new HashMap<>();
-		Set<GraphPathway> newNodes = new HashSet<>();
 		
 		
 		stIds.forEach(stId -> {
-			traverse(newNodes, visited, stIdToPathway.get(stId), null);
+			traverse(visited, stIdToPathway.get(stId), null);
 		});
 		
-		List<GraphPathway> rtn = newNodes.stream().filter(pw -> pw.getType().equals("TopLevelPathway")).collect(Collectors.toList());
+		List<GraphPathway> rtn = visited.values().stream().filter(pw -> pw.getType().equals("TopLevelPathway")).collect(Collectors.toList());
 		rtn.sort((x, y) -> x.getName().compareTo(y.getName()));
 		return rtn;
 	}
 	
-	private void traverse(Set<GraphPathway> newNodes, Map<GraphPathway, GraphPathway> oldToNew, GraphPathway oldParent, GraphPathway newChild) {
+	private void traverse(Map<GraphPathway, GraphPathway> oldToNew, GraphPathway oldParent, GraphPathway newChild) {
 		boolean existed = true;
 		GraphPathway newParent = oldToNew.get(oldParent);
 		if(newParent == null) {
 			existed = false;
 			newParent = new GraphPathway(oldParent.getStId(), oldParent.getName(), oldParent.getSpecies(), oldParent.getType());
-			newNodes.add(newParent);
 			oldToNew.put(oldParent, newParent);
 		}
 				
@@ -113,7 +111,7 @@ public class GraphHierarchy {
 		}
 		
 		for(GraphPathway p : oldParent.getParents()) {
-			traverse(newNodes, oldToNew, p, newParent);
+			traverse(oldToNew, p, newParent);
 		}
 	}
 }
