@@ -2,22 +2,24 @@ package org.reactome.idg.pairwise.model.pathway;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
-//TODO: annotation to remove children from what goes to front end
 @JsonInclude(Include.NON_NULL)
 @JsonIgnoreProperties(value = { "parents" })
+//TODO: add idRef annotation for stId
 public class GraphPathway {
 
 	private String stId;
 	private String name;
 	private String species;
 	private String type;
-	private Collection<GraphPathway> parents = new ArrayList<>();
-	private Collection<GraphPathway> children = new ArrayList<>();
+	private Set<GraphPathway> parents = new HashSet<>();
+	private Set<GraphPathway> children = new HashSet<>();
 	
 	public GraphPathway(String stId, String name, String species, String type) {
 		this.stId = stId;
@@ -58,11 +60,11 @@ public class GraphPathway {
 		this.type = type;
 	}
 
-	public Collection<GraphPathway> getParents() {
+	public Set<GraphPathway> getParents() {
 		return parents;
 	}
 
-	public void addParents(Collection<GraphPathway> parents) {
+	public void addParents(Set<GraphPathway> parents) {
 		this.parents.addAll(parents);
 	}
 	
@@ -70,15 +72,15 @@ public class GraphPathway {
 		parents.add(parent);
 	}
 	
-	public void setParents(Collection<GraphPathway> parents) {
+	public void setParents(Set<GraphPathway> parents) {
 		this.parents = parents;
 	}
 
-	public Collection<GraphPathway> getChildren() {
+	public Set<GraphPathway> getChildren() {
 		return children;
 	}
 
-	public void addChildren(Collection<GraphPathway> children) {
+	public void addChildren(Set<GraphPathway> children) {
 		this.children.addAll(children);
 	}
 	
@@ -86,15 +88,7 @@ public class GraphPathway {
 		children.add(child);
 	}
 	
-	public void setChildren(Collection<GraphPathway> children) {
+	public void setChildren(Set<GraphPathway> children) {
 		this.children = children;
-	}
-	
-	public boolean containsChild(String stId) {
-		for(GraphPathway child : children) {
-			if(child.getStId().equals(stId))
-				return true;
-		}
-		return false;
 	}
 }

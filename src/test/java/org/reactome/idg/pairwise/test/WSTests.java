@@ -143,7 +143,7 @@ public class WSTests {
     
     @Test
     public void testGetHierarchyForGene() throws Exception {
-    	String url = HOST_URL + "/relationships/hierarchyForGene/NTN1";
+    	String url = HOST_URL + "/relationships/hierarchyForGene/MAPK3";
     	System.out.println(url);
     	String rtn = callHttp(url,HTTP_GET, null);
     	outputJSON(rtn);

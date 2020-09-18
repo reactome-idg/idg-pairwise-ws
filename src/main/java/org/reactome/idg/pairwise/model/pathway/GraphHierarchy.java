@@ -37,8 +37,8 @@ public class GraphHierarchy {
 		buildGraph(response, null);
 	}
 
-	private Collection<GraphPathway> buildGraph(JsonNode nodes, GraphPathway parent) {
-		Collection<GraphPathway> pathways = new ArrayList<>();
+	private Set<GraphPathway> buildGraph(JsonNode nodes, GraphPathway parent) {
+		Set<GraphPathway> pathways = new HashSet<>();
 		for(JsonNode node : nodes) {
 			//want to ignore anything that isnt a pathway or top level pathway
 			String type = node.get("type").asText();
@@ -54,13 +54,12 @@ public class GraphHierarchy {
 										   		   node.get("name").asText(),
 										   		   node.get("species").asText(),
 										   		   node.get("type").asText()));
+				if(pathway.getType().equals("TopLevelPathway")) topLevelPathways.add(pathway);
 			}
-			
-			if(pathway.getType().equals("TopLevelPathway")) topLevelPathways.add(pathway);
 			
 			//parent will only be null for top level set of pathways
 			if(parent != null)
-				pathway.addParents(Collections.singletonList(parent));
+				pathway.addParent(parent);
 			//recursion down the hierarchy
 			if(node.get("children") != null)
 				pathway.addChildren(buildGraph(node.get("children"), pathway));
