@@ -111,7 +111,6 @@ public class PairwiseService {
 			logger.error(e.getMessage());
 			throw new InternalServerError("Internal Server Error");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			logger.error(e.getMessage());
 			throw new InternalServerError("Internal Server Error");
 		}
