@@ -13,7 +13,6 @@ import org.reactome.idg.pairwise.model.PairwiseRelRequest;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
-import org.reactome.idg.pairwise.model.pathway.GraphPathway;
 import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;

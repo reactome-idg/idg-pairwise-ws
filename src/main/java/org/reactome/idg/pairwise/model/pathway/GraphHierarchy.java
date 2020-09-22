@@ -2,6 +2,7 @@ package org.reactome.idg.pairwise.model.pathway;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -15,59 +16,49 @@ import org.junit.Test;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GraphHierarchy {
 
 	private Map<String, GraphPathway> stIdToPathway;
-	private Collection<GraphPathway> topLevelPathways;
 	
 	public GraphHierarchy(String jsonString) throws JsonProcessingException, IOException {
 		initGraph(jsonString);
 	}
 	
 	private void initGraph(String jsonString) throws JsonProcessingException, IOException {
-		stIdToPathway = new HashMap<>();
-		topLevelPathways = new ArrayList<>();
 		ObjectMapper mapper = new ObjectMapper();
 		
-		JsonNode response = mapper.readTree(jsonString);
-		if(!response.isArray()) throw new InternalServerError("Error Building/Traversing Event Hierarchy");
-		buildGraph(response, null);
+		List<GraphPathway> hierarchy = Arrays.asList(mapper.readValue(jsonString, GraphPathway[].class));
+		stIdToPathway = new HashMap<>();
+		for(GraphPathway pw : hierarchy) {
+			stIdToPathway.put(pw.getStId(), pw);
+			fillParents(pw, pw.getChildren());
+		}
 	}
 
-	private Set<GraphPathway> buildGraph(JsonNode nodes, GraphPathway parent) {
-		Set<GraphPathway> pathways = new HashSet<>();
-		for(JsonNode node : nodes) {
-			//want to ignore anything that isnt a pathway or top level pathway
-			String type = node.get("type").asText();
-			if(!type.equals("Pathway") && !type.equals("TopLevelPathway")) continue;
-			
-			//get pathway if it already exists from another part of the hierarchy
-			GraphPathway pathway = stIdToPathway.get(node.get("stId").asText());
-			
-			//make pathway if doesnt already exist
-			if(pathway == null) {
-				stIdToPathway.put(node.get("stId").asText(), 
-						pathway = new GraphPathway(node.get("stId").asText(),
-										   		   node.get("name").asText(),
-										   		   node.get("species").asText(),
-										   		   node.get("type").asText()));
-				if(pathway.getType().equals("TopLevelPathway")) topLevelPathways.add(pathway);
+	/**
+	 * Used to give GraphPathways a parent relationship and populate stIdToPathway map.
+	 * @param parent
+	 * @param children
+	 */
+	private void fillParents(GraphPathway parent, List<GraphPathway> children) {
+		List<GraphPathway> toRemove = new ArrayList<>();
+		for(GraphPathway child : children) {
+			if(!child.getType().equals("Pathway")) {
+				toRemove.add(child);
+				continue;
 			}
+			if(!stIdToPathway.containsKey(child.getStId()))
+				stIdToPathway.put(child.getStId(), child);
+			child.addParent(parent);
 			
-			//parent will only be null for top level set of pathways
-			if(parent != null)
-				pathway.addParent(parent);
-			//recursion down the hierarchy
-			if(node.get("children") != null)
-				pathway.addChildren(buildGraph(node.get("children"), pathway));
-			
-			pathways.add(pathway);
+			if(child.getChildren() != null)
+				fillParents(child, child.getChildren());
 		}
-		
-		return pathways;
+		parent.getChildren().removeAll(toRemove);
 	}
 
 	/**
@@ -78,6 +69,11 @@ public class GraphHierarchy {
 		return stIdToPathway.get(stId);
 	}
 	
+	/**
+	 * For a list of stIds corresponding to pathways, slice branches for return to controller
+	 * @param stIds
+	 * @return
+	 */
 	public List<GraphPathway> getBranches(List<String> stIds){
 		Map<GraphPathway, GraphPathway> visited = new HashMap<>();
 		
@@ -91,6 +87,15 @@ public class GraphHierarchy {
 		return rtn;
 	}
 	
+	/**
+	 * Recursive method to fill children of original passed in GraphPathway in a hierarchical manner
+	 * oldToNew maps parents to their children for lookup and to avoid duplication
+	 * If a protein existed already on the map, dont want to itterate over parents again
+	 * Results in values of oldToNew being the return value wanted by the controller
+	 * @param oldToNew
+	 * @param oldParent
+	 * @param newChild
+	 */
 	private void traverse(Map<GraphPathway, GraphPathway> oldToNew, GraphPathway oldParent, GraphPathway newChild) {
 		boolean existed = true;
 		GraphPathway newParent = oldToNew.get(oldParent);
@@ -105,7 +110,7 @@ public class GraphHierarchy {
 			newChild.addParent(newParent);
 		}
 		
-		if(existed) {
+		if(existed || oldParent.getParents() == null) {
 			return;
 		}
 		
