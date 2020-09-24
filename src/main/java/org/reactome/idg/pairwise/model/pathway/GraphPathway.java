@@ -105,9 +105,12 @@ public class GraphPathway {
 	public void setParents(List<GraphPathway> parents) {
 		this.parents = parents;
 	}
-	public void addParent(GraphPathway parent) {
+	public boolean addParent(GraphPathway parent) {
 		if(parents == null) parents = new ArrayList<>();
-		if(!parents.contains(parent))
+		if(!parents.contains(parent)) {
 			parents.add(parent);
+			return true;
+		}
+		return false;
 	}
 }

@@ -3,25 +3,12 @@ package org.reactome.idg.pairwise.model.pathway;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.junit.Test;
-import org.reactome.idg.pairwise.web.errors.InternalServerError;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class GraphHierarchy {
@@ -52,22 +39,25 @@ public class GraphHierarchy {
 	private void fillParents(GraphPathway parent, List<GraphPathway> children) {
 		//Everything that isnt a Pathway needs to be removed
 		//Want hierarchy of only pathways
-		//Dont need to check on TopLevelPathways because they never see this method
+		//Don't need to check on TopLevelPathways because they never see this method
 		List<GraphPathway> toRemove = new ArrayList<>();
 		for(GraphPathway child : children) {
 			//Continue if child is not a Pathway
-			if(!child.getType().equals("Pathway")) {
+			if(!child.getType().equals("Pathway") && !child.getType().equals("TopLevelPathway")) {
 				toRemove.add(child);
 				continue;
 			}
 			//Place each Pathway on map of stId to the GraphPathway Object
 			if(!stIdToPathway.containsKey(child.getStId()))
 				stIdToPathway.put(child.getStId(), child);
+			
 			//add passed in parent to each child
-			child.addParent(parent);
+			//if already added, don't want to iterate over children again
+			//avoids circular logic
+			boolean added = child.addParent(parent);
 			
 			//If children exist, recursively call this method to the bottom of the hierarchy
-			if(child.getChildren() != null)
+			if(child.getChildren() != null && added)
 				fillParents(child, child.getChildren());
 		}
 		//remove all non-Pathway GraphPathwayObjects from parent
