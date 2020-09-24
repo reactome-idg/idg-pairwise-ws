@@ -398,6 +398,14 @@ public class PairwiseService {
     	List<String> stIds = queryPrimaryPathwaysForGene(gene).stream().map(Pathway::getStId).collect(Collectors.toList());
     	return new HierarchyResponseWrapper(gene, stIds, graphHierarchy.getBranches(stIds));
     }
+    
+    public HierarchyResponseWrapper queryHierarchyForUniprot(String uniprot) {
+    	String gene = this.getUniProtToGene().get(uniprot);
+    	if(gene == null) return null;
+    	HierarchyResponseWrapper rtn = queryHierarchyForGene(gene);
+    	rtn.setGene(uniprot);
+    	return rtn;
+    }
 
 	public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
 		Map<Integer, Pathway> indexToPathway = getIndexToPathway();

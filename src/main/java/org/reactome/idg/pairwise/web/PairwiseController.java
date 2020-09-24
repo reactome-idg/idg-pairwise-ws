@@ -196,6 +196,10 @@ public class PairwiseController {
     	return service.queryHierarchyForGene(gene);
     }
     
-    
+    @CrossOrigin
+    @GetMapping("/relationships/hierarchyForUniprot/{uniprot}")
+    public HierarchyResponseWrapper queryHierarchyForUniprot(@PathVariable("uniprot")String uniprot) {
+    	return service.queryHierarchyForUniprot(uniprot);
+    }
     //TODO: swagger document for ws API design
 }

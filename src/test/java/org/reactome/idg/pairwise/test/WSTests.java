@@ -149,6 +149,14 @@ public class WSTests {
     	outputJSON(rtn);
     }
     
+    @Test
+    public void testGetHierarchyForUniprot() throws Exception {
+    	String url = HOST_URL + "/relationships/hierarchyForUniprot/O95631";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
     private void outputJSON(String json) throws JsonProcessingException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         Object obj = mapper.readValue(json, Object.class);
