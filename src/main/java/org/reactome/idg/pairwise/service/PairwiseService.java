@@ -301,14 +301,19 @@ public class PairwiseService {
  			else
  				throw new InternalServerError("Unable to retrieve physical entities for pathway " + pathwayDbId);		
  		}
- 		return structureGeneToPEMap(method.getResponseBodyAsString());
+ 		return structureGeneToPEMap(method.getResponseBodyAsString(), pathwayDbId);
  	}
      
-    private Map<String, List<Long>> structureGeneToPEMap(String responseBodyAsString)  throws IOException{
+    private Map<String, List<Long>> structureGeneToPEMap(String responseBodyAsString, Long pathwayDbId)  throws IOException{
 		ObjectMapper mapper = new ObjectMapper();
 		
 		JsonNode response = mapper.readTree(responseBodyAsString);
-		if(!response.get("geneToPEIds").isArray()) return null;
+		//throw if geneToPEIds doesn't exist in response. Also ensure it is an array.
+		if(response.get("geneToPEIds") == null || !response.get("geneToPEIds").isArray()) {
+			ResourceNotFoundException ex = new ResourceNotFoundException("Could not find physical entities for pathway: " + pathwayDbId);
+			logger.error(ex.getMessage());
+			throw ex;
+		}
 		
 		Map<String, List<Long>> rtn = new HashMap<>();
 		
