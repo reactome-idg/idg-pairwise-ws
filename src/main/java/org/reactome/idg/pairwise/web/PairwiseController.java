@@ -158,48 +158,30 @@ public class PairwiseController {
     	List<Pathway> rtn = service.queryPrimaryPathwaysForUniprot(uniprot.toUpperCase());
     	if(rtn == null) throw new ResourceNotFoundException(uniprot + " not found.");
     	else return rtn;
-    }
+    } 
     
     /**
-     * Performs an enrichment analysis on interactors for a gene based on passed in data descriptions
-     * Line 1: gene to get interactors for
-     * Line 2: "," separated list of data descriptions
-     * @param text
+     * Performs enrichment analysis on interactors for term (gene symbol or uniprot) based on passed in data descriptions
+     * @param request
      * @return
      */
     @CrossOrigin
-    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForGene")
-    public List<Pathway> enrichPathwaysForGene(@RequestBody GeneToPathwaysRequestWrapper request) {
+    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForTerm")
+    public List<Pathway> enrichedPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request){
     	if(request == null || request.getGene() == null || request.getDataDescs() == null)
     		return new ArrayList<>();
-    	return service.queryGeneToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
+    	return service.queryTermToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
     }
     
     /**
-     * Performs an enrichment analysis on interactors for a gene based on passed in data descriptions
-     * Line 1: Uniprot to get interactors for
-     * Line 2: "," separated list of data descriptions
-     * @param text
+     * Supports uniprot and standard gene symbol
+     * @param term
      * @return
      */
     @CrossOrigin
-    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForUniprot")
-    public List<Pathway> enrichPathwaysForUniprot(@RequestBody GeneToPathwaysRequestWrapper request){
-    	if(request == null || request.getGene() == null || request.getDataDescs() == null)
-    		return new ArrayList<>();
-    	return service.queryUniprotToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
-    }
-    
-    @CrossOrigin
-    @GetMapping("/relationships/hierarchyForGene/{gene}")
-    public HierarchyResponseWrapper queryHierarchyForGene(@PathVariable("gene")String gene) {
-    	return service.queryHierarchyForGene(gene);
-    }
-    
-    @CrossOrigin
-    @GetMapping("/relationships/hierarchyForUniprot/{uniprot}")
-    public HierarchyResponseWrapper queryHierarchyForUniprot(@PathVariable("uniprot")String uniprot) {
-    	return service.queryHierarchyForUniprot(uniprot);
+    @GetMapping("/relationships/hierarchyForTerm/{term}")
+    public HierarchyResponseWrapper queryHierarchyForTerm(@PathVariable("term")String term) {
+    	return service.queryHierarchhyForTerm(term);
     }
     //TODO: swagger document for ws API design
 }

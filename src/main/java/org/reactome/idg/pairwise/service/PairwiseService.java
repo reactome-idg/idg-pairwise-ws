@@ -396,21 +396,30 @@ public class PairwiseService {
     	
     	return rtn;
     }
-    
-    public HierarchyResponseWrapper queryHierarchyForGene(String gene) {
+
+    /**
+     * Gets stIds for pathways containing term. Gets hierarchy and return.
+     * Term can be either uniprot or gene symbol
+     * @param term
+     * @return
+     */
+    public HierarchyResponseWrapper queryHierarchhyForTerm(String term) {
     	if(graphHierarchy == null) loadGraphHierarchy();
+    	Map<String, String> uniprotToGene = this.getUniProtToGene();
     	
-    	List<String> stIds = queryPrimaryPathwaysForGene(gene).stream().map(Pathway::getStId).collect(Collectors.toList());
-    	return new HierarchyResponseWrapper(gene, stIds, graphHierarchy.getBranches(stIds));
-    }
-    
-    public HierarchyResponseWrapper queryHierarchyForUniprot(String uniprot) {
-    	String gene = this.getUniProtToGene().get(uniprot);
-    	if(gene == null) return null;
-    	HierarchyResponseWrapper rtn = queryHierarchyForGene(gene);
-    	rtn.setGene(uniprot);
-    	return rtn;
-    }
+    	List<String> stIds = new ArrayList<>();
+		if(uniprotToGene.containsValue(term)) {
+			stIds = queryPrimaryPathwaysForGene(term).stream().map(Pathway::getStId).collect(Collectors.toList());
+		}
+		else if(uniprotToGene.containsKey(term)) {
+			stIds = queryPrimaryPathwaysForGene(uniprotToGene.get(term)).stream().map(Pathway::getStId).collect(Collectors.toList());
+		}
+		
+		if(stIds == null || stIds.size() == 0)
+			throw new ResourceNotFoundException("Could not query heirarchy for: " + term + ". No pathways found for term");
+		
+		return new HierarchyResponseWrapper(term, stIds, graphHierarchy.getBranches(stIds));
+	}
 
 	public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
 		Map<Integer, Pathway> indexToPathway = getIndexToPathway();
@@ -436,15 +445,15 @@ public class PairwiseService {
     	return rtn;
     }
     
-    public List<Pathway> queryUniprotToSecondaryPathwaysWithEnrichment(String uniprot, List<String> dataDescs) {
-    	String gene = this.getUniProtToGene().get(uniprot);
-    	if(gene == null) return null;
-    	List<Pathway> rtn = this.queryGeneToSecondaryPathwaysWithEnrichment(gene, dataDescs);
-    	
-    	//null check
-    	if(rtn ==  null || rtn.size() == 0) return null;
-    			
-    	return rtn;
+    public List<Pathway> queryTermToSecondaryPathwaysWithEnrichment(String term, List<String> dataDescs) {
+    	Map<String, String> uniprotToGene = this.getUniProtToGene();
+		if(uniprotToGene.containsValue(term)) {
+			return queryGeneToSecondaryPathwaysWithEnrichment(term, dataDescs);
+		}
+		else if(uniprotToGene.containsKey(term)) {
+			return queryGeneToSecondaryPathwaysWithEnrichment(uniprotToGene.get(term), dataDescs);
+		}
+		throw new ResourceNotFoundException("No recorded term: " + term);
 	}
     
     public List<Pathway> queryGeneToSecondaryPathwaysWithEnrichment(String gene, List<String> descIds) {
@@ -458,7 +467,7 @@ public class PairwiseService {
     	}
     	//if there are no interactors
     	if(interactors.size() < 1) {
-    		return new ArrayList<>();
+    		return null;
     	}
     	
     	//get enrichment analysis results
