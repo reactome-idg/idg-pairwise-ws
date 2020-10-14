@@ -26,7 +26,8 @@ public class MainApp {
     public static void main(String[] args) {
 //        pushDataIntoDB(args);
 //        pushMLFeatureIntoDB();
-    	  pushPathwayData();
+//    	  pushPathwayData();
+    	  pushPRDPredictions(args);
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -95,6 +96,19 @@ public class MainApp {
         PairwiseService service = context.getBean(PairwiseService.class);
     	PathwayProcessor processor = new PathwayProcessor();
     	processor.processPathways(service);
+    	
+    	context.close();
+    }
+    
+    private static void pushPRDPredictions(String [] args) {
+    	if(args.length < 3) {
+    		System.err.println("Please provide file location for PRD predictions");
+    		return;
+    	}
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	PRDPredictionProcessor processor = new PRDPredictionProcessor();
+    	processor.processPRDPredictions(service, args[0], args[1], args[2]);
     	
     	context.close();
     }

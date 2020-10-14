@@ -19,10 +19,12 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
+import org.bson.conversions.Bson;
 import org.reactome.annotate.AnnotationType;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.idg.model.*;
 import org.reactome.idg.pairwise.model.DataDesc;
+import org.reactome.idg.pairwise.model.GeneCombinedScore;
 import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.BasicDBObject;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -55,6 +58,7 @@ public class PairwiseService {
     private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
     private final String PATHWAY_INDEX_COL_ID = "PATHWAY_INDEX";
     private final String PATHWAYS_COL_ID = "pathways";
+    private final String COMBINED_SCORE = "combined_score";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
     
@@ -459,7 +463,7 @@ public class PairwiseService {
     public List<Pathway> queryGeneToSecondaryPathwaysWithEnrichment(String gene, List<String> descIds) {
     	Document relDoc = getRelationshipDocForGene(gene);
     	    	
-    	Set<String> interactors = new HashSet<>();
+    	Collection<String> interactors = new ArrayList<>();
     	for(String key : relDoc.keySet()) {
     		if(!descIds.contains(key)) continue;
     		Document doc = (Document) relDoc.get(key);
@@ -470,6 +474,33 @@ public class PairwiseService {
     		return null;
     	}
     	
+    	return getEnrichedPathways(interactors, gene);
+    }
+    
+    public List<Pathway> queryEnrichedPathwaysForCombinedScore(String term, Double prdCutoff) {
+		Map<String, String> uniprotToGene = this.getUniProtToGene();
+		Map<Integer, String> indexToGene = this.getIndexToGene();
+		
+		//if term is uniprot, convert to gene name.
+		if(uniprotToGene.containsKey(term))
+			term = uniprotToGene.get(term);
+		
+		Document relDoc = getRelationshipDocForGene(term);
+		if(relDoc == null || relDoc.get(COMBINED_SCORE) == null) return null; //return null if no relationship doc for term or no combined score
+		
+		//Get combined scores from document. Loop over each row and add index (as gene)  to interactors if prd value less than passed in cutoff
+		Document combinedScores = (Document) relDoc.get(COMBINED_SCORE);
+		Collection<String> interactors = new ArrayList<>();
+		combinedScores.forEach((index, prd) -> {
+			if((Double)prd > prdCutoff)
+				interactors.add(indexToGene.get(Integer.parseInt(index)));
+		});
+		
+    	
+		return getEnrichedPathways(interactors, term);
+	}
+    
+    public List<Pathway> getEnrichedPathways(Collection<String> interactors, String gene){
     	//get enrichment analysis results
     	List<GeneSetAnnotation> annotations = performEnrichment(interactors, gene);
     	
@@ -487,13 +518,8 @@ public class PairwiseService {
     	
     	return rtnPathways;
     }
-    
-    private boolean isBottomLevel(String stId) {
-		Document doc = database.getCollection(PATHWAY_INDEX_COL_ID).find(Filters.eq("_id", stId)).first();
-		return doc.getBoolean("bottomLevel", false);
-	}
 
-	private List<GeneSetAnnotation> performEnrichment(Set<String> interactors, String gene){
+	private List<GeneSetAnnotation> performEnrichment(Collection<String> interactors, String gene){
     	List<GeneSetAnnotation> annotations;
     	try {
     		annotations = config.getAnnotator().annotateGenesWithFDR(interactors, AnnotationType.Pathway);
@@ -504,6 +530,11 @@ public class PairwiseService {
     	}
     	return annotations;
     }
+	
+	private boolean isBottomLevel(String stId) {
+		Document doc = database.getCollection(PATHWAY_INDEX_COL_ID).find(Filters.eq("_id", stId)).first();
+		return doc.getBoolean("bottomLevel", false);
+	}
     
     public PathwayToGeneRelationship queryPathwayToGeneRelationships(String stId) {
     	Map<Integer, String> indexToGene = getIndexToGene();
@@ -684,6 +715,41 @@ public class PairwiseService {
     	logger.info("Inserting patwhay relationships complete");
     }
     
+    public void clearCombinedScores() {
+    	MongoCollection<Document> collection =  database.getCollection(RELATIONSHIP_COL_ID);
+    	collection.updateMany(new BasicDBObject(), Updates.unset(COMBINED_SCORE));
+    }
+    
+    /**
+     * Insert combined score for gene pair from gene1 to gene2 and reverse.
+     * @param gene1
+     * @param gene2
+     * @param prd
+     * @param geneToIndex
+     */
+    public void insertCombinedScore(Collection<GeneCombinedScore> geneCombinedScores) {
+    	
+    	
+		Map<String, Integer> geneToIndex = getIndexToGene().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
+    	MongoCollection<Document> collection = database.getCollection(RELATIONSHIP_COL_ID);
+		
+    	geneCombinedScores.forEach(obj -> {
+    		ensureCollectionDoc(collection, obj.getGene());
+    		Document combinedScoresDoc = new Document();
+    		obj.getInteractorToScore().forEach((gene,prd) -> {
+    			combinedScoresDoc.append(geneToIndex.get(gene)+"", prd);
+    		});
+    		collection.updateOne(Filters.eq("_id", obj.getGene()), Updates.set(COMBINED_SCORE, combinedScoresDoc));
+    	});
+    	
+//    	ensureCollectionDoc(collection, gene1);
+//    	collection.updateOne(Filters.eq("_id", gene1), new BasicDBObject("$set", new BasicDBObject(COMBINED_SCORE + "." + geneToIndex.get(gene2), prd)));
+//    	
+//    	ensureCollectionDoc(collection, gene2);
+//    	collection.updateOne(Filters.eq("_id", gene2), new BasicDBObject("$set", new BasicDBObject(COMBINED_SCORE + "." + geneToIndex.get(gene1), prd)));
+		
+    }
+    
     /**
      * Collect keyset of each argument for loop to ensure nothing is missed
      * @param geneToPathwayList
@@ -757,15 +823,16 @@ public class PairwiseService {
     	return rtn;
     }
     
-    private void ensureCollectionDoc(MongoCollection<Document> collection,
+    private Document ensureCollectionDoc(MongoCollection<Document> collection,
                                String gene) {
         // There should be only one document
         Document geneDoc = collection.find(Filters.eq("_id", gene)).first();
         if (geneDoc != null)
-            return;
+            return geneDoc;
         // Need to create one document
         geneDoc = new Document().append("_id", gene);
         collection.insertOne(geneDoc);
+        return geneDoc;
     }
 
     public void insertDataDesc(DataDesc desc) {

@@ -131,14 +131,29 @@ public class WSTests {
     	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForTerm";
     	System.out.println(url);
     	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
-    	postData.setGene("PRKY");
+    	postData.setTerm("PRKY");
     	postData.setDataDescs(Arrays.asList("BioGridBioPlexStringDB|Homo_sapiens|Protein_Interaction"));
     	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
     	Long time1 = System.currentTimeMillis();
     	String rtn = callHttp(url, HTTP_POST, json);
     	Long time2 = System.currentTimeMillis() - time1;
     	outputJSON(rtn);
     	System.out.println(time2);
+    }
+    
+    @Test
+    public void testCombinedScoreForTerm() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/combinedScoreForTerm";
+    	System.out.println(url);
+    	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
+    	postData.setTerm("NTN1");
+    	postData.setPrd(0.7d);
+    	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
+    	String rtn = callHttp(url, HTTP_POST, json);
+    	outputJSON(rtn);
     }
     
     @Test
@@ -170,6 +185,7 @@ public class WSTests {
         HttpClient client = null;
         if (type.equals(HTTP_POST)) {
             method = new PostMethod(url);
+            method.addRequestHeader("content-type", "application/json");
             client = initializeHTTPClient((PostMethod) method, query);
         } else {
             method = new GetMethod(url); // Default

@@ -64,7 +64,7 @@ public class PathwayProcessor {
 				}
 			}			
 			br.close();
-			
+						
 			//Need to get a list of the bottom level pathways for flaggin in PATHWAY_INDEX
 			Set<String> basePathways = getBasePathways(uniprotToGene);
 			

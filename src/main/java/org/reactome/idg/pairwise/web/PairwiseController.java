@@ -33,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  */
 @RestController
+@CrossOrigin
 public class PairwiseController {
     
     @Autowired
@@ -167,9 +168,9 @@ public class PairwiseController {
     @CrossOrigin
     @PostMapping(path="/relationships/enrichedSecondaryPathwaysForTerm")
     public List<Pathway> enrichedPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request){
-    	if(request == null || request.getGene() == null || request.getDataDescs() == null)
+    	if(request == null || request.getTerm() == null || request.getDataDescs() == null)
     		return new ArrayList<>();
-    	return service.queryTermToSecondaryPathwaysWithEnrichment(request.getGene(), request.getDataDescs());
+    	return service.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), request.getDataDescs());
     }
     
     /**
@@ -182,5 +183,12 @@ public class PairwiseController {
     public HierarchyResponseWrapper queryHierarchyForTerm(@PathVariable("term")String term) {
     	return service.queryHierarchhyForTerm(term);
     }
+    
+    @CrossOrigin
+    @PostMapping("/relationships/combinedScoreForTerm")
+    public List<Pathway> enrichedPathwaysForCombinedScore(@RequestBody GeneToPathwaysRequestWrapper request){
+    	return service.queryEnrichedPathwaysForCombinedScore(request.getTerm(), request.getPrd());
+    }
+    
     //TODO: swagger document for ws API design
 }
