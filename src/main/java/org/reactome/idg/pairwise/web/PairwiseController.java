@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
  * @author wug
  *
  */
-@CrossOrigin
 @RestController
 public class PairwiseController {
     

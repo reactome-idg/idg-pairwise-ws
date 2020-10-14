@@ -128,10 +128,10 @@ public class WSTests {
     @Test
     public void testEnrichInteractorsForGene() throws Exception {
     	ObjectMapper mapper = new ObjectMapper();
-    	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForGene";
+    	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForTerm";
     	System.out.println(url);
     	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
-    	postData.setGene("EGFR");
+    	postData.setGene("PRKY");
     	postData.setDataDescs(Arrays.asList("BioGridBioPlexStringDB|Homo_sapiens|Protein_Interaction"));
     	String json = mapper.writeValueAsString(postData);
     	Long time1 = System.currentTimeMillis();
