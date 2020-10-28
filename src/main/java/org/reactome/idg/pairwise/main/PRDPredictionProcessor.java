@@ -11,14 +11,18 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.reactome.idg.pairwise.model.GeneCombinedScore;
 import org.reactome.idg.pairwise.service.PairwiseService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PRDPredictionProcessor {
+    private final static Logger logger = LoggerFactory.getLogger(PathwayProcessor.class);
+
 
 	public void processPRDPredictions(PairwiseService service, String folder, String prdFile, String predictionFile) {
-		System.out.println("Clearing combined scores...");
+		logger.info("Clearing combined scores...");
 		service.clearCombinedScores(); //helper method for testing adding combined scores
 		
-		System.out.println("Caching combined scores...");
+		logger.info("Caching combined scores...");
 		
 		Map<String, String> underscoreToTabMap = loadUnderscoreToTabMap(folder, predictionFile);
 				
@@ -48,14 +52,14 @@ public class PRDPredictionProcessor {
 			e.printStackTrace();
 		}
 		
-		System.out.println("Finished caching " + geneToCombinedScore.keySet().size() + " genes.");
+		logger.info("Finished caching " + geneToCombinedScore.keySet().size() + " genes.");
 		
-		System.out.println("Ensuring all genes are in GENE_INDEX");
+		logger.info("Ensuring all genes are in GENE_INDEX");
 		service.ensureGeneIndex(geneToCombinedScore.keySet());
 		
-		System.out.println("Inserting combined_scores for each relationship document");
+		logger.info("Inserting combined_scores for each relationship document");
 		service.insertCombinedScore(geneToCombinedScore.values());
-		System.out.println("Finished adding combined scores.");
+		logger.info("Finished adding combined scores.");
 	}
 
 	private Map<String, String> loadUnderscoreToTabMap(String folder, String file){

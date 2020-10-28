@@ -3,6 +3,7 @@ package org.reactome.idg.pairwise.config;
 import java.util.Arrays;
 
 import org.reactome.annotate.PathwayBasedAnnotator;
+import org.reactome.idg.pairwise.main.config.PRDPredictionProcessorConfig;
 import org.reactome.idg.pairwise.service.PairwiseServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -50,6 +51,15 @@ public class MainAppConfig {
     
     @Value("${event.hierarchy.url}")
     private String eventHierarchyUrl;
+    
+    @Value("${prd.file.folder}")
+    private String prdFileFolder;
+    
+    @Value("${prd.probability.file}")
+    private String prdProbabilityFile;
+    
+    @Value("${prd.prediction.file}")
+    private String predictionFile;
 
     @Bean
     public MongoClient mongoClient() {
@@ -74,6 +84,16 @@ public class MainAppConfig {
     	PathwayBasedAnnotator annotator = new PathwayBasedAnnotator();
     	annotator.getAnnotationHelper().setProteinNameToPathwayFile(geneToPathwayNameFile);
     	config.setAnnotator(annotator);
+    	
+    	return config;
+    }
+    
+    @Bean
+    public PRDPredictionProcessorConfig getPRDPredictionProcessorConfig() {
+    	PRDPredictionProcessorConfig config = new PRDPredictionProcessorConfig();
+    	config.setFolder(prdFileFolder);
+    	config.setPrdProbabilitiesFile(prdProbabilityFile);
+    	config.setPredictionFile(predictionFile);
     	
     	return config;
     }

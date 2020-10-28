@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Scanner;
 
 import org.reactome.idg.pairwise.config.MainAppConfig;
+import org.reactome.idg.pairwise.main.config.PRDPredictionProcessorConfig;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
@@ -27,7 +28,7 @@ public class MainApp {
 //        pushDataIntoDB(args);
 //        pushMLFeatureIntoDB();
 //    	  pushPathwayData();
-    	  pushPRDPredictions(args);
+    	  pushPRDPredictions();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -100,15 +101,12 @@ public class MainApp {
     	context.close();
     }
     
-    private static void pushPRDPredictions(String [] args) {
-    	if(args.length < 3) {
-    		System.err.println("Please provide file location for PRD predictions");
-    		return;
-    	}
+    private static void pushPRDPredictions() {
     	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
     	PairwiseService service = context.getBean(PairwiseService.class);
+    	PRDPredictionProcessorConfig config = context.getBean(PRDPredictionProcessorConfig.class);
     	PRDPredictionProcessor processor = new PRDPredictionProcessor();
-    	processor.processPRDPredictions(service, args[0], args[1], args[2]);
+    	processor.processPRDPredictions(service, config.getFolder(), config.getPrdProbabilitiesFile(), config.getPredictionFile());
     	
     	context.close();
     }
