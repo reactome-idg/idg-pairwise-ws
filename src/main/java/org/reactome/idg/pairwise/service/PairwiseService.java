@@ -496,6 +496,8 @@ public class PairwiseService {
 				interactors.add(indexToGene.get(Integer.parseInt(index)));
 		});
 		
+		if(interactors.size() == 0) //want to return empty array instead of enrich if no interactors under given prd.
+			return new ArrayList<>();
     	
 		return getEnrichedPathways(interactors, term);
 	}
@@ -533,6 +535,7 @@ public class PairwiseService {
 	
 	private boolean isBottomLevel(String stId) {
 		Document doc = database.getCollection(PATHWAY_INDEX_COL_ID).find(Filters.eq("_id", stId)).first();
+		if(doc == null) return true; //assume bottom level if pathway is unknown rather than assume false.
 		return doc.getBoolean("bottomLevel", false);
 	}
     

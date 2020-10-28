@@ -149,7 +149,7 @@ public class WSTests {
     	System.out.println(url);
     	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
     	postData.setTerm("NTN1");
-    	postData.setPrd(0.7d);
+    	postData.setPrd(0.5d);
     	String json = mapper.writeValueAsString(postData);
     	System.out.println(json);
     	String rtn = callHttp(url, HTTP_POST, json);
