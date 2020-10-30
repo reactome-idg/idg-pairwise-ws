@@ -492,7 +492,7 @@ public class PairwiseService {
 		Document combinedScores = (Document) relDoc.get(COMBINED_SCORE);
 		Collection<String> interactors = new ArrayList<>();
 		combinedScores.forEach((index, prd) -> {
-			if((Double)prd < prdCutoff)
+			if((Double)prd > prdCutoff)
 				interactors.add(indexToGene.get(Integer.parseInt(index)));
 		});
 		
