@@ -46,9 +46,11 @@ public class PRDPredictionProcessor {
 			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 		
@@ -73,9 +75,11 @@ public class PRDPredictionProcessor {
 			}
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
+			logger.error(e.getMessage());
 			e.printStackTrace();
 		}
 		

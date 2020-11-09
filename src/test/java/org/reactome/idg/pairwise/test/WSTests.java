@@ -157,8 +157,8 @@ public class WSTests {
     }
     
     @Test
-    public void testGetHierarchyForGene() throws Exception {
-    	String url = HOST_URL + "/relationships/hierarchyForGene/MAPK3";
+    public void testGetHierarchyForTerm() throws Exception {
+    	String url = HOST_URL + "/relationships/hierarchyForTerm/MAPK3";
     	System.out.println(url);
     	String rtn = callHttp(url,HTTP_GET, null);
     	outputJSON(rtn);

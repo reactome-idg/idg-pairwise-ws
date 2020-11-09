@@ -19,9 +19,9 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.reactome.annotate.AnnotationType;
 import org.reactome.annotate.GeneSetAnnotation;
+import org.reactome.annotate.PathwayBasedAnnotator;
 import org.reactome.idg.model.*;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneCombinedScore;
@@ -81,6 +81,7 @@ public class PairwiseService {
     
     //catched EventHierarchy
     private GraphHierarchy graphHierarchy;
+    private PathwayBasedAnnotator annotator;
 
     public PairwiseService() {
     }
@@ -522,9 +523,10 @@ public class PairwiseService {
     }
 
 	private List<GeneSetAnnotation> performEnrichment(Collection<String> interactors, String gene){
+		if(annotator == null) loadPathwayBasedAnnotator();
     	List<GeneSetAnnotation> annotations;
     	try {
-    		annotations = config.getAnnotator().annotateGenesWithFDR(interactors, AnnotationType.Pathway);
+    		annotations = this.annotator.annotateGenesWithFDR(interactors, AnnotationType.Pathway);
     	} catch(Exception e) {
     		logger.error(e.getMessage());
     		e.printStackTrace();
@@ -532,6 +534,11 @@ public class PairwiseService {
     	}
     	return annotations;
     }
+	
+	private void loadPathwayBasedAnnotator() {
+		this.annotator = new PathwayBasedAnnotator();
+		annotator.getAnnotationHelper().setProteinNameToPathwayFile(config.getGeneToPathwayStIdFile());
+	}
 	
 	private boolean isBottomLevel(String stId) {
 		Document doc = database.getCollection(PATHWAY_INDEX_COL_ID).find(Filters.eq("_id", stId)).first();

@@ -137,7 +137,8 @@ public class PathwayProcessor {
 	}
 	
 	private void generateProteinNameToPathwayFile(Map<String, List<String>> pathwayStIdToGeneNameList) throws IOException {
-		String fileName = "src/main/resources/ProteinNameToPathwayStId.txt";
+		logger.info("Attempting to generate Protein Name to Pathway File");
+		String fileName = "./src/main/resources/ProteinNameToPathwayStId.txt";
 		File geneToPathwaysFile = new File(fileName);
 		geneToPathwaysFile.createNewFile();
 		FileWriter fos = new FileWriter(geneToPathwaysFile);
@@ -149,7 +150,7 @@ public class PathwayProcessor {
 		});
 		dos.close();
 		fos.close();
-		
+		logger.info("Protein Name To Pathway File Generated");
 		
 	}
 }

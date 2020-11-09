@@ -2,8 +2,6 @@ package org.reactome.idg.pairwise.config;
 
 import java.util.Arrays;
 
-import org.reactome.annotate.PathwayBasedAnnotator;
-import org.reactome.idg.pairwise.main.config.PRDPredictionProcessorConfig;
 import org.reactome.idg.pairwise.service.PairwiseServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -79,23 +77,8 @@ public class MainAppConfig {
     	PairwiseServiceConfig config = new PairwiseServiceConfig();
     	config.setCoreWSURL(coreWSUrl);
     	config.setEventHierarchyUrl(eventHierarchyUrl);
-    	
-    	//creating PathwayBasedAnnotator for on the fly enrichment analysis
-    	PathwayBasedAnnotator annotator = new PathwayBasedAnnotator();
-    	annotator.getAnnotationHelper().setProteinNameToPathwayFile(geneToPathwayNameFile);
-    	config.setAnnotator(annotator);
+    	config.setGeneToPathwayStIdFile(geneToPathwayNameFile);
     	
     	return config;
     }
-    
-    @Bean
-    public PRDPredictionProcessorConfig getPRDPredictionProcessorConfig() {
-    	PRDPredictionProcessorConfig config = new PRDPredictionProcessorConfig();
-    	config.setFolder(prdFileFolder);
-    	config.setPrdProbabilitiesFile(prdProbabilityFile);
-    	config.setPredictionFile(predictionFile);
-    	
-    	return config;
-    }
-    
 }

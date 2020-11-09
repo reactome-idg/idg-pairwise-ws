@@ -1,7 +1,5 @@
 package org.reactome.idg.pairwise.service;
 
-import org.reactome.annotate.PathwayBasedAnnotator;
-
 /**
  * 
  * @author brunsont
@@ -11,7 +9,7 @@ public class PairwiseServiceConfig {
 
 	private String coreWSURL;
 	private String eventHierarchyUrl;
-	private PathwayBasedAnnotator annotator;
+	private String geneToPathwayStIdFile;
 	
 	public PairwiseServiceConfig() {
 		
@@ -33,11 +31,12 @@ public class PairwiseServiceConfig {
 		this.eventHierarchyUrl = eventHierarchyUrl;
 	}
 
-	public PathwayBasedAnnotator getAnnotator() {
-		return annotator;
+	public String getGeneToPathwayStIdFile() {
+		return this.geneToPathwayStIdFile;
 	}
 
-	public void setAnnotator(PathwayBasedAnnotator annotator) {
-		this.annotator = annotator;
+	public void setGeneToPathwayStIdFile(String geneToPathwayStIdFile) {
+		this.geneToPathwayStIdFile = geneToPathwayStIdFile;
 	}
+	
 }
