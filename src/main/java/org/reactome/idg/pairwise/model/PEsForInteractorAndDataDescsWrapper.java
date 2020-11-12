@@ -9,7 +9,7 @@ import java.util.List;
  */
 public class PEsForInteractorAndDataDescsWrapper {
 
-	private String gene;
+	private String term;
 	private Long dbId;
 	private List<String> dataDescs;
 	
@@ -17,19 +17,19 @@ public class PEsForInteractorAndDataDescsWrapper {
 		
 	}
 	
-	public PEsForInteractorAndDataDescsWrapper(String gene, Long dbId, List<String> dataDescs) {
+	public PEsForInteractorAndDataDescsWrapper(String term, Long dbId, List<String> dataDescs) {
 		super();
-		this.gene = gene;
+		this.term = term;
 		this.dbId = dbId;
 		this.dataDescs = dataDescs;
 	}
 
-	public String getGene() {
-		return gene;
+	public String getTerm() {
+		return term;
 	}
 
-	public void setGene(String gene) {
-		this.gene = gene;
+	public void setTerm(String term) {
+		this.term = term;
 	}
 
 	public Long getDbId() {
