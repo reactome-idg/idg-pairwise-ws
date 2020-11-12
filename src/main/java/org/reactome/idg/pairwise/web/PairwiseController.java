@@ -99,39 +99,18 @@ public class PairwiseController {
     	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
     }
     
-    
     @CrossOrigin
-    @PostMapping("/relationships/PEsForGeneInteractors")
-    public PEsForInteractorResponse queryPEsForInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
-    	PEsForInteractorResponse rtn;
-		try {
-			rtn = service.queryPEsForInteractor(request.getDbId(), request.getGene(), request.getDataDescs());
-		} catch (IOException e) {
-			logger.error(e.getMessage(), e);
-			throw new InternalServerError(e.getMessage());
-		}
-    	if(rtn.getPeIds() == null) {
-    		String msg = "Physical entities not found for " + request.getGene();
-    		//TODO: add exception as a variable and pass into warn
-    		logger.warn(msg);
-    		throw new ResourceNotFoundException(msg);
-    	}
-
-    	return rtn;
-    }
-    
-    @CrossOrigin
-    @PostMapping("/relationships/PEsForUniprotInteractors")
-    public PEsForInteractorResponse queryPEsForUniprotInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request){
+    @PostMapping("/relationships/PEsForTermInteractors")
+    public PEsForInteractorResponse queryPEsForTermInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request) {
     	PEsForInteractorResponse rtn;
     	try {
-    		rtn = service.queryPEsForUniprotInteractor(request.getDbId(), request.getGene(), request.getDataDescs());
+    		rtn = service.queryPEsForTermInteractor(request.getDbId(), request.getTerm(), request.getDataDescs());
     	} catch(IOException e) {
     		logger.error(e.getMessage(), e);
     		throw new InternalServerError(e.getMessage());
     	}
     	if(rtn.getPeIds() == null ) {
-    		String msg = "Physical entities not found for " + request.getGene();
+    		String msg = "Physical entities not found for " + request.getTerm();
     		ResourceNotFoundException e = new ResourceNotFoundException(msg);
     		logger.warn(msg, e);
     		throw e;
@@ -168,7 +147,7 @@ public class PairwiseController {
     @CrossOrigin
     @PostMapping(path="/relationships/enrichedSecondaryPathwaysForTerm")
     public List<Pathway> enrichedPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request){
-    	if(request == null || request.getTerm() == null || request.getDataDescs() == null)
+    	if(request == null || request.getTerm() == null)
     		return new ArrayList<>();
     	return service.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), request.getDataDescs());
     }

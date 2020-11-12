@@ -262,6 +262,18 @@ public class PairwiseService {
     	return queryPEsForInteractor(dbId, term, dataDescs);
     }
     
+    public PEsForInteractorResponse queryPEsForTermInteractor(Long dbId, String term, List<String> dataDescs) throws IOException {
+		Map<String, String> uniprotToGeneMap = this.getUniProtToGene();
+		
+		
+		if(uniprotToGeneMap.containsValue(term))
+			return queryPEsForInteractor(dbId, term, dataDescs);
+		else if(uniprotToGeneMap.containsKey(term))
+			return queryPEsForInteractor(dbId, uniprotToGeneMap.get(term), dataDescs);
+		else
+			throw new ResourceNotFoundException("Could not find term: " + term);
+	}
+    
     public PEsForInteractorResponse queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException {
 		
     	//get pairwise doc for gene and throw exception if no doc found.
@@ -275,11 +287,15 @@ public class PairwiseService {
     	}
     	    	
     	Set<String> interactorGenes = new HashSet<>();
-    	for(String key : interactorsDoc.keySet()) {
-    		if(!dataDescs.contains(key)) continue;
-    		Document dataDoc = (Document) interactorsDoc.get(key);
-    		interactorGenes.addAll(getGenesFromRelDoc(dataDoc));
+    	if(dataDescs.size() == 0) { //want to get combined score if no data descs passed in
+    		interactorGenes.addAll(this.getCombinedScoresWithCutoff((Document)interactorsDoc.get(COMBINED_SCORE), 0.5d));
     	}
+    	else
+	    	for(String key : interactorsDoc.keySet()) {
+	    		if(!dataDescs.contains(key)) continue;
+	    		Document dataDoc = (Document) interactorsDoc.get(key);
+	    		interactorGenes.addAll(getGenesFromRelDoc(dataDoc));
+	    	}
     	
     	Set<Long> peIds = new HashSet<>();
     	interactorGenes.forEach(geneName -> {
@@ -451,6 +467,9 @@ public class PairwiseService {
     }
     
     public List<Pathway> queryTermToSecondaryPathwaysWithEnrichment(String term, List<String> dataDescs) {
+    	//if no data descs passed in, return pathways for combined score with a prd of 0.5d;
+    	if(dataDescs.size() == 0) return queryEnrichedPathwaysForCombinedScore(term, 0.5d);
+    	
     	Map<String, String> uniprotToGene = this.getUniProtToGene();
 		if(uniprotToGene.containsValue(term)) {
 			return queryGeneToSecondaryPathwaysWithEnrichment(term, dataDescs);
@@ -480,7 +499,6 @@ public class PairwiseService {
     
     public List<Pathway> queryEnrichedPathwaysForCombinedScore(String term, Double prdCutoff) {
 		Map<String, String> uniprotToGene = this.getUniProtToGene();
-		Map<Integer, String> indexToGene = this.getIndexToGene();
 		
 		//if term is uniprot, convert to gene name.
 		if(uniprotToGene.containsKey(term))
@@ -490,18 +508,23 @@ public class PairwiseService {
 		if(relDoc == null || relDoc.get(COMBINED_SCORE) == null) return null; //return null if no relationship doc for term or no combined score
 		
 		//Get combined scores from document. Loop over each row and add index (as gene)  to interactors if prd value less than passed in cutoff
-		Document combinedScores = (Document) relDoc.get(COMBINED_SCORE);
-		Collection<String> interactors = new ArrayList<>();
-		combinedScores.forEach((index, prd) -> {
-			if((Double)prd > prdCutoff)
-				interactors.add(indexToGene.get(Integer.parseInt(index)));
-		});
+		Collection<String> interactors = getCombinedScoresWithCutoff((Document)relDoc.get(COMBINED_SCORE), prdCutoff);
 		
 		if(interactors.size() == 0) //want to return empty array instead of enrich if no interactors under given prd.
 			return new ArrayList<>();
     	
 		return getEnrichedPathways(interactors, term);
 	}
+    
+    private Collection<String> getCombinedScoresWithCutoff(Document combinedScores, Double prdCutoff){
+		Map<Integer, String> indexToGene = this.getIndexToGene();
+    	Collection<String> rtn = new ArrayList<>();
+		combinedScores.forEach((index, prd) -> {
+			if((Double)prd > prdCutoff)
+				rtn.add(indexToGene.get(Integer.parseInt(index)));
+		});
+		return rtn;
+    }
     
     public List<Pathway> getEnrichedPathways(Collection<String> interactors, String gene){
     	//get enrichment analysis results
