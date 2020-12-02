@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
+
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
@@ -27,13 +30,17 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * This controller class provides the RESTful API for idg-pairwise relationships.
  * @author wug
  *
  */
 @RestController
-@CrossOrigin
+@CrossOrigin(allowCredentials = "true")
 public class PairwiseController {
     
     @Autowired
@@ -99,12 +106,21 @@ public class PairwiseController {
     	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
     }
     
+    /**
+     * Gets hit PEs in a diagram for passed in term's interactors based on data descriptions.
+     * If no data descriptions are passed in, prd will be used for combined scores.
+     * @param request
+     * @return
+     */
     @CrossOrigin
     @PostMapping("/relationships/PEsForTermInteractors")
     public PEsForInteractorResponse queryPEsForTermInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request) {
     	PEsForInteractorResponse rtn;
     	try {
-    		rtn = service.queryPEsForTermInteractor(request.getDbId(), request.getTerm(), request.getDataDescs());
+    		rtn = service.queryPEsForTermInteractor(request.getDbId(), 
+    												request.getTerm(),
+    												request.getDataDescs(), 
+    												request.getPrd() != null ? request.getPrd(): 0.9d);
     	} catch(IOException e) {
     		logger.error(e.getMessage(), e);
     		throw new InternalServerError(e.getMessage());
@@ -140,7 +156,8 @@ public class PairwiseController {
     } 
     
     /**
-     * Performs enrichment analysis on interactors for term (gene symbol or uniprot) based on passed in data descriptions
+     * Performs enrichment analysis on interactors for term (gene symbol or uniprot) based on passed in data descriptions.
+     * If no data descriptions or passed in, passed in PRD cutoff will be used to query combined score pathways.
      * @param request
      * @return
      */
@@ -149,7 +166,9 @@ public class PairwiseController {
     public List<Pathway> enrichedPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request){
     	if(request == null || request.getTerm() == null)
     		return new ArrayList<>();
-    	return service.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), request.getDataDescs());
+    	return service.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
+    															  request.getDataDescs(), 
+    															  request.getPrd() != null ? request.getPrd() : 0.9d);
     }
     
     /**

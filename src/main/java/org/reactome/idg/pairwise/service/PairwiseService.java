@@ -256,25 +256,19 @@ public class PairwiseService {
         return rtn;
     }
     
-    public PEsForInteractorResponse queryPEsForUniprotInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException{
-    	String term = this.getUniProtToGene().get(gene);
-    	
-    	return queryPEsForInteractor(dbId, term, dataDescs);
-    }
-    
-    public PEsForInteractorResponse queryPEsForTermInteractor(Long dbId, String term, List<String> dataDescs) throws IOException {
+    public PEsForInteractorResponse queryPEsForTermInteractor(Long dbId, String term, List<String> dataDescs, Double prd) throws IOException {
 		Map<String, String> uniprotToGeneMap = this.getUniProtToGene();
 		
 		
 		if(uniprotToGeneMap.containsValue(term))
-			return queryPEsForInteractor(dbId, term, dataDescs);
+			return queryPEsForInteractor(dbId, term, dataDescs, prd);
 		else if(uniprotToGeneMap.containsKey(term))
-			return queryPEsForInteractor(dbId, uniprotToGeneMap.get(term), dataDescs);
+			return queryPEsForInteractor(dbId, uniprotToGeneMap.get(term), dataDescs, prd);
 		else
 			throw new ResourceNotFoundException("Could not find term: " + term);
 	}
     
-    public PEsForInteractorResponse queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs) throws IOException {
+    public PEsForInteractorResponse queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs, Double prd) throws IOException {
 		
     	//get pairwise doc for gene and throw exception if no doc found.
     	Document interactorsDoc = getRelationshipDocForGene(gene);
@@ -287,8 +281,8 @@ public class PairwiseService {
     	}
     	    	
     	Set<String> interactorGenes = new HashSet<>();
-    	if(dataDescs.size() == 0) { //want to get combined score if no data descs passed in
-    		interactorGenes.addAll(this.getCombinedScoresWithCutoff((Document)interactorsDoc.get(COMBINED_SCORE), 0.5d));
+    	if(dataDescs == null || dataDescs.size() == 0) { //want to get combined score if no data descs passed in
+    		interactorGenes.addAll(this.getCombinedScoresWithCutoff((Document)interactorsDoc.get(COMBINED_SCORE), prd));
     	}
     	else
 	    	for(String key : interactorsDoc.keySet()) {
@@ -466,9 +460,9 @@ public class PairwiseService {
     	return rtn;
     }
     
-    public List<Pathway> queryTermToSecondaryPathwaysWithEnrichment(String term, List<String> dataDescs) {
+    public List<Pathway> queryTermToSecondaryPathwaysWithEnrichment(String term, List<String> dataDescs, Double prd) {
     	//if no data descs passed in, return pathways for combined score with a prd of 0.5d;
-    	if(dataDescs.size() == 0) return queryEnrichedPathwaysForCombinedScore(term, 0.5d);
+    	if(dataDescs == null || dataDescs.size() == 0) return queryEnrichedPathwaysForCombinedScore(term, prd);
     	
     	Map<String, String> uniprotToGene = this.getUniProtToGene();
 		if(uniprotToGene.containsValue(term)) {
@@ -517,9 +511,11 @@ public class PairwiseService {
 	}
     
     private Collection<String> getCombinedScoresWithCutoff(Document combinedScores, Double prdCutoff){
+    	if(combinedScores == null || combinedScores.size() == 0) return new ArrayList<>();
 		Map<Integer, String> indexToGene = this.getIndexToGene();
     	Collection<String> rtn = new ArrayList<>();
 		combinedScores.forEach((index, prd) -> {
+			if((Double)prd == null) return; //just in case prd isn't parse-able to avoid error on next line
 			if((Double)prd > prdCutoff)
 				rtn.add(indexToGene.get(Integer.parseInt(index)));
 		});

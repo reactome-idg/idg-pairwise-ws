@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.apache.commons.httpclient.HttpClient;
@@ -131,8 +132,8 @@ public class WSTests {
     	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForTerm";
     	System.out.println(url);
     	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
-    	postData.setTerm("PRKY");
-    	postData.setDataDescs(Arrays.asList("BioGridBioPlexStringDB|Homo_sapiens|Protein_Interaction"));
+    	postData.setTerm("NTN1");
+    	postData.setDataDescs(/*Arrays.asList("BioGridBioPlexStringDB|Homo_sapiens|Protein_Interaction")*/new ArrayList<>());
     	String json = mapper.writeValueAsString(postData);
     	System.out.println(json);
     	Long time1 = System.currentTimeMillis();

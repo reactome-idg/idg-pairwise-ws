@@ -12,6 +12,7 @@ public class PEsForInteractorAndDataDescsWrapper {
 	private String term;
 	private Long dbId;
 	private List<String> dataDescs;
+	private Double prd;
 	
 	public PEsForInteractorAndDataDescsWrapper() {
 		
@@ -22,6 +23,13 @@ public class PEsForInteractorAndDataDescsWrapper {
 		this.term = term;
 		this.dbId = dbId;
 		this.dataDescs = dataDescs;
+	}
+	
+	public PEsForInteractorAndDataDescsWrapper(String term, Long dbId, Double prd) {
+		super();
+		this.term = term;
+		this.dbId = dbId;
+		this.prd = prd;
 	}
 
 	public String getTerm() {
@@ -47,6 +55,12 @@ public class PEsForInteractorAndDataDescsWrapper {
 	public void setDataDescs(List<String> dataDescs) {
 		this.dataDescs = dataDescs;
 	}
-	
-	
+
+	public Double getPrd() {
+		return prd;
+	}
+
+	public void setPrd(Double prd) {
+		this.prd = prd;
+	}
 }
