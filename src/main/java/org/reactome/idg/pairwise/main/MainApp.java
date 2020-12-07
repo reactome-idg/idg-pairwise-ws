@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
+import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.config.MainAppConfig;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
@@ -26,8 +27,9 @@ public class MainApp {
     public static void main(String[] args) {
 //        pushDataIntoDB(args);
 //        pushMLFeatureIntoDB();
-    	  pushPathwayData();
-    	  pushPRDPredictions(args);
+//    	  pushPathwayData();
+//    	  pushPRDPredictions(args);
+    	  addDataDescDigitalKeys();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -108,6 +110,12 @@ public class MainApp {
     	processor.processPRDPredictions(service, args[0],args[1], args[2]);
     	
     	context.close();
+    }
+    
+    private static void addDataDescDigitalKeys() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	service.addDataDescDigitalKeys();
     }
     
     /**

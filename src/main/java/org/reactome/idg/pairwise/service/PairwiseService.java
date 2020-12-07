@@ -699,6 +699,29 @@ public class PairwiseService {
     }
     
     /**
+     * Adds a digital key for use in fetching data desc ids. digital keys are used to provide shorter ids in queries. 
+     * !!IMPORTANT: Counter starts at 1 because 0 is reserved for combined_score, which is not a listed data description. 
+     */
+    public void addDataDescDigitalKeys() {
+    	MongoCollection<Document> collection = database.getCollection(DATA_DESCRIPTIONS_COL_ID);
+    	MongoCursor<Document> cursor = collection.find().iterator();
+    	
+    	int counter = 1;
+    	
+
+    	try {
+    		while(cursor.hasNext()) {
+    			//use put in case docs already contain a key so that no key is duplicated on re-run. 
+    			//Put ensures old values are overwritten.
+    			collection.updateOne(Filters.eq(cursor.next().get("_id")), Updates.set("digitalKey", counter));
+    			counter++;
+    		}
+    	} finally {
+    		cursor.close();
+    	}
+    }
+    
+    /**
      * Dot cannot be used in a key name. Use its escape to escape it.
      * See https://stackoverflow.com/questions/37987299/insert-field-name-with-dot-in-mongo-document.
      * @param gene
@@ -876,7 +899,8 @@ public class PairwiseService {
         document.append("_id", desc.getId())
                 .append("bioSource", desc.getBioSource())
                 .append("dataType", desc.getDataType().toString())
-                .append("provenance", desc.getProvenance());
+                .append("provenance", desc.getProvenance())
+        		.append("digitalKey", collection.count()+1); //digitalKey is for accession with shorter filter than _id
         if (desc.getOrigin() != null)
             document.append("origin", desc.getOrigin());
         collection.insertOne(document);
