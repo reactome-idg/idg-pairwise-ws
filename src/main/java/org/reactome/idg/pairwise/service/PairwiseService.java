@@ -793,13 +793,6 @@ public class PairwiseService {
     		});
     		collection.updateOne(Filters.eq("_id", obj.getGene()), Updates.set(COMBINED_SCORE, combinedScoresDoc));
     	});
-    	
-//    	ensureCollectionDoc(collection, gene1);
-//    	collection.updateOne(Filters.eq("_id", gene1), new BasicDBObject("$set", new BasicDBObject(COMBINED_SCORE + "." + geneToIndex.get(gene2), prd)));
-//    	
-//    	ensureCollectionDoc(collection, gene2);
-//    	collection.updateOne(Filters.eq("_id", gene2), new BasicDBObject("$set", new BasicDBObject(COMBINED_SCORE + "." + geneToIndex.get(gene1), prd)));
-		
     }
     
     /**
