@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,9 +71,9 @@ public class PathwayProcessor {
 	    	generateProteinNameToPathwayFile(pathwayStIdToGeneNameList);
 			
 			//regenerate pathway collection and PATHWAY_INDEX so that any no longer existing pathway-gene relationships are removed
-	    	service.regeneratePathwayCollections();
-			
-			pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToPathwayName, basePathways);
+//	    	service.regeneratePathwayCollections();
+//			
+//			pathwayToIndex = service.ensurePathwayIndex(pathwayStIdToPathwayName, basePathways);
 	    	processGenePathwayRelationship(pathwayStIdToGeneNameList, service);
 			
 		} catch (IOException e) {
@@ -132,8 +131,8 @@ public class PathwayProcessor {
 			pathwayToGeneIndexList.put(k, new ArrayList<>(geneIndexes));
 		});
 		
-		service.insertPathwayRelationships(pathwayToGeneIndexList);
-		service.insertGeneRelationships(geneToPathwayIndexList);
+//		service.insertPathwayRelationships(pathwayToGeneIndexList);
+//		service.insertGeneRelationships(geneToPathwayIndexList);
 	}
 	
 	private void generateProteinNameToPathwayFile(Map<String, List<String>> pathwayStIdToGeneNameList) throws IOException {

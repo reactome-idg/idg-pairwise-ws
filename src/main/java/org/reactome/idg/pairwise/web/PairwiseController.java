@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
@@ -15,9 +12,9 @@ import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelRequest;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
-import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
 import org.reactome.idg.pairwise.service.PairwiseService;
+import org.reactome.idg.pairwise.service.PathwayService;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
 import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -30,21 +27,20 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * This controller class provides the RESTful API for idg-pairwise relationships.
  * @author wug
- *
+ * @author brunsont
  */
 @RestController
-@CrossOrigin(allowCredentials = "true")
+@CrossOrigin()
 public class PairwiseController {
     
     @Autowired
-    private PairwiseService service;
+    private PairwiseService pairwiseService;
+    
+    @Autowired
+    private PathwayService pathwayService;
     
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
     
@@ -53,7 +49,7 @@ public class PairwiseController {
     
     @GetMapping("uniprot2gene")
     public String getUniProtToGene() {
-        Map<String, String> uniprotToGene = service.getUniProtToGene();
+        Map<String, String> uniprotToGene = pairwiseService.getUniProtToGene();
         StringBuilder builder = new StringBuilder();
         uniprotToGene.forEach((u, g) -> builder.append(u + "\t" + g + "\n"));
         return builder.toString();
@@ -61,7 +57,7 @@ public class PairwiseController {
     
     @GetMapping("/datadesc")
     public List<DataDesc> listDataDesctiptions() {
-        return service.listDataDesc();
+        return pairwiseService.listDataDesc();
     }
     
     /**
@@ -76,7 +72,7 @@ public class PairwiseController {
                                                                  @RequestBody PairwiseRelRequest wrap) {
         if (wrap.getDataDescs() == null || wrap.getGenes() == null)
             return new ArrayList<>(); // Nothing to return
-        return service.queryRelsForGenes(wrap.getGenes(), wrap.getDataDescs(), numberOnly);
+        return pairwiseService.queryRelsForGenes(wrap.getGenes(), wrap.getDataDescs(), numberOnly);
     }
     
     /**
@@ -91,19 +87,19 @@ public class PairwiseController {
                                                                     @RequestBody PairwiseRelRequest wrap) {
     	if (wrap.getDataDescs() == null || wrap.getGenes() == null)
             return new ArrayList<>(); // Nothing to return
-        return service.queryRelsForProteins(wrap.getGenes(), wrap.getDataDescs(), numberOnly);
+        return pairwiseService.queryRelsForProteins(wrap.getGenes(), wrap.getDataDescs(), numberOnly);
     }
     
     @CrossOrigin
     @GetMapping("/relationships/genesForPathway/{stId}")
-    public PathwayToGeneRelationship queryPathwayToGeneRelationship(@PathVariable("stId") String stId) {
-    	return service.queryPathwayToGeneRelationships(stId.toUpperCase());
+    public Pathway queryPathwayToGeneRelationship(@PathVariable("stId") String stId) {
+    	return pairwiseService.queryPathwayToGeneRelationships(stId.toUpperCase());
     }
     
     @CrossOrigin
-    @GetMapping("/relationships/uniprotsForPathway/{uniprot}")
-    public PathwayToGeneRelationship queryPathwayToUniprotRelationship(@PathVariable("uniprot") String uniprot) {
-    	return service.queryPathwayToUniprotRelationships(uniprot.toUpperCase());
+    @GetMapping("/relationships/uniprotsForPathway/{stId}")
+    public Pathway queryPathwayToUniprotRelationship(@PathVariable("stId") String stId) {
+    	return pairwiseService.queryPathwayToUniprotRelationships(stId.toUpperCase());
     }
     
     /**
@@ -117,7 +113,7 @@ public class PairwiseController {
     public PEsForInteractorResponse queryPEsForTermInteractor(@RequestBody PEsForInteractorAndDataDescsWrapper request) {
     	PEsForInteractorResponse rtn;
     	try {
-    		rtn = service.queryPEsForTermInteractor(request.getDbId(), 
+    		rtn = pairwiseService.queryPEsForTermInteractor(request.getDbId(), 
     												request.getTerm(),
     												request.getDataDescs(), 
     												request.getPrd() != null ? request.getPrd(): 0.9d);
@@ -137,7 +133,7 @@ public class PairwiseController {
     @CrossOrigin
     @GetMapping("relationships/primaryPathwaysForGene/{gene}")
     public List<Pathway> queryPrimaryPathwaysForGene(@PathVariable("gene") String gene){
-    	List<Pathway> rtn = service.queryPrimaryPathwaysForGene(gene.toUpperCase());
+    	List<Pathway> rtn = pairwiseService.queryPrimaryPathwaysForGene(gene.toUpperCase());
     	if(rtn == null) {
     		String msg = "No primary pathways found for " + gene;
     		ResourceNotFoundException e = new ResourceNotFoundException(msg);
@@ -149,8 +145,8 @@ public class PairwiseController {
     
     @CrossOrigin
     @GetMapping("/relationships/primaryPathwaysForUniprot/{uniprot}")
-    public List<Pathway> queryUniprotToPathwayRelationship(@PathVariable("uniprot")String uniprot) {
-    	List<Pathway> rtn = service.queryPrimaryPathwaysForUniprot(uniprot.toUpperCase());
+    public List<Pathway> queryPrimaryPathwaysForUniprot(@PathVariable("uniprot")String uniprot) {
+    	List<Pathway> rtn = pairwiseService.queryPrimaryPathwaysForUniprot(uniprot.toUpperCase());
     	if(rtn == null) throw new ResourceNotFoundException(uniprot + " not found.");
     	else return rtn;
     } 
@@ -166,7 +162,7 @@ public class PairwiseController {
     public List<Pathway> enrichedPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request){
     	if(request == null || request.getTerm() == null)
     		return new ArrayList<>();
-    	return service.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
+    	return pairwiseService.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
     															  request.getDataDescs(), 
     															  request.getPrd() != null ? request.getPrd() : 0.9d);
     }
@@ -179,13 +175,13 @@ public class PairwiseController {
     @CrossOrigin
     @GetMapping("/relationships/hierarchyForTerm/{term}")
     public HierarchyResponseWrapper queryHierarchyForTerm(@PathVariable("term")String term) {
-    	return service.queryHierarchhyForTerm(term);
+    	return pairwiseService.queryHierarchhyForTerm(term);
     }
     
     @CrossOrigin
     @PostMapping("/relationships/combinedScoreForTerm")
-    public List<Pathway> enrichedPathwaysForCombinedScore(@RequestBody GeneToPathwaysRequestWrapper request){
-    	return service.queryEnrichedPathwaysForCombinedScore(request.getTerm(), request.getPrd());
+    public List<Pathway> queryEnrichedPathwaysForCombinedScore(@RequestBody GeneToPathwaysRequestWrapper request){
+    	return pairwiseService.queryEnrichedPathwaysForCombinedScore(request.getTerm(), request.getPrd());
     }
     
     //TODO: swagger document for ws API design

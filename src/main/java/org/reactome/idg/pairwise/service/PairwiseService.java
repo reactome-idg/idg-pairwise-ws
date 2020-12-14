@@ -28,7 +28,6 @@ import org.reactome.idg.pairwise.model.GeneCombinedScore;
 import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
-import org.reactome.idg.pairwise.model.PathwayToGeneRelationship;
 import org.reactome.idg.pairwise.model.pathway.GraphHierarchy;
 import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
@@ -56,8 +55,6 @@ public class PairwiseService {
     private final String GENE_INDEX_COL_ID = "GENE_INDEX";
     private final String RELATIONSHIP_COL_ID = "relationships";
     private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
-    private final String PATHWAY_INDEX_COL_ID = "PATHWAY_INDEX";
-    private final String PATHWAYS_COL_ID = "pathways";
     private final String COMBINED_SCORE = "combined_score";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
@@ -66,27 +63,51 @@ public class PairwiseService {
     private MongoDatabase database;
     
     @Autowired
-    private PairwiseServiceConfig config;
+    private ServiceConfig config;
+    
+    @Autowired
+    private PathwayService pathwayService;
     
     // Cached index to gene for performance
     private Map<Integer, String> indexToGene;
-    //Cached index to pathway for performance
-    private Map<Integer,Pathway> indexToPathway;
     //TODO: One-to-one mapping between UniProt and gene symbols are most likely not right.
     // This should be improved in the future.
     // Cached uniprot to gene mapping
     private Map<String, String> uniprotToGene;
     private Map<String, String> geneToUniprot;
-    private Map<String, String> pathwayStIdToName;
     
-    //catched EventHierarchy
+    //cached EventHierarchy
     private GraphHierarchy graphHierarchy;
     private PathwayBasedAnnotator annotator;
 
     public PairwiseService() {
     }
+    
+    public ServiceConfig getServiceConfig() {
+    	return config;
+    }
+	
+	/**
+     * Actually fills uniprotToGene and geneToUniprot map
+     */
+    private void loadUniProtToGene() {
+        uniprotToGene = new HashMap<>();
+        InputStream is = getClass().getClassLoader().getResourceAsStream(UNIPROT_TO_GENE_FILE_NAME);
+        Scanner scanner = new Scanner(is);
+        String line = scanner.nextLine(); // Escape one line
+        while ((line = scanner.nextLine()) != null) {
+            String[] tokens = line.split("\t");
+            uniprotToGene.put(tokens[0], tokens[1]);
+            if (!scanner.hasNextLine())
+                break;
+        }
+        scanner.close();
+        geneToUniprot = new HashMap<>();
+        uniprotToGene.forEach((u, g) -> geneToUniprot.put(g, u));
+    }
 
-    public Map<String, String> getUniProtToGene() {
+
+	public Map<String, String> getUniProtToGene() {
         if (uniprotToGene == null) {
             loadUniProtToGene();
         }
@@ -120,26 +141,7 @@ public class PairwiseService {
 			throw new InternalServerError("Internal Server Error");
 		}
 	}
-    
-	/**
-     * Actually fills uniprotToGene and geneToUniprot map
-     */
-    private void loadUniProtToGene() {
-        uniprotToGene = new HashMap<>();
-        InputStream is = getClass().getClassLoader().getResourceAsStream(UNIPROT_TO_GENE_FILE_NAME);
-        Scanner scanner = new Scanner(is);
-        String line = scanner.nextLine(); // Escape one line
-        while ((line = scanner.nextLine()) != null) {
-            String[] tokens = line.split("\t");
-            uniprotToGene.put(tokens[0], tokens[1]);
-            if (!scanner.hasNextLine())
-                break;
-        }
-        scanner.close();
-        geneToUniprot = new HashMap<>();
-        uniprotToGene.forEach((u, g) -> geneToUniprot.put(g, u));
-    }
-
+  
     public void testConnection() {
         FindIterable<Document> documents = database.getCollection("datadescriptions").find();
         for (Document doc : documents)
@@ -437,16 +439,8 @@ public class PairwiseService {
 	}
 
 	public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
-		Map<Integer, Pathway> indexToPathway = getIndexToPathway();
-		Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", gene)).first();
-		if(doc == null) return new ArrayList<>();
-		
-		List<Integer> indexList=(List<Integer>) doc.get("pathways");
-		if(indexList == null) return new ArrayList<>();
-		
-		List<Pathway> pathways = indexList.stream().map(i -> indexToPathway.get(i)).collect(Collectors.toList());
-		
-		return pathways;
+		Set<Pathway> rtn = pathwayService.getGeneToPathwayList(this.getUniProtToGene()).get(gene);
+		return rtn.size() > 0 ? new ArrayList<>(rtn) : new ArrayList<>();
 	}
     
     public List<Pathway> queryPrimaryPathwaysForUniprot(String uniprot) {
@@ -523,19 +517,20 @@ public class PairwiseService {
     }
     
     public List<Pathway> getEnrichedPathways(Collection<String> interactors, String gene){
+    	Map<String, Pathway> pathwayStIdToPathway = pathwayService.getPathwayStIdToPathway(this.getUniProtToGene());
+    	
     	//get enrichment analysis results
     	List<GeneSetAnnotation> annotations = performEnrichment(interactors, gene);
     	
     	//convert enrichment analysis results into a list of Pathway objects
     	List<Pathway> rtnPathways = new ArrayList<>();
-    	Map<String, String> stIdToPathwayName = this.getPathwayNameToStId().entrySet().stream().collect(Collectors.toMap(Entry::getValue, Entry::getKey));
     	annotations.forEach(annotation -> {
     		String stId = annotation.getTopic();
     		rtnPathways.add(new Pathway(stId,
-    									stIdToPathwayName.get(stId),
+    									pathwayStIdToPathway.get(stId).getName(),
     									Double.parseDouble(annotation.getFdr()),
     									annotation.getPValue(),
-    									isBottomLevel(stId)));
+    									pathwayStIdToPathway.get(stId).isBottomLevel()));
     	});
     	
     	return rtnPathways;
@@ -558,36 +553,24 @@ public class PairwiseService {
 		this.annotator = new PathwayBasedAnnotator();
 		annotator.getAnnotationHelper().setProteinNameToPathwayFile(config.getGeneToPathwayStIdFile());
 	}
-	
-	private boolean isBottomLevel(String stId) {
-		Document doc = database.getCollection(PATHWAY_INDEX_COL_ID).find(Filters.eq("_id", stId)).first();
-		if(doc == null) return true; //assume bottom level if pathway is unknown rather than assume false.
-		return doc.getBoolean("bottomLevel", false);
-	}
     
-    public PathwayToGeneRelationship queryPathwayToGeneRelationships(String stId) {
-    	Map<Integer, String> indexToGene = getIndexToGene();
-    	PathwayToGeneRelationship rtn = new PathwayToGeneRelationship();
-    	rtn.setPathwayStId(stId);
-    	
-    	Document doc = database.getCollection(PATHWAYS_COL_ID).find(Filters.eq("_id", stId)).first();
-    	//make sure doc exists
-    	if(doc == null) return null;
-    	
-    	List<Integer> indexList = (List<Integer>)doc.get("genes");
-    	if(indexList != null) {
-    		List<String> geneList = indexList.stream().map(i -> indexToGene.get(i)).collect(Collectors.toList());
-    		rtn.setGenes(geneList);
-    	}
-
-    	return rtn;
+    public Pathway queryPathwayToGeneRelationships(String stId) {
+    	return pathwayService.getPathwayStIdToPathway(this.getUniProtToGene()).get(stId);
     }
     
-    public PathwayToGeneRelationship queryPathwayToUniprotRelationships(String stId) {
+    public Pathway queryPathwayToUniprotRelationships(String stId) {
 		Map<String, String> geneToUniprot = getGeneToUniProt();
-		PathwayToGeneRelationship rtn = queryPathwayToGeneRelationships(stId);
-		if(rtn == null) return null;
-		List<String> uniprotList = rtn.getGenes().stream().map(i -> geneToUniprot.get(i)).collect(Collectors.toList());
+		Pathway pw = pathwayService.getPathwayStIdToPathway(this.getUniProtToGene()).get(stId);
+		if(pw == null) return null;
+		
+		//make new instance of pathway so as not to mutate the cached list 
+		Pathway rtn = new Pathway();
+		rtn.setStId(stId);
+		rtn.setName(pw.getName());
+		rtn.setBottomLevel(pw.isBottomLevel());
+		
+		//replace gene list on Pathway with list of uniprots
+		List<String> uniprotList = pw.getGenes().stream().map(i -> geneToUniprot.get(i)).collect(Collectors.toList());
 		rtn.setGenes(uniprotList);
 		return rtn;
 	}
@@ -635,24 +618,24 @@ public class PairwiseService {
     public void performIndex() {
     }
     
-    public Map<String, Integer> ensurePathwayIndex(Map<String, String> pathwayStIdToPathwayName, Set<String> bottomPathways){
-    	Map<String, Integer> rtn = new HashMap<>();
-    	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
-    	int nextIndex = 0;
-    	for(Entry<String,String> entry : pathwayStIdToPathwayName.entrySet()){
-    		ensureCollectionDoc(collection, entry.getKey());
-    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("index", nextIndex));
-    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("name", entry.getValue()));
-    		
-    		boolean bottomLevel = bottomPathways.contains(entry.getKey()) ? true:false; //make boolean that is true if entry pathway is a bottom level pathway
-    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("bottomLevel", bottomLevel));
-    		
-    		rtn.put(entry.getKey(), nextIndex);
-    		nextIndex++;
-    	}
-    	
-    	return rtn;
-    }
+//    public Map<String, Integer> ensurePathwayIndex(Map<String, String> pathwayStIdToPathwayName, Set<String> bottomPathways){
+//    	Map<String, Integer> rtn = new HashMap<>();
+//    	MongoCollection<Document> collection = database.getCollection(PATHWAY_INDEX_COL_ID);
+//    	int nextIndex = 0;
+//    	for(Entry<String,String> entry : pathwayStIdToPathwayName.entrySet()){
+//    		ensureCollectionDoc(collection, entry.getKey());
+//    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("index", nextIndex));
+//    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("name", entry.getValue()));
+//    		
+//    		boolean bottomLevel = bottomPathways.contains(entry.getKey()) ? true:false; //make boolean that is true if entry pathway is a bottom level pathway
+//    		collection.updateOne(Filters.eq("_id", entry.getKey()), Updates.set("bottomLevel", bottomLevel));
+//    		
+//    		rtn.put(entry.getKey(), nextIndex);
+//    		nextIndex++;
+//    	}
+//    	
+//    	return rtn;
+//    }
     
     public Map<String, Integer> ensureGeneIndex(Collection<String> genes){
     	return ensureCollectionIndex(genes, GENE_INDEX_COL_ID);
@@ -757,15 +740,15 @@ public class PairwiseService {
         logger.debug("Insert: " + rel.getDataDesc().getId() + " for " + rel.getGene() + ".");
     }
 
-    public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships) {
-    	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
-    	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
-    	pathwayRelationships.forEach((pathway, geneList) -> {
-    		ensureCollectionDoc(collection, pathway);
-    		collection.updateOne(Filters.eq("_id", pathway), Updates.set("genes", geneList));
-    	});
-    	logger.info("Inserting patwhay relationships complete");
-    }
+//    public void insertPathwayRelationships(Map<String, List<Integer>> pathwayRelationships) {
+//    	logger.info("Inserting pathway relationships for " + pathwayRelationships.keySet().size() + " pathways.");
+//    	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
+//    	pathwayRelationships.forEach((pathway, geneList) -> {
+//    		ensureCollectionDoc(collection, pathway);
+//    		collection.updateOne(Filters.eq("_id", pathway), Updates.set("genes", geneList));
+//    	});
+//    	logger.info("Inserting patwhay relationships complete");
+//    }
     
     public void clearCombinedScores() {
     	MongoCollection<Document> collection =  database.getCollection(RELATIONSHIP_COL_ID);
@@ -800,21 +783,21 @@ public class PairwiseService {
      * @param geneToPathwayList
      * @param geneToSecondPathway
      */
-    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList) {
-    	logger.info("Inserting gene relationships");
-    	
-    	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
-    	
-    	Set<String> genes = new HashSet<>(geneToPathwayList.keySet());
-    	genes.forEach((gene) -> {
-    		ensureCollectionDoc(collection, gene);
-    		if(geneToPathwayList.get(gene) != null && geneToPathwayList.get(gene).size() > 0) 
-    			collection.updateOne(Filters.eq("_id", gene), Updates.set("pathways", geneToPathwayList.get(gene)));
-    	});
-    	
-    	logger.info(collection.count() + " documents in pathways collection");
-    	
-    }
+//    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList) {
+//    	logger.info("Inserting gene relationships");
+//    	
+//    	MongoCollection<Document> collection = database.getCollection(PATHWAYS_COL_ID);
+//    	
+//    	Set<String> genes = new HashSet<>(geneToPathwayList.keySet());
+//    	genes.forEach((gene) -> {
+//    		ensureCollectionDoc(collection, gene);
+//    		if(geneToPathwayList.get(gene) != null && geneToPathwayList.get(gene).size() > 0) 
+//    			collection.updateOne(Filters.eq("_id", gene), Updates.set("pathways", geneToPathwayList.get(gene)));
+//    	});
+//    	
+//    	logger.info(collection.count() + " documents in pathways collection");
+//    	
+//    }
     
     public Map<Integer, String> getIndexToGene() {
         if (indexToGene != null)
@@ -823,34 +806,33 @@ public class PairwiseService {
         return indexToGene;
     }
     
-    public Map<Integer, Pathway> getIndexToPathway() {
-    	if(indexToPathway != null)
-    		return indexToPathway;
-    	MongoCursor<Document> cursor = database.getCollection(PATHWAY_INDEX_COL_ID).find().iterator();
-    	indexToPathway = new HashMap<>();
-    	
-    	while(cursor.hasNext()) {
-    		Document nextDoc = cursor.next();
-    		indexToPathway.put(nextDoc.getInteger("index"), new Pathway(nextDoc.getString("_id"), nextDoc.getString("name"), nextDoc.getBoolean("bottomLevel")));
-    	}
-    	return indexToPathway;
-    }
-    
-    public Map<String, String> getPathwayNameToStId(){
-    	if(pathwayStIdToName != null)
-    		return pathwayStIdToName;
-    	
-    	MongoCursor<Document> cursor = database.getCollection(PATHWAY_INDEX_COL_ID).find().iterator();
-    	pathwayStIdToName = new HashMap<>();
-    	
-    	while(cursor.hasNext()) {
-    		Document nextDoc = cursor.next();
-    		pathwayStIdToName.put(nextDoc.getString("name"), nextDoc.getString("_id"));
-    	}
-    	
-    	return pathwayStIdToName;
-    }
-
+//    public Map<Integer, Pathway> getIndexToPathway() {
+//    	if(indexToPathway != null)
+//    		return indexToPathway;
+//    	MongoCursor<Document> cursor = database.getCollection(PATHWAY_INDEX_COL_ID).find().iterator();
+//    	indexToPathway = new HashMap<>();
+//    	
+//    	while(cursor.hasNext()) {
+//    		Document nextDoc = cursor.next();
+//    		indexToPathway.put(nextDoc.getInteger("index"), new Pathway(nextDoc.getString("_id"), nextDoc.getString("name"), nextDoc.getBoolean("bottomLevel")));
+//    	}
+//    	return indexToPathway;
+//    }
+//    
+//    public Map<String, String> getPathwayNameToStId(){
+//    	if(pathwayStIdToName != null)
+//    		return pathwayStIdToName;
+//    	
+//    	MongoCursor<Document> cursor = database.getCollection(PATHWAY_INDEX_COL_ID).find().iterator();
+//    	pathwayStIdToName = new HashMap<>();
+//    	
+//    	while(cursor.hasNext()) {
+//    		Document nextDoc = cursor.next();
+//    		pathwayStIdToName.put(nextDoc.getString("name"), nextDoc.getString("_id"));
+//    	}
+//    	
+//    	return pathwayStIdToName;
+//    }
 
     /**
      * Consumes a document of key:value pairs.
@@ -900,10 +882,10 @@ public class PairwiseService {
         logger.info("Inserted DataDesc: " + desc.getId());
     }
 
-	public void regeneratePathwayCollections() {
-		database.getCollection(this.PATHWAY_INDEX_COL_ID).drop();
-		database.getCollection(this.PATHWAYS_COL_ID).drop();
-		database.createCollection(this.PATHWAY_INDEX_COL_ID);
-		database.createCollection(this.PATHWAYS_COL_ID);
-	}
+//	public void regeneratePathwayCollections() {
+//		database.getCollection(this.PATHWAY_INDEX_COL_ID).drop();
+//		database.getCollection(this.PATHWAYS_COL_ID).drop();
+//		database.createCollection(this.PATHWAY_INDEX_COL_ID);
+//		database.createCollection(this.PATHWAYS_COL_ID);
+//	}
 }

@@ -2,7 +2,7 @@ package org.reactome.idg.pairwise.config;
 
 import java.util.Arrays;
 
-import org.reactome.idg.pairwise.service.PairwiseServiceConfig;
+import org.reactome.idg.pairwise.service.ServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -47,17 +47,14 @@ public class MainAppConfig {
     @Value("${gene.to.pathway.name}")
     private String geneToPathwayNameFile;
     
+    @Value("${uniprot.to.reactome}")
+    private String uniProt2Reactome;
+    
+    @Value("${uniprot.to.reactome.all}")
+    private String uniProt2ReactomeAllLevels;
+    
     @Value("${event.hierarchy.url}")
     private String eventHierarchyUrl;
-    
-    @Value("${prd.file.folder}")
-    private String prdFileFolder;
-    
-    @Value("${prd.probability.file}")
-    private String prdProbabilityFile;
-    
-    @Value("${prd.prediction.file}")
-    private String predictionFile;
 
     @Bean
     public MongoClient mongoClient() {
@@ -72,12 +69,13 @@ public class MainAppConfig {
     }
     
     @Bean
-    public PairwiseServiceConfig getPairwiseServiceConfig() {
-    	//url for fi service
-    	PairwiseServiceConfig config = new PairwiseServiceConfig();
+    public ServiceConfig getPairwiseServiceConfig() {
+    	ServiceConfig config = new ServiceConfig();
     	config.setCoreWSURL(coreWSUrl);
     	config.setEventHierarchyUrl(eventHierarchyUrl);
     	config.setGeneToPathwayStIdFile(geneToPathwayNameFile);
+    	config.setUniProt2ReactomeFile(uniProt2Reactome);
+    	config.setUniProt2ReactomeAllLevelsFile(uniProt2ReactomeAllLevels);
     	
     	return config;
     }

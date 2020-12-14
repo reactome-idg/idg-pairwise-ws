@@ -3,6 +3,8 @@ package org.reactome.idg.pairwise.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import java.util.ArrayList;
+import java.util.List;
 /**
  * 
  * @author brunsont
@@ -17,6 +19,10 @@ public class Pathway {
 	private Double fdr;
 	private Double pVal;
 	private boolean bottomLevel;
+	private List<String> genes;
+	
+	public Pathway() {
+	}
 	
 	public Pathway(String stId, String name, Double fdr, Double pVal, boolean bottomLevel) {
 		this.stId = stId;
@@ -80,4 +86,14 @@ public class Pathway {
 		this.bottomLevel = bottomLevel;
 	}	
 	
+	public List<String> getGenes(){
+		return this.genes;
+	}
+	public void addGene(String gene) {
+		if(this.genes == null) genes = new ArrayList<>();
+		if(!this.genes.contains(gene)) this.genes.add(gene);
+	}
+	public void setGenes(List<String> genes) {
+		this.genes = genes;
+	}
 }

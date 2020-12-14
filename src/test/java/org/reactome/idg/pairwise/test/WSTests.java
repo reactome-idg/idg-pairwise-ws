@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -17,6 +16,7 @@ import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.Test;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
+import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -87,16 +87,8 @@ public class WSTests {
     }
     
     @Test
-    public void testQueryPrimaryPathwaysForGene() throws Exception {
-    	String url = HOST_URL + "/relationships/primaryPathwaysForGene/NTN1";
-    	System.out.println(url);
-    	String rtn = callHttp(url, HTTP_GET, null);
-    	outputJSON(rtn);
-    }
-    
-    @Test
-    public void testQueryPathwaysForUniprot() throws Exception {
-    	String url = HOST_URL + "/realationships/pathwaysForUniprot/P04217";
+    public void testQueryHierarchyForTerm() throws Exception {
+    	String url = HOST_URL + "/relationships/hierarchyForTerm/NTN1";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
@@ -119,8 +111,30 @@ public class WSTests {
     }
     
     @Test
-    public void testGetPEsForPathwayAndInteractor() throws Exception {
-    	String url = HOST_URL + "/relationships/pathwaysForInteractor/4839726/PRKY";
+    public void testQueryPEsForTermInteractor() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/PEsForTermInteractors";
+    	System.out.println(url);
+    	PEsForInteractorAndDataDescsWrapper postData = new PEsForInteractorAndDataDescsWrapper();
+    	postData.setDbId(373752L);
+    	postData.setTerm("NTN1");
+    	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
+    	String rtn = callHttp(url, HTTP_POST, json);
+    	outputJSON(rtn);
+    }
+    
+    @Test
+    public void testQueryPrimaryPathwaysForGene() throws Exception {
+    	String url = HOST_URL + "/relationships/primaryPathwaysForGene/NTN1";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
+    @Test
+    public void testQuesryPrimaryPathwaysForUniprot() throws Exception {
+    	String url = HOST_URL + "/relationships/primaryPathwaysForUniprot/O95631";
     	System.out.println(url);
     	String rtn = callHttp(url, HTTP_GET, null);
     	outputJSON(rtn);
@@ -166,10 +180,16 @@ public class WSTests {
     }
     
     @Test
-    public void testGetHierarchyForUniprot() throws Exception {
-    	String url = HOST_URL + "/relationships/hierarchyForUniprot/O95631";
+    public void testQueryEnrichedPathwaysForCombinedScore() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/combinedScoreForTerm";
     	System.out.println(url);
-    	String rtn = callHttp(url, HTTP_GET, null);
+    	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
+    	postData.setTerm("NTN1");
+    	postData.setPrd(0.9d);
+    	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
+    	String rtn = callHttp(url, HTTP_POST, json);
     	outputJSON(rtn);
     }
     
