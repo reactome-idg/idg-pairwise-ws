@@ -115,7 +115,7 @@ public class PairwiseController {
     	try {
     		rtn = pairwiseService.queryPEsForTermInteractor(request.getDbId(), 
     												request.getTerm(),
-    												request.getDataDescs(), 
+    												request.getDataDescKeys(), 
     												request.getPrd() != null ? request.getPrd(): 0.9d);
     	} catch(IOException e) {
     		logger.error(e.getMessage(), e);
@@ -163,7 +163,7 @@ public class PairwiseController {
     	if(request == null || request.getTerm() == null)
     		return new ArrayList<>();
     	return pairwiseService.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
-    															  request.getDataDescs(), 
+    															  request.getDataDescKeys(), 
     															  request.getPrd() != null ? request.getPrd() : 0.9d);
     }
     

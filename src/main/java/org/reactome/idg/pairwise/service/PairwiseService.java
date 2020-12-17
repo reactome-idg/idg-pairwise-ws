@@ -19,7 +19,6 @@ import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
-import org.reactome.annotate.AnnotationType;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.annotate.PathwayBasedAnnotator;
 import org.reactome.idg.model.*;
@@ -258,19 +257,18 @@ public class PairwiseService {
         return rtn;
     }
     
-    public PEsForInteractorResponse queryPEsForTermInteractor(Long dbId, String term, List<String> dataDescs, Double prd) throws IOException {
+    public PEsForInteractorResponse queryPEsForTermInteractor(Long dbId, String term, List<Integer> dataDescKeys, Double prd) throws IOException {
 		Map<String, String> uniprotToGeneMap = this.getUniProtToGene();
 		
-		
 		if(uniprotToGeneMap.containsValue(term))
-			return queryPEsForInteractor(dbId, term, dataDescs, prd);
+			return queryPEsForInteractor(dbId, term, dataDescKeys, prd);
 		else if(uniprotToGeneMap.containsKey(term))
-			return queryPEsForInteractor(dbId, uniprotToGeneMap.get(term), dataDescs, prd);
+			return queryPEsForInteractor(dbId, uniprotToGeneMap.get(term), dataDescKeys, prd);
 		else
 			throw new ResourceNotFoundException("Could not find term: " + term);
 	}
     
-    public PEsForInteractorResponse queryPEsForInteractor(Long dbId, String gene, List<String> dataDescs, Double prd) throws IOException {
+    public PEsForInteractorResponse queryPEsForInteractor(Long dbId, String gene, List<Integer> dataDescKeys, Double prd) throws IOException {
 		
     	//get pairwise doc for gene and throw exception if no doc found.
     	Document interactorsDoc = getRelationshipDocForGene(gene);
@@ -283,15 +281,17 @@ public class PairwiseService {
     	}
     	    	
     	Set<String> interactorGenes = new HashSet<>();
-    	if(dataDescs == null || dataDescs.size() == 0) { //want to get combined score if no data descs passed in
+    	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) { //want to get combined score if no data descs passed in or key is 0 for combined score
     		interactorGenes.addAll(this.getCombinedScoresWithCutoff((Document)interactorsDoc.get(COMBINED_SCORE), prd));
     	}
-    	else
+    	else {
+    		List<String> dataDescs = this.getDataDescIdsForDigitalKeys(dataDescKeys);
 	    	for(String key : interactorsDoc.keySet()) {
 	    		if(!dataDescs.contains(key)) continue;
 	    		Document dataDoc = (Document) interactorsDoc.get(key);
 	    		interactorGenes.addAll(getGenesFromRelDoc(dataDoc));
 	    	}
+    	}
     	
     	Set<Long> peIds = new HashSet<>();
     	interactorGenes.forEach(geneName -> {
@@ -454,16 +454,16 @@ public class PairwiseService {
     	return rtn;
     }
     
-    public List<Pathway> queryTermToSecondaryPathwaysWithEnrichment(String term, List<String> dataDescs, Double prd) {
+    public List<Pathway> queryTermToSecondaryPathwaysWithEnrichment(String term, List<Integer> dataDescKeys, Double prd) {
     	//if no data descs passed in, return pathways for combined score with a prd of 0.5d;
-    	if(dataDescs == null || dataDescs.size() == 0) return queryEnrichedPathwaysForCombinedScore(term, prd);
+    	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) return queryEnrichedPathwaysForCombinedScore(term, prd);
     	
     	Map<String, String> uniprotToGene = this.getUniProtToGene();
 		if(uniprotToGene.containsValue(term)) {
-			return queryGeneToSecondaryPathwaysWithEnrichment(term, dataDescs);
+			return queryGeneToSecondaryPathwaysWithEnrichment(term, this.getDataDescIdsForDigitalKeys(dataDescKeys));
 		}
 		else if(uniprotToGene.containsKey(term)) {
-			return queryGeneToSecondaryPathwaysWithEnrichment(uniprotToGene.get(term), dataDescs);
+			return queryGeneToSecondaryPathwaysWithEnrichment(uniprotToGene.get(term), this.getDataDescIdsForDigitalKeys(dataDescKeys));
 		}
 		throw new ResourceNotFoundException("No recorded term: " + term);
 	}
@@ -540,7 +540,8 @@ public class PairwiseService {
 		if(annotator == null) loadPathwayBasedAnnotator();
     	List<GeneSetAnnotation> annotations;
     	try {
-    		annotations = this.annotator.annotateGenesWithFDR(interactors, AnnotationType.Pathway);
+    		annotations = this.annotator.annotateGeneSet(interactors, 
+    													 pathwayService.getGeneToPathwayStId(uniprotToGene));
     	} catch(Exception e) {
     		logger.error(e.getMessage());
     		e.printStackTrace();
@@ -551,7 +552,6 @@ public class PairwiseService {
 	
 	private void loadPathwayBasedAnnotator() {
 		this.annotator = new PathwayBasedAnnotator();
-		annotator.getAnnotationHelper().setProteinNameToPathwayFile(config.getGeneToPathwayStIdFile());
 	}
     
     public Pathway queryPathwayToGeneRelationships(String stId) {
@@ -594,6 +594,9 @@ public class PairwiseService {
             DataDesc desc = new DataDesc();
             Object value = doc.get("_id");
             desc.setId((String)value);
+            value = doc.get("digitalKey");
+            if(value != null)
+            	desc.setDigitalKey((Integer)value);
             value = doc.get("bioSource");
             if (value != null)
                 desc.setBioSource((String)value);
@@ -609,6 +612,22 @@ public class PairwiseService {
             rtn.add(desc);
         }
         return rtn;
+    }
+    
+    /**
+     * For list of digital keys, return list of data description _id mapped from digitalkeys
+     * @param digitalKeys
+     * @return
+     */
+    public List<String> getDataDescIdsForDigitalKeys(List<Integer> digitalKeys){
+    	List<String>rtn =  new ArrayList<>();
+    	
+    	MongoCollection<Document> collection = database.getCollection(DATA_DESCRIPTIONS_COL_ID);
+    	digitalKeys.forEach(key -> {
+    		rtn.add((String)collection.find(Filters.eq("digitalKey",key)).first().get("_id"));
+    	});
+    	
+    	return rtn;
     }
 
     /**

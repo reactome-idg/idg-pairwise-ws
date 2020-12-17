@@ -14,21 +14,21 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 public class GeneToPathwaysRequestWrapper {
 
 	private String term;
-	private List<String> dataDescs;
+	private List<Integer> dataDescKeys;
 	private Double prd;
 	public GeneToPathwaysRequestWrapper() {
 		
 	}
-	public GeneToPathwaysRequestWrapper(String term, List<String> dataDescs) {
+	public GeneToPathwaysRequestWrapper(String term, List<Integer> dataDescKeys) {
 		super();
 		this.term = term;
-		this.dataDescs = dataDescs;
+		this.dataDescKeys = dataDescKeys;
 	}
 	
-	public GeneToPathwaysRequestWrapper(String term, List<String> dataDescs, Double prd) {
+	public GeneToPathwaysRequestWrapper(String term, List<Integer> dataDescKeys, Double prd) {
 		super();
 		this.term = term;
-		this.dataDescs = dataDescs;
+		this.dataDescKeys = dataDescKeys;
 		this.prd = prd;
 	}
 	public GeneToPathwaysRequestWrapper(String term, Double prd) {
@@ -42,11 +42,11 @@ public class GeneToPathwaysRequestWrapper {
 	public void setTerm(String term) {
 		this.term = term;
 	}
-	public List<String> getDataDescs() {
-		return dataDescs;
+	public List<Integer> getDataDescKeys() {
+		return dataDescKeys;
 	}
-	public void setDataDescs(List<String> dataDescs) {
-		this.dataDescs = dataDescs;
+	public void setDataDescKeys(List<Integer> dataDescs) {
+		this.dataDescKeys = dataDescs;
 	}
 	public Double getPrd() {
 		return prd;

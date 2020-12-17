@@ -10,6 +10,8 @@ public class DataDesc {
     
     // Used as the primary index, which should be unique
     private String id;
+    // Used as short key for server calls
+    private int digitalKey;
     // The original data source, e.g. GTEx or TCGA
     private String provenance; 
     // Data type: e.g. co-expression or PPI
@@ -70,6 +72,14 @@ public class DataDesc {
 
     public void setBioSource(String bioSource) {
         this.bioSource = bioSource;
+    }
+    
+    public int getDigitalKey() {
+    	return this.digitalKey;
+    }
+    
+    public void setDigitalKey(int digitalKey) {
+    	this.digitalKey = digitalKey;
     }
 
 }
