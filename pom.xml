@@ -86,7 +86,7 @@
         <dependency>
             <groupId>org.reactome.fi</groupId>
             <artifactId>foundation</artifactId>
-            <version>1.0.0</version>
+            <version>1.0.2</version>
         </dependency>
 
 		<dependency>

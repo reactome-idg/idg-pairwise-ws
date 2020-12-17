@@ -5,8 +5,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.reactome.idg.pairwise.model.Pathway;
 import org.slf4j.Logger;
@@ -29,6 +31,7 @@ public class PathwayService {
     //attempt at removing need for pathways and PATHWAY_INDEX collections
     private Map<String, Set<Pathway>> geneToPathwayList;
     private Map<String, Pathway> pathwayStIdToPathway;
+    private Map<String, Set<String>> geneToPathwayStId;
     
     public PathwayService() {/*Nothing Here*/}
     
@@ -99,4 +102,14 @@ public class PathwayService {
 			this.cachePathways(uniprotToGene);
 		return this.geneToPathwayList;
 	}  
+	
+	public Map<String, Set<String>> getGeneToPathwayStId(Map<String, String> uniprotToGene){
+		if(this.geneToPathwayStId == null) {
+		this.geneToPathwayStId =  getGeneToPathwayList(uniprotToGene).entrySet().stream()
+			    .collect(Collectors.toMap(
+		        Map.Entry::getKey, 
+		            e -> e.getValue().stream().map(Pathway::getStId).collect(Collectors.toSet())));
+		}
+		return this.geneToPathwayStId;
+	}
 }

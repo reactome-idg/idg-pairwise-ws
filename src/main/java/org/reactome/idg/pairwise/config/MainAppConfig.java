@@ -44,9 +44,6 @@ public class MainAppConfig {
     @Value("${core.ws.service}")
     private String coreWSUrl;
     
-    @Value("${gene.to.pathway.name}")
-    private String geneToPathwayNameFile;
-    
     @Value("${uniprot.to.reactome}")
     private String uniProt2Reactome;
     
@@ -73,7 +70,6 @@ public class MainAppConfig {
     	ServiceConfig config = new ServiceConfig();
     	config.setCoreWSURL(coreWSUrl);
     	config.setEventHierarchyUrl(eventHierarchyUrl);
-    	config.setGeneToPathwayStIdFile(geneToPathwayNameFile);
     	config.setUniProt2ReactomeFile(uniProt2Reactome);
     	config.setUniProt2ReactomeAllLevelsFile(uniProt2ReactomeAllLevels);
     	
