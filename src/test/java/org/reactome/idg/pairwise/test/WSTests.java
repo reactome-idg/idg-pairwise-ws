@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -117,9 +119,22 @@ public class WSTests {
     	String url = HOST_URL + "/relationships/PEsForTermInteractors";
     	System.out.println(url);
     	PEsForInteractorAndDataDescsWrapper postData = new PEsForInteractorAndDataDescsWrapper();
-    	postData.setDbId(373752L);
-    	postData.setTerm("NTN1");
+    	postData.setDbId(373760L);
+    	postData.setTerm("PRKY");
+    	postData.setPrd(0.9);
     	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
+    	String rtn = callHttp(url, HTTP_POST, json);
+    	outputJSON(rtn);
+    }
+    
+    @Test
+    public void testGetDataDescriptionsForKeys() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/dataDescsForKeys";
+    	System.out.println(url);
+    	List<Integer> descKeys = Arrays.asList(0);
+    	String json = mapper.writeValueAsString(descKeys);
     	System.out.println(json);
     	String rtn = callHttp(url, HTTP_POST, json);
     	outputJSON(rtn);

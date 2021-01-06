@@ -184,5 +184,11 @@ public class PairwiseController {
     	return pairwiseService.queryEnrichedPathwaysForCombinedScore(request.getTerm(), request.getPrd());
     }
     
+    @CrossOrigin
+    @PostMapping("/relationships/dataDescsForKeys")
+    public List<String> queryDataDescsForKeys(@RequestBody List<Integer> request){
+    	return pairwiseService.getDataDescIdsForDigitalKeys(request);
+    }
+    
     //TODO: swagger document for ws API design
 }

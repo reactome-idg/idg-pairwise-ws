@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -279,13 +280,17 @@ public class PairwiseService {
     		logger.error(errormsg);
     		throw new InternalServerError("Physical Entity Map could not be created.");
     	}
+    	
+    	PEsForInteractorResponse rtn = new PEsForInteractorResponse();
     	    	
     	Set<String> interactorGenes = new HashSet<>();
     	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) { //want to get combined score if no data descs passed in or key is 0 for combined score
     		interactorGenes.addAll(this.getCombinedScoresWithCutoff((Document)interactorsDoc.get(COMBINED_SCORE), prd));
+    		rtn.setDataDescs(Collections.singletonList("combined_score")); //set Combined score if no dataDesc keys passed in
     	}
     	else {
     		List<String> dataDescs = this.getDataDescIdsForDigitalKeys(dataDescKeys);
+    		rtn.setDataDescs(dataDescs); //set data descs on return object
 	    	for(String key : interactorsDoc.keySet()) {
 	    		if(!dataDescs.contains(key)) continue;
 	    		Document dataDoc = (Document) interactorsDoc.get(key);
@@ -299,7 +304,8 @@ public class PairwiseService {
     			peIds.addAll(geneToPEMap.get(geneName));
     	});
     	
-    	PEsForInteractorResponse rtn = new PEsForInteractorResponse(new ArrayList<>(peIds), new ArrayList<>(interactorGenes));
+    	rtn.setPeIds(new ArrayList<>(peIds));
+    	rtn.setInteractors(new ArrayList<>(interactorGenes));
     	
 		return rtn;
 	}
@@ -624,6 +630,11 @@ public class PairwiseService {
     	
     	MongoCollection<Document> collection = database.getCollection(DATA_DESCRIPTIONS_COL_ID);
     	digitalKeys.forEach(key -> {
+    		//Combined score isnt on datadescriptions collection so add to rtn and return if found.
+    		if(key==0) {
+    			rtn.add(COMBINED_SCORE);
+    			return;
+    		}
     		rtn.add((String)collection.find(Filters.eq("digitalKey",key)).first().get("_id"));
     	});
     	

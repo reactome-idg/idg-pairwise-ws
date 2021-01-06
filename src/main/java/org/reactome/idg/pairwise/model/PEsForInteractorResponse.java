@@ -11,12 +11,20 @@ public class PEsForInteractorResponse {
 	
 	private List<Long> peIds;
 	private List<String> interactors;
+	private List<String> dataDescs;
 
 	public PEsForInteractorResponse() {/*Nothing Here*/}
 	
 	public PEsForInteractorResponse(List<Long> peIds, List<String> interactors) {
 		this.peIds = peIds;
 		this.interactors = interactors;
+	}
+
+	public PEsForInteractorResponse(List<Long> peIds, List<String> interactors, List<String> dataDescs) {
+		super();
+		this.peIds = peIds;
+		this.interactors = interactors;
+		this.dataDescs = dataDescs;
 	}
 
 	public List<Long> getPeIds() {
@@ -35,4 +43,11 @@ public class PEsForInteractorResponse {
 		this.interactors = interactors;
 	}
 
+	public List<String> getDataDescs() {
+		return dataDescs;
+	}
+
+	public void setDataDescs(List<String> dataDescs) {
+		this.dataDescs = dataDescs;
+	}
 }
