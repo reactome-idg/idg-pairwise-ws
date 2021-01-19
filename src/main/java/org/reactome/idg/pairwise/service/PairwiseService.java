@@ -439,13 +439,14 @@ public class PairwiseService {
 		}
 		
 		if(stIds == null || stIds.size() == 0)
-			throw new ResourceNotFoundException("Could not query heirarchy for: " + term + ". No pathways found for term");
+			return new HierarchyResponseWrapper(term, new ArrayList<>(), new ArrayList<>());
 		
 		return new HierarchyResponseWrapper(term, stIds, graphHierarchy.getBranches(stIds));
 	}
 
 	public List<Pathway> queryPrimaryPathwaysForGene(String gene) {
 		Set<Pathway> rtn = pathwayService.getGeneToPathwayList(this.getUniProtToGene()).get(gene);
+		if(rtn == null) return new ArrayList<>();
 		return rtn.size() > 0 ? new ArrayList<>(rtn) : new ArrayList<>();
 	}
     
