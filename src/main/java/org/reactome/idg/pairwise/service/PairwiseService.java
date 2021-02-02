@@ -335,7 +335,7 @@ public class PairwiseService {
 		if(response.get("geneToPEIds") == null || !response.get("geneToPEIds").isArray()) {
 			ResourceNotFoundException ex = new ResourceNotFoundException("Could not find physical entities for pathway: " + pathwayDbId);
 			logger.error(ex.getMessage());
-			throw ex;
+			return new HashMap<>();
 		}
 		
 		Map<String, List<Long>> rtn = new HashMap<>();
