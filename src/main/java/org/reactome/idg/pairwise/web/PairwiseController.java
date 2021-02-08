@@ -190,5 +190,16 @@ public class PairwiseController {
     	return pairwiseService.getDataDescIdsForDigitalKeys(request);
     }
     
+    /**
+     * For a passed in term, return a map of gene name to expression value for all combined_score interactors
+     * @param term
+     * @return
+     */
+    @CrossOrigin
+    @GetMapping("relationships/combinedScoreGenesForTerm/{term}")
+	public Map<String, Double> queryCombinedScoreGenesForTerm(@PathVariable("term") String term) {
+		return pairwiseService.queryCombinedScoreGenesForTerm(term);
+	}
+    
     //TODO: swagger document for ws API design
 }

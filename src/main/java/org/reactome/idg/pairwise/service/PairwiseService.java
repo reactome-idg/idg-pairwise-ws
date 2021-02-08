@@ -492,6 +492,18 @@ public class PairwiseService {
     	return getEnrichedPathways(interactors, gene);
     }
     
+    public Map<String, Double> queryCombinedScoreGenesForTerm(String term) {
+    	//of term is uniprot, convert to gene
+		if(this.getUniProtToGene().containsKey(term))
+			term = this.getUniProtToGene().get(term);
+		
+		Document relDoc = getRelationshipDocForGene(term);
+		if(relDoc == null || relDoc.get(COMBINED_SCORE) == null)
+			return new HashMap<>(); //return empty map if no document exists
+		
+		return getCombinedScoresWithoutCutoff((Document)relDoc.get(COMBINED_SCORE));
+	}
+    
     public List<Pathway> queryEnrichedPathwaysForCombinedScore(String term, Double prdCutoff) {
 		Map<String, String> uniprotToGene = this.getUniProtToGene();
 		
@@ -511,6 +523,24 @@ public class PairwiseService {
 		return getEnrichedPathways(interactors, term);
 	}
     
+    private Map<String, Double> getCombinedScoresWithoutCutoff(Document combinedScores) {
+    	if(combinedScores == null || combinedScores.size() == 0) return new HashMap<>();
+    	Map<Integer, String> indexToGene = this.getIndexToGene();
+    	Map<String, Double> rtn = new HashMap<>();
+    	
+    	combinedScores.forEach((index, prd) -> {
+    		rtn.put(indexToGene.get(Integer.parseInt(index)), (Double)prd);
+    	});
+    	
+    	return rtn;
+    }
+    
+    /**
+     * Returns list of interactors where score is higher than passed in prdCutoff
+     * @param combinedScores
+     * @param prdCutoff
+     * @return
+     */
     private Collection<String> getCombinedScoresWithCutoff(Document combinedScores, Double prdCutoff){
     	if(combinedScores == null || combinedScores.size() == 0) return new ArrayList<>();
 		Map<Integer, String> indexToGene = this.getIndexToGene();

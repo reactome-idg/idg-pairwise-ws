@@ -157,6 +157,22 @@ public class WSTests {
     }
     
     @Test
+    public void testQueryCombinedScoreGenesForGene() throws Exception {
+    	String url = HOST_URL + "/relationships/combinedScoreGenesForTerm/NTN1";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
+    @Test
+    public void testQueryCombinedScoreGenesForUniprot() throws Exception {
+    	String url = HOST_URL + "/relationships/combinedScoreGenesForTerm/O95631";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET, null);
+    	outputJSON(rtn);
+    }
+    
+    @Test
     public void testEnrichInteractorsForGene() throws Exception {
     	ObjectMapper mapper = new ObjectMapper();
     	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForTerm";
