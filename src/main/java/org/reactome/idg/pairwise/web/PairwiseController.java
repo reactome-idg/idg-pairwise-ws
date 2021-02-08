@@ -178,9 +178,18 @@ public class PairwiseController {
     	return pairwiseService.queryHierarchhyForTerm(term);
     }
     
+    /**
+     * Gets combined score pathways for Term and PRD
+     * If no prd passed in, throw 404 error.
+     * @param request
+     * @return
+     */
     @CrossOrigin
     @PostMapping("/relationships/combinedScoreForTerm")
     public List<Pathway> queryEnrichedPathwaysForCombinedScore(@RequestBody GeneToPathwaysRequestWrapper request){
+    	if(request.getPrd() == null)
+    		throw new ResourceNotFoundException("request must include a cutoff value");
+    	
     	return pairwiseService.queryEnrichedPathwaysForCombinedScore(request.getTerm(), request.getPrd());
     }
     
@@ -191,7 +200,7 @@ public class PairwiseController {
     }
     
     /**
-     * For a passed in term, return a map of gene name to expression value for all combined_score interactors
+     * For a passed in term, return a map of gene name to expression value for all combined_score interactors.
      * @param term
      * @return
      */
