@@ -260,20 +260,12 @@ public class PairwiseService {
     }
     
     public PEsForInteractorResponse queryPEsForTermInteractor(Long dbId, String term, List<Integer> dataDescKeys, Double prd) throws IOException {
-		Map<String, String> uniprotToGeneMap = this.getUniProtToGene();
 		
-		if(uniprotToGeneMap.containsValue(term))
-			return queryPEsForInteractor(dbId, term, dataDescKeys, prd);
-		else if(uniprotToGeneMap.containsKey(term))
-			return queryPEsForInteractor(dbId, uniprotToGeneMap.get(term), dataDescKeys, prd);
-		else
-			throw new ResourceNotFoundException("Could not find term: " + term);
-	}
-    
-    public PEsForInteractorResponse queryPEsForInteractor(Long dbId, String gene, List<Integer> dataDescKeys, Double prd) throws IOException {
+		term = getGeneForTerm(term);
+		if(term == null) throw new ResourceNotFoundException("Could not find term: " + term);
 		
-    	//get pairwise doc for gene and throw exception if no doc found.
-    	Document interactorsDoc = getRelationshipDocForGene(gene);
+		//get pairwise doc for gene and throw exception if no doc found.
+    	Document interactorsDoc = getRelationshipDocForGene(term);
     	
     	Map<String, List<Long>> geneToPEMap = callGeneToIdsInPathwayDiagram(dbId);
     	if(geneToPEMap == null) {
@@ -309,6 +301,7 @@ public class PairwiseService {
     	rtn.setInteractors(new ArrayList<>(interactorGenes));
     	
 		return rtn;
+
 	}
  
  	private Map<String, List<Long>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
@@ -429,15 +422,12 @@ public class PairwiseService {
      */
     public HierarchyResponseWrapper queryHierarchhyForTerm(String term) {
     	if(graphHierarchy == null) loadGraphHierarchy();
-    	Map<String, String> uniprotToGene = this.getUniProtToGene();
     	
-    	List<String> stIds = new ArrayList<>();
-		if(uniprotToGene.containsValue(term)) {
-			stIds = queryPrimaryPathwaysForGene(term).stream().map(Pathway::getStId).collect(Collectors.toList());
-		}
-		else if(uniprotToGene.containsKey(term)) {
-			stIds = queryPrimaryPathwaysForGene(uniprotToGene.get(term)).stream().map(Pathway::getStId).collect(Collectors.toList());
-		}
+    	term = getGeneForTerm(term);
+    	if(term == null) return new HierarchyResponseWrapper(term, new ArrayList<>(), new ArrayList<>());
+    	
+    	
+    	List<String> stIds = queryPrimaryPathwaysForGene(term).stream().map(Pathway::getStId).collect(Collectors.toList());
 		
 		if(stIds == null || stIds.size() == 0)
 			return new HierarchyResponseWrapper(term, new ArrayList<>(), new ArrayList<>());
@@ -466,19 +456,14 @@ public class PairwiseService {
     	//if no data descs passed in, return pathways for combined score with a prd of 0.5d;
     	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) return queryEnrichedPathwaysForCombinedScore(term, prd);
     	
-    	Map<String, String> uniprotToGene = this.getUniProtToGene();
-		if(uniprotToGene.containsValue(term)) {
-			return queryGeneToSecondaryPathwaysWithEnrichment(term, this.getDataDescIdsForDigitalKeys(dataDescKeys));
-		}
-		else if(uniprotToGene.containsKey(term)) {
-			return queryGeneToSecondaryPathwaysWithEnrichment(uniprotToGene.get(term), this.getDataDescIdsForDigitalKeys(dataDescKeys));
-		}
-		throw new ResourceNotFoundException("No recorded term: " + term);
-	}
-    
-    public List<Pathway> queryGeneToSecondaryPathwaysWithEnrichment(String gene, List<String> descIds) {
-    	Document relDoc = getRelationshipDocForGene(gene);
-    	    	
+    	//convert term to gene name and return new list if not available
+    	term = getGeneForTerm(term);
+    	if(term == null) return new ArrayList<>();
+
+    	Document relDoc = getRelationshipDocForGene(term);
+    	
+    	List<String> descIds = this.getDataDescIdsForDigitalKeys(dataDescKeys);
+    	
     	Collection<String> interactors = new ArrayList<>();
     	for(String key : relDoc.keySet()) {
     		if(!descIds.contains(key)) continue;
@@ -490,13 +475,13 @@ public class PairwiseService {
     		return null;
     	}
     	
-    	return getEnrichedPathways(interactors, gene);
-    }
+    	return getEnrichedPathways(interactors, term);
+    	
+	}
     
     public Map<String, Double> queryCombinedScoreGenesForTerm(String term) {
-    	//of term is uniprot, convert to gene
-		if(this.getUniProtToGene().containsKey(term))
-			term = this.getUniProtToGene().get(term);
+    	term = getGeneForTerm(term);
+    	if(term == null) return new HashMap<>();
 		
 		Document relDoc = getRelationshipDocForGene(term);
 		if(relDoc == null || relDoc.get(COMBINED_SCORE) == null)
@@ -506,11 +491,11 @@ public class PairwiseService {
 	}
     
     public List<Pathway> queryEnrichedPathwaysForCombinedScore(String term, Double prdCutoff) {
-		Map<String, String> uniprotToGene = this.getUniProtToGene();
 		
 		//if term is uniprot, convert to gene name.
-		if(uniprotToGene.containsKey(term))
-			term = uniprotToGene.get(term);
+		//Return empty list if gene not available.
+		term = getGeneForTerm(term);
+    	if(term == null) return new ArrayList<>();
 		
 		Document relDoc = getRelationshipDocForGene(term);
 		if(relDoc == null || relDoc.get(COMBINED_SCORE) == null) return null; //return null if no relationship doc for term or no combined score

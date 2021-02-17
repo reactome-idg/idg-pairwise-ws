@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpMethod;
@@ -20,6 +22,7 @@ import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.Test;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
+import org.reactome.idg.pairwise.model.PairwiseRelRequest;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,44 +59,25 @@ public class WSTests {
     
     @Test
     public void testQueryRelsForGenes() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
         String url = HOST_URL + "/pairwise/genes/false";
-        String genes = "EGF,EGFR,TP53,NOTCH1";
-//        genes = "EP300";
-        String descIds = "GTEx|Ovary|Gene_Coexpression";
-        String query = descIds + "\n" + genes;
+        List<String> genes = Stream.of("EGF","EGFR","TP53","NOTCH1").collect(Collectors.toList());
+        List<String> descIds = Stream.of("GTEx|Ovary|Gene_Coexpression","GTEx|Breast-MammaryTissue|Gene_Coexpression", "Harmonizome|human|Gene_Similarity|ctddisease").collect(Collectors.toList());
+        PairwiseRelRequest query = new PairwiseRelRequest(genes, descIds);
         System.out.println(url + ": " + descIds);
-        String rtn = callHttp(url, HTTP_POST, query);
-        outputJSON(rtn);
-        descIds += ",GTEx|Breast-MammaryTissue|Gene_Coexpression";
-        System.out.println(descIds);
-        query = descIds + "\n" + genes;
-        rtn = callHttp(url, HTTP_POST, query);
-        outputJSON(rtn);
-        descIds += ",Harmonizome|human|Gene_Similarity|ctddisease";
-        System.out.println(descIds);
-        query = descIds + "\n" + genes;
-        rtn = callHttp(url, HTTP_POST, query);
+        String rtn = callHttp(url, HTTP_POST, mapper.writeValueAsString(query));
         outputJSON(rtn);
     }
     
     @Test
     public void testQueryRelsForProteins() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
         String url = HOST_URL + "/pairwise/uniprots/false";
-        String genes = "P01133,P00533,P04637,P46531";
-        String descIds = "GTEx|Ovary|Gene_Coexpression";
-        String query = descIds + "\n" + genes;
+        List<String> genes = Stream.of("P01133","P00533","P04637","P46531").collect(Collectors.toList());
+        List<String> descIds = Stream.of("GTEx|Ovary|Gene_Coexpression","GTEx|Breast-MammaryTissue|Gene_Coexpression", "Harmonizome|human|Gene_Similarity|ctddisease").collect(Collectors.toList());
+        PairwiseRelRequest query = new PairwiseRelRequest(genes, descIds);
         System.out.println(url + ": " + descIds);
-        String rtn = callHttp(url, HTTP_POST, query);
-        outputJSON(rtn);
-        descIds += ",GTEx|Breast-MammaryTissue|Gene_Coexpression";
-        System.out.println(descIds);
-        query = descIds + "\n" + genes;
-        rtn = callHttp(url, HTTP_POST, query);
-        outputJSON(rtn);
-        descIds += ",Harmonizome|human|Gene_Similarity|ctddisease";
-        System.out.println(descIds);
-        query = descIds + "\n" + genes;
-        rtn = callHttp(url, HTTP_POST, query);
+        String rtn = callHttp(url, HTTP_POST, mapper.writeValueAsString(query));
         outputJSON(rtn);
     }
     

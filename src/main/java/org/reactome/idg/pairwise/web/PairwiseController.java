@@ -66,9 +66,6 @@ public class PairwiseController {
     }
     
     /**
-     * There should be two lines in the post body:
-     * 1). Line 1: "," delimited DataDesc ids
-     * 2). Line 2: "," delimited gene names.
      * @param wrap
      * @return
      */
@@ -81,9 +78,6 @@ public class PairwiseController {
     }
     
     /**
-     * There should be two lines in the post body:
-     * Line 1: "," delimited DataDesc ids
-     * List 2: "," delimited protein uniprot accession numbers
      * @param wrap
      * @return
      */
