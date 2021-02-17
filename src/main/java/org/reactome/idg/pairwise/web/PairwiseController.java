@@ -60,6 +60,11 @@ public class PairwiseController {
         return pairwiseService.listDataDesc();
     }
     
+    @GetMapping("/datadesc/{term}")
+    public List<DataDesc> listDataDescriptionsForTerm(@PathVariable("term")String term){
+    	return pairwiseService.listDataDesc(term);
+    }
+    
     /**
      * There should be two lines in the post body:
      * 1). Line 1: "," delimited DataDesc ids

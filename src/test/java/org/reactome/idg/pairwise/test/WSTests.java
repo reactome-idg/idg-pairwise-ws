@@ -47,6 +47,14 @@ public class WSTests {
     }
     
     @Test
+    public void testListDataDescsForTerm() throws Exception {
+    	String url = HOST_URL + "/datadesc/NTN1";
+    	System.out.println(url);
+    	String rtn = callHttp(url, HTTP_GET,null);
+    	outputJSON(rtn);
+    }
+    
+    @Test
     public void testQueryRelsForGenes() throws Exception {
         String url = HOST_URL + "/pairwise/genes/false";
         String genes = "EGF,EGFR,TP53,NOTCH1";

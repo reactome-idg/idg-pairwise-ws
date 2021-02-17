@@ -19,6 +19,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.bson.BsonReader;
 import org.bson.Document;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.annotate.PathwayBasedAnnotator;
@@ -400,7 +401,7 @@ public class PairwiseService {
     	Document doc = database.getCollection(RELATIONSHIP_COL_ID)
     			.find(Filters.eq("_id", gene)).first();
     	if(doc == null) {
-    		String infomsg = "No interactors found for gene: " + gene;
+    		String infomsg = "No interactor document found for gene: " + gene;
     		logger.info(infomsg);
     		throw new ResourceNotFoundException(infomsg);
     	}
@@ -628,30 +629,78 @@ public class PairwiseService {
         FindIterable<Document> descDocs = collection.find();
         List<DataDesc> rtn = new ArrayList<>();
         for (Document doc : descDocs) {
-            DataDesc desc = new DataDesc();
-            Object value = doc.get("_id");
-            desc.setId((String)value);
-            value = doc.get("digitalKey");
-            if(value != null)
-            	desc.setDigitalKey((Integer)value);
-            value = doc.get("bioSource");
-            if (value != null)
-                desc.setBioSource((String)value);
-            value = doc.get("provenance");
-            if (value != null)
-                desc.setProvenance((String)value);
-            value = doc.get("dataType");
-            if (value != null)
-                desc.setDataType(FeatureType.valueOf((String)value));
-            value = doc.get("origin");
-            if (value != null)
-                desc.setOrigin((String)value);
-            rtn.add(desc);
+            rtn.add(this.getDataDescObjectForDoc(doc));
         }
         return rtn;
     }
     
     /**
+     * return list of data descriptions for a given term.
+     * term can be either gene name or uniprot
+     * @param term
+     * @return
+     */
+    public List<DataDesc> listDataDesc(String term) {
+		String gene = getGeneForTerm(term);
+		if(gene == null) return new ArrayList<>();
+		
+		List<DataDesc> rtn = new ArrayList<>();
+		
+		MongoCollection<Document> collection = database.getCollection(DATA_DESCRIPTIONS_COL_ID);		
+		Set<String> keys = this.getRelationshipDocForGene(gene).keySet();
+		keys.forEach(key -> {
+			if(!key.contains("|"))
+				return;
+			Document dataDescDoc = collection.find(Filters.eq("_id", key)).first();
+			rtn.add(getDataDescObjectForDoc(dataDescDoc));
+		});
+		
+		return rtn;
+	}
+    
+    /**
+     * Create Data Description object for a Document
+     * @param doc
+     * @return
+     */
+    private DataDesc getDataDescObjectForDoc(Document doc) {
+    	DataDesc rtn = new DataDesc();
+        Object value = doc.get("_id");
+        rtn.setId((String)value);
+        value = doc.get("digitalKey");
+        if(value != null)
+        	rtn.setDigitalKey((Integer)value);
+        value = doc.get("bioSource");
+        if (value != null)
+            rtn.setBioSource((String)value);
+        value = doc.get("provenance");
+        if (value != null)
+            rtn.setProvenance((String)value);
+        value = doc.get("dataType");
+        if (value != null)
+            rtn.setDataType(FeatureType.valueOf((String)value));
+        value = doc.get("origin");
+        if (value != null)
+            rtn.setOrigin((String)value);
+       return rtn;
+	}
+
+	/**
+     * ensure passed in term is a gene name, if uniprot, convert to gene name
+     * if not known gene name or uniprot, return null
+     * @param term
+     * @return
+     */
+    private String getGeneForTerm(String term) {
+		Map<String, String> uniprotToGene = this.getUniProtToGene();
+		if(uniprotToGene.values().contains(term))
+			return term;
+		else if(uniprotToGene.containsKey(term))
+			return uniprotToGene.get(term);
+		else return null;
+	}
+
+	/**
      * For list of digital keys, return list of data description _id mapped from digitalkeys
      * @param digitalKeys
      * @return
