@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -62,7 +61,7 @@ public class WSTests {
     	ObjectMapper mapper = new ObjectMapper();
         String url = HOST_URL + "/pairwise/genes/false";
         List<String> genes = Stream.of("EGF","EGFR","TP53","NOTCH1").collect(Collectors.toList());
-        List<String> descIds = Stream.of("GTEx|Ovary|Gene_Coexpression","GTEx|Breast-MammaryTissue|Gene_Coexpression", "Harmonizome|human|Gene_Similarity|ctddisease").collect(Collectors.toList());
+        List<String> descIds = Stream.of("GTEx|Ovary|Gene_Coexpression","GTEx|Breast-MammaryTissue|Gene_Coexpression","Harmonizome|human|Gene_Similarity|ctddisease").collect(Collectors.toList());
         PairwiseRelRequest query = new PairwiseRelRequest(genes, descIds);
         System.out.println(url + ": " + descIds);
         String rtn = callHttp(url, HTTP_POST, mapper.writeValueAsString(query));
@@ -74,7 +73,7 @@ public class WSTests {
     	ObjectMapper mapper = new ObjectMapper();
         String url = HOST_URL + "/pairwise/uniprots/false";
         List<String> genes = Stream.of("P01133","P00533","P04637","P46531").collect(Collectors.toList());
-        List<String> descIds = Stream.of("GTEx|Ovary|Gene_Coexpression","GTEx|Breast-MammaryTissue|Gene_Coexpression", "Harmonizome|human|Gene_Similarity|ctddisease").collect(Collectors.toList());
+        List<String> descIds = Stream.of("GTEx|Ovary|Gene_Coexpression","GTEx|Breast-MammaryTissue|Gene_Coexpression","Harmonizome|human|Gene_Similarity|ctddisease").collect(Collectors.toList());
         PairwiseRelRequest query = new PairwiseRelRequest(genes, descIds);
         System.out.println(url + ": " + descIds);
         String rtn = callHttp(url, HTTP_POST, mapper.writeValueAsString(query));
