@@ -676,7 +676,7 @@ public class PairwiseService {
      * @param term
      * @return
      */
-    private String getGeneForTerm(String term) {
+    public String getGeneForTerm(String term) {
 		Map<String, String> uniprotToGene = this.getUniProtToGene();
 		if(uniprotToGene.values().contains(term))
 			return term;

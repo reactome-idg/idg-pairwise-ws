@@ -65,6 +65,11 @@ public class PairwiseController {
     	return pairwiseService.listDataDesc(term);
     }
     
+    @GetMapping("/checkTerm/{term}")
+    public boolean checkIfTermExists(@PathVariable("term")String term) {
+    	return pairwiseService.getGeneForTerm(term) == null ? false:true;
+    }
+    
     /**
      * @param wrap
      * @return
