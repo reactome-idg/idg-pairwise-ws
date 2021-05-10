@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -178,6 +179,20 @@ public class WSTests {
     	Long time2 = System.currentTimeMillis() - time1;
     	outputJSON(rtn);
     	System.out.println(time2);
+    }
+    
+    @Test
+    public void testQuantityOfPathwaysAndStIdsForGene() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/primaryPathwaysForGene/EGFR";
+    	String rtn = callHttp(url, HTTP_GET, null);
+        List<?> obj = mapper.readValue(rtn, ArrayList.class);
+        System.out.println("Number of Pathways: " + obj.size());
+        url = HOST_URL + "/realtionships/pathwayStIdsForTerm/EGFR";
+        rtn = callHttp(url, HTTP_GET, null);
+        List<?> obj2 = mapper.readValue(rtn, ArrayList.class);
+        System.out.println("Number of Pathway stIds: " + obj2.size());
+        assert(obj.size() == obj2.size());
     }
     
     @Test

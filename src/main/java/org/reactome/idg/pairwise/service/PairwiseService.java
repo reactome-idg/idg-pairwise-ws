@@ -901,6 +901,12 @@ public class PairwiseService {
         return indexToGene;
     }
     
+    public Set<String> getPathwayStIdsForTerm(String term) {
+		term = this.getGeneForTerm(term);
+		return pathwayService.getGeneToPathwayStId(this.getUniProtToGene()).get(term);
+		
+	}
+    
 //    public Map<Integer, Pathway> getIndexToPathway() {
 //    	if(indexToPathway != null)
 //    		return indexToPathway;
@@ -976,6 +982,7 @@ public class PairwiseService {
         collection.insertOne(document);
         logger.info("Inserted DataDesc: " + desc.getId());
     }
+
 
 //	public void regeneratePathwayCollections() {
 //		database.getCollection(this.PATHWAY_INDEX_COL_ID).drop();

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
@@ -104,6 +105,12 @@ public class PairwiseController {
     @GetMapping("/relationships/uniprotsForPathway/{stId}")
     public Pathway queryPathwayToUniprotRelationship(@PathVariable("stId") String stId) {
     	return pairwiseService.queryPathwayToUniprotRelationships(stId.toUpperCase());
+    }
+    
+    @CrossOrigin
+    @GetMapping("/realtionships/pathwayStIdsForTerm/{term}")
+    public Set<String> getPathwayStIdsForTerm(@PathVariable("term")String term){
+    	return pairwiseService.getPathwayStIdsForTerm(term);
     }
     
     /**
