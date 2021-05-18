@@ -19,7 +19,6 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.bson.BsonReader;
 import org.bson.Document;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.annotate.PathwayBasedAnnotator;
@@ -597,6 +596,64 @@ public class PairwiseService {
 		rtn.setGenes(uniprotList);
 		return rtn;
 	}
+    
+    /**
+     * For term and a map of interactors to their Functional Interaction value, 
+     * return a CSV containing rows of term, interactor, reactome inclusion, FI value, 
+     * and feature inclusion for the interaction.
+     * @param term
+     * @param interactors
+     * @return
+     */
+    public String queryFeaturesForTermAndInteractors(String term, Map<String, Double> interactors) {
+    	
+    	//ensure term is or can be a gene name. 404 if not found
+    	boolean isGene = this.getGeneToUniProt().containsKey(term);
+    	String gene = isGene ? term : this.getUniProtToGene().get(term);
+    	if(gene == null) throw new ResourceNotFoundException("Could not find term: " + term);
+    	
+    	Document geneDoc = this.getRelationshipDocForGene(gene);
+    	
+    	//get list of Data Description ids
+    	List<String> dataDescriptions = this.getDataDescriptions().stream().sorted().collect(Collectors.toList());
+		
+    	//make map of interactor to list of descriptions it is included in for gene
+    	Map<String, List<String>> interactorNameToDataDescList = new HashMap<>();
+    	interactors.keySet().forEach(interactor -> interactorNameToDataDescList.put(interactor, new ArrayList<>())); //fill array because all interactors should be represented
+    	
+    	//loop over genedoc docs for each data desc, get list of genes, if docs genes are interactors, add desc to map list for that interactor
+    	for(String key : geneDoc.keySet()) {
+    		if(!key.contains("|")) continue; //effectively continue on _id and combined_score
+    		Document doc = (Document) geneDoc.get(key);
+    		Set<String> genes = this.getGenesFromRelDoc(doc);
+    		interactorNameToDataDescList.keySet().forEach(interactor -> {
+    			if(genes.contains(interactor)) interactorNameToDataDescList.get(interactor).add(key);
+    		});
+    	}
+    	
+    	//Make String for returning
+    	StringBuilder rtn = new StringBuilder();
+    	
+    	//build header of file
+    	StringBuilder header = new StringBuilder();
+    	header.append("gene_name,interactor_name,functional_interaction_score,");
+    	header.append(String.join(",",dataDescriptions));
+    	header.append("\n");
+    	rtn.append(header);
+    	
+    	//append row for each interactor
+    	interactorNameToDataDescList.forEach((interactor, dataDescs) -> {
+    		StringBuilder row = new StringBuilder();
+    		row.append(term+','+interactor+','+interactors.get(interactor)+',');
+    		dataDescriptions.forEach(desc -> {
+    			row.append(dataDescs.contains(desc) ? "1,":"0,");
+    		});
+    		row.replace(row.length()-1, row.length(), "\n");
+    		rtn.append(row);
+    	});
+    	
+    	return rtn.toString();
+	}
 
 	private Map<String, DataDesc> createIdToDesc(List<String> descIds) {
         Map<String, DataDesc> idToDesc = new HashMap<>();
@@ -631,7 +688,7 @@ public class PairwiseService {
 		
 		List<DataDesc> rtn = new ArrayList<>();
 		
-		MongoCollection<Document> collection = database.getCollection(DATA_DESCRIPTIONS_COL_ID);		
+		MongoCollection<Document> collection = database.getCollection(DATA_DESCRIPTIONS_COL_ID);
 		Set<String> keys = this.getRelationshipDocForGene(gene).keySet();
 		keys.forEach(key -> {
 			if(!key.contains("|"))
@@ -705,7 +762,20 @@ public class PairwiseService {
     	
     	return rtn;
     }
-
+    
+    /**
+     * Returns a list of all the data description Ids
+     * representative of each feature of the mongodb relationships collection.
+     * @return
+     */
+    public List<String> getDataDescriptions(){
+    	List<String> rtn = new ArrayList<>();
+    	MongoCursor<Document> cursor = database.getCollection(DATA_DESCRIPTIONS_COL_ID).find().iterator();
+    	while(cursor.hasNext()) {
+    		rtn.add(cursor.next().get("_id").toString());
+    	}
+    	return rtn;
+    }
     /**
      * Do nothing for the time being since we are using the primary index. If needed,
      * indexing will be handled manually via the shell.

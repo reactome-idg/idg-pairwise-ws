@@ -8,7 +8,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -20,6 +22,7 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.junit.Test;
+import org.reactome.idg.pairwise.model.FeatureForTermInteractorsWrapper;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
 import org.reactome.idg.pairwise.model.PairwiseRelRequest;
@@ -229,6 +232,22 @@ public class WSTests {
     	System.out.println(json);
     	String rtn = callHttp(url, HTTP_POST, json);
     	outputJSON(rtn);
+    }
+    
+    @Test
+    public void testDownloadFeaturesForInteractors() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/download/FeaturesForTermAndInteractors";
+    	System.out.println(url);
+    	Map<String, Double> interactors = new HashMap<>();
+    	interactors.put("UNC5A", 0.9690984720050109);
+    	interactors.put("UNC5B", 0.9647416464577799);
+    	interactors.put("UNC5C", 0.9690984720050109);
+    	FeatureForTermInteractorsWrapper postData = new FeatureForTermInteractorsWrapper("NTN1", interactors);
+    	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
+    	String rtn = callHttp(url, HTTP_POST, json);
+    	System.out.println(rtn);
     }
     
     private void outputJSON(String json) throws JsonProcessingException, IOException {

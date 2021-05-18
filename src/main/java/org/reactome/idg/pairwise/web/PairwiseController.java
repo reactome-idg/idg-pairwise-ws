@@ -1,5 +1,6 @@
 package org.reactome.idg.pairwise.web;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.reactome.idg.pairwise.model.DataDesc;
+import org.reactome.idg.pairwise.model.FeatureForTermInteractorsWrapper;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.PEsForInteractorAndDataDescsWrapper;
 import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
@@ -220,6 +222,12 @@ public class PairwiseController {
 	public Map<String, Double> queryCombinedScoreGenesForTerm(@PathVariable("term") String term) {
 		return pairwiseService.queryCombinedScoreGenesForTerm(term);
 	}
+    
+    @CrossOrigin
+    @PostMapping("/download/FeaturesForTermAndInteractors")
+    public String queryFeaturesForTermAndInteractors(@RequestBody FeatureForTermInteractorsWrapper request) {
+    	return pairwiseService.queryFeaturesForTermAndInteractors(request.getTerm(), request.getInteractors());
+    }
     
     //TODO: swagger document for ws API design
 }
