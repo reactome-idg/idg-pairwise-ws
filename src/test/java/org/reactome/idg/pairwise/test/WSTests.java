@@ -239,10 +239,10 @@ public class WSTests {
     	ObjectMapper mapper = new ObjectMapper();
     	String url = HOST_URL + "/download/FeaturesForTermAndInteractors";
     	System.out.println(url);
-    	Map<String, Double> interactors = new HashMap<>();
-    	interactors.put("UNC5A", 0.9690984720050109);
-    	interactors.put("UNC5B", 0.9647416464577799);
-    	interactors.put("UNC5C", 0.9690984720050109);
+    	List<String> interactors = new ArrayList<>();
+    	interactors.add("UNC5A");
+    	interactors.add("UNC5B");
+    	interactors.add("UNC5C");
     	FeatureForTermInteractorsWrapper postData = new FeatureForTermInteractorsWrapper("NTN1", interactors);
     	String json = mapper.writeValueAsString(postData);
     	System.out.println(json);

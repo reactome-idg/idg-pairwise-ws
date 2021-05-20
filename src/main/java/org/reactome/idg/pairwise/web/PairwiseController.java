@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.FeatureForTermInteractorsWrapper;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
@@ -225,8 +228,19 @@ public class PairwiseController {
     
     @CrossOrigin
     @PostMapping("/download/FeaturesForTermAndInteractors")
-    public String queryFeaturesForTermAndInteractors(@RequestBody FeatureForTermInteractorsWrapper request) {
-    	return pairwiseService.queryFeaturesForTermAndInteractors(request.getTerm(), request.getInteractors());
+    public void queryFeaturesForTermAndInteractors(@RequestBody FeatureForTermInteractorsWrapper request, HttpServletResponse response) {
+    	String csv = pairwiseService.queryFeaturesForTermAndInteractors(request.getTerm(), request.getInteractors());
+    	response.setContentType("blob");
+    	ServletOutputStream writer;
+		try {
+			writer = response.getOutputStream();
+			writer.print(csv);
+			writer.flush();
+	    	writer.close();
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new InternalServerError("We experienced an error and are working to fix it!");
+		}
     }
     
     //TODO: swagger document for ws API design

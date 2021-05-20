@@ -56,6 +56,7 @@ public class PairwiseService {
     private final String RELATIONSHIP_COL_ID = "relationships";
     private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
     private final String COMBINED_SCORE = "combined_score";
+    private final String REACTOME_ANNOTATED_GENES_COL_ID = "REACTOME_ANNOTATED_GENES";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
     
@@ -75,6 +76,7 @@ public class PairwiseService {
     // Cached uniprot to gene mapping
     private Map<String, String> uniprotToGene;
     private Map<String, String> geneToUniprot;
+    private Set<String> reactomeAnnotatedGenes;
     
     //cached EventHierarchy
     private GraphHierarchy graphHierarchy;
@@ -119,6 +121,15 @@ public class PairwiseService {
     	return geneToUniprot;
     }
 
+    public Set<String> getReactomeAnnotatedGenes(){
+    	if(this.reactomeAnnotatedGenes != null) return this.reactomeAnnotatedGenes;
+    	
+    	Document doc = database.getCollection(REACTOME_ANNOTATED_GENES_COL_ID).find().first();
+    	reactomeAnnotatedGenes = new HashSet<>((List<String>)doc.get("reactomeAnnotatedGenes"));
+    	
+    	return reactomeAnnotatedGenes;
+    }
+    
     /**
      * Loads Event hierarchy from server and initializes GraphHierarchy object
      */
@@ -605,7 +616,7 @@ public class PairwiseService {
      * @param interactors
      * @return
      */
-    public String queryFeaturesForTermAndInteractors(String term, Map<String, Double> interactors) {
+    public String queryFeaturesForTermAndInteractors(String term, List<String>interactors) {
     	
     	//ensure term is or can be a gene name. 404 if not found
     	boolean isGene = this.getGeneToUniProt().containsKey(term);
@@ -619,7 +630,7 @@ public class PairwiseService {
 		
     	//make map of interactor to list of descriptions it is included in for gene
     	Map<String, List<String>> interactorNameToDataDescList = new HashMap<>();
-    	interactors.keySet().forEach(interactor -> interactorNameToDataDescList.put(interactor, new ArrayList<>())); //fill array because all interactors should be represented
+    	interactors.forEach(interactor -> interactorNameToDataDescList.put(interactor, new ArrayList<>())); //fill array because all interactors should be represented
     	
     	//loop over genedoc docs for each data desc, get list of genes, if docs genes are interactors, add desc to map list for that interactor
     	for(String key : geneDoc.keySet()) {
@@ -627,29 +638,34 @@ public class PairwiseService {
     		Document doc = (Document) geneDoc.get(key);
     		Set<String> genes = this.getGenesFromRelDoc(doc);
     		interactorNameToDataDescList.keySet().forEach(interactor -> {
-    			if(genes.contains(interactor)) interactorNameToDataDescList.get(interactor).add(key);
+    			if(!genes.contains(interactor)) return;
+    			interactorNameToDataDescList.get(interactor).add(key);
     		});
     	}
     	
-    	//Make String for returning
+    	//create map of interactor name to functional interaction score
+    	Map<String,Integer> geneToIndex = this.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    	Map<String, Double> interactorToScore = new HashMap<>();
+    	Document combinedScoreDoc = (Document)geneDoc.get(COMBINED_SCORE);
+    	interactors.forEach(interactor -> interactorToScore.put(interactor, (Double)combinedScoreDoc.get(geneToIndex.get(interactor)+"")));
+    	
+    	//Make return String
     	StringBuilder rtn = new StringBuilder();
     	
     	//build header of file
-    	StringBuilder header = new StringBuilder();
-    	header.append("gene_name,interactor_name,functional_interaction_score,");
-    	header.append(String.join(",",dataDescriptions));
-    	header.append("\n");
-    	rtn.append(header);
+    	rtn.append("gene_name,interactor_name,included_in_reactome,functional_interaction_score,")
+    	   .append(String.join(",",dataDescriptions))
+    	   .append("\n");
     	
     	//append row for each interactor
     	interactorNameToDataDescList.forEach((interactor, dataDescs) -> {
-    		StringBuilder row = new StringBuilder();
-    		row.append(term+','+interactor+','+interactors.get(interactor)+',');
+    		rtn.append(term+","+interactor+",")
+    		   .append(this.getReactomeAnnotatedGenes().contains(interactor) ? "1,":"0,")
+    		   .append(interactorToScore.get(interactor));
     		dataDescriptions.forEach(desc -> {
-    			row.append(dataDescs.contains(desc) ? "1,":"0,");
+    			rtn.append(",").append(dataDescs.contains(desc) ? "1":"0");
     		});
-    		row.replace(row.length()-1, row.length(), "\n");
-    		rtn.append(row);
+    		rtn.append("\n");
     	});
     	
     	return rtn.toString();
@@ -1052,7 +1068,18 @@ public class PairwiseService {
         collection.insertOne(document);
         logger.info("Inserted DataDesc: " + desc.getId());
     }
-
+    
+    public void insertReactomeAnnotatedGenes(Set<String> annotatedGenes) {
+		MongoCollection<Document> collection = database.getCollection(this.REACTOME_ANNOTATED_GENES_COL_ID);
+		Document doc = new Document();
+		doc.append("reactomeAnnotatedGenes", annotatedGenes);
+		collection.insertOne(doc);
+	}
+    
+    public void regenrateReactomeAnnotatedGenesCollection() {
+    	database.getCollection(REACTOME_ANNOTATED_GENES_COL_ID).drop();
+    	database.createCollection(REACTOME_ANNOTATED_GENES_COL_ID);
+    }
 
 //	public void regeneratePathwayCollections() {
 //		database.getCollection(this.PATHWAY_INDEX_COL_ID).drop();
