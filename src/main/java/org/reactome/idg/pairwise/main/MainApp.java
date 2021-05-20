@@ -29,7 +29,8 @@ public class MainApp {
 //        pushMLFeatureIntoDB();
 //    	  pushPathwayData();
 //    	  pushPRDPredictions(args);
-    	  addDataDescDigitalKeys();
+//    	  addDataDescDigitalKeys();
+    	  addReactomeAnnotatedGenesCollection();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -116,6 +117,17 @@ public class MainApp {
     	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
     	PairwiseService service = context.getBean(PairwiseService.class);
     	service.addDataDescDigitalKeys();
+    	
+    	context.close();
+    }
+    
+    private static void addReactomeAnnotatedGenesCollection() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	ReactomeGeneProcessor processor = new ReactomeGeneProcessor();
+    	processor.processReactomeGenes(service);
+    	
+    	context.close();
     }
     
     /**
