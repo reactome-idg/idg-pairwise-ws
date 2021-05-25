@@ -675,9 +675,7 @@ public class PairwiseService {
     				rtn.append("-1");
     				return;
     			}
-    			rtn.append("0");
-    			return;
-    			
+    			rtn.append("0");    			
     		});
     		rtn.append("\n");
     	});
