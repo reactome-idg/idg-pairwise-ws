@@ -400,7 +400,7 @@ public class PairwiseService {
      * @param gene
      * @return
      */
-    private Document getRelationshipDocForGene(String gene) {
+    public Document getRelationshipDocForGene(String gene) {
     	Document doc = database.getCollection(RELATIONSHIP_COL_ID)
     			.find(Filters.eq("_id", gene)).first();
     	if(doc == null) {
@@ -411,14 +411,29 @@ public class PairwiseService {
     	return doc;
     }
     
-    private Set<String> getGenesFromRelDoc(Document relDoc){
+    public Set<String> getGenesFromRelDoc(Document relDoc){
     	Set<String> rtn = new HashSet<>();
-    	
+    	    	    	
+		rtn.addAll(getPosGenesFromRelDoc(relDoc));
+		rtn.addAll(getNegGenesFromRelDoc(relDoc));
+    	return rtn;
+    }
+    
+    public Set<String> getPosGenesFromRelDoc(Document relDoc){
+    	Set<String> rtn = new HashSet<>();
     	Map<Integer, String> indexToGene = getIndexToGene();
-    	    	
+    	
 		if(relDoc.containsKey("pos"))
 			rtn.addAll(((List<Integer>)relDoc.get("pos")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));
-		if(relDoc.containsKey("neg"))
+		
+		return rtn;
+    }
+    
+    public Set<String> getNegGenesFromRelDoc(Document relDoc){
+    	Set<String> rtn = new HashSet<>();
+    	Map<Integer,String> indexToGene = getIndexToGene();
+    	
+    	if(relDoc.containsKey("neg"))
 			rtn.addAll(((List<Integer>)relDoc.get("neg")).stream().map(i -> indexToGene.get(i)).collect(Collectors.toSet()));	
     	
     	return rtn;
@@ -627,27 +642,9 @@ public class PairwiseService {
     	
     	//get list of Data Description ids
     	List<String> dataDescriptions = this.getDataDescriptions().stream().sorted().collect(Collectors.toList());
-		
-    	//make map of interactor to list of descriptions it is included in for gene
-    	Map<String, List<String>> interactorNameToDataDescList = new HashMap<>();
-    	interactors.forEach(interactor -> interactorNameToDataDescList.put(interactor, new ArrayList<>())); //fill array because all interactors should be represented
     	
-    	//loop over genedoc docs for each data desc, get list of genes, if docs genes are interactors, add desc to map list for that interactor
-    	for(String key : geneDoc.keySet()) {
-    		if(!key.contains("|")) continue; //effectively continue on _id and combined_score
-    		Document doc = (Document) geneDoc.get(key);
-    		Set<String> genes = this.getGenesFromRelDoc(doc);
-    		interactorNameToDataDescList.keySet().forEach(interactor -> {
-    			if(!genes.contains(interactor)) return;
-    			interactorNameToDataDescList.get(interactor).add(key);
-    		});
-    	}
-    	
-    	//create map of interactor name to functional interaction score
     	Map<String,Integer> geneToIndex = this.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-    	Map<String, Double> interactorToScore = new HashMap<>();
     	Document combinedScoreDoc = (Document)geneDoc.get(COMBINED_SCORE);
-    	interactors.forEach(interactor -> interactorToScore.put(interactor, (Double)combinedScoreDoc.get(geneToIndex.get(interactor)+"")));
     	
     	//Make return String
     	StringBuilder rtn = new StringBuilder();
@@ -658,12 +655,29 @@ public class PairwiseService {
     	   .append("\n");
     	
     	//append row for each interactor
-    	interactorNameToDataDescList.forEach((interactor, dataDescs) -> {
+    	interactors.forEach(interactor -> {
+    		int index = geneToIndex.get(interactor);
     		rtn.append(term+","+interactor+",")
     		   .append(this.getReactomeAnnotatedGenes().contains(interactor) ? "1,":"0,")
-    		   .append(interactorToScore.get(interactor));
+    		   .append(combinedScoreDoc.getDouble(index+""));
     		dataDescriptions.forEach(desc -> {
-    			rtn.append(",").append(dataDescs.contains(desc) ? "1":"0");
+    			rtn.append(",");
+    			Document doc = (Document) geneDoc.get(desc);
+    			if(doc == null) {
+    				rtn.append("0");
+    				return;
+    			}
+    			if(doc.containsKey("pos") && ((List<Integer>)doc.get("pos")).contains(index)) {
+    				rtn.append("1");
+    				return;
+    			}
+    			if(doc.containsKey("neg") && ((List<Integer>)doc.get("neg")).contains(index)) {
+    				rtn.append("-1");
+    				return;
+    			}
+    			rtn.append("0");
+    			return;
+    			
     		});
     		rtn.append("\n");
     	});
