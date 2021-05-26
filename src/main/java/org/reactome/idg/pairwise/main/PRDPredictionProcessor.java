@@ -20,7 +20,7 @@ public class PRDPredictionProcessor {
 
 	public void processPRDPredictions(PairwiseService service, String folder, String prdFile, String predictionFile) {
 		logger.info("Clearing combined scores...");
-		service.clearCombinedScores(); //helper method for testing adding combined scores
+//		service.clearCombinedScores(); //helper method for testing adding combined scores
 		
 		logger.info("Caching combined scores...");
 		
