@@ -10,6 +10,7 @@ import java.util.Scanner;
 
 import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.config.MainAppConfig;
+import org.reactome.idg.pairwise.generators.GenerateInteractorFeaturesCSV;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
@@ -30,7 +31,8 @@ public class MainApp {
 //    	  pushPathwayData();
 //    	  pushPRDPredictions(args);
 //    	  addDataDescDigitalKeys();
-    	  addReactomeAnnotatedGenesCollection();
+//    	  addReactomeAnnotatedGenesCollection();
+    	generateFeatureCSV();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -128,6 +130,13 @@ public class MainApp {
     	processor.processReactomeGenes(service);
     	
     	context.close();
+    }
+    
+    private static void generateFeatureCSV() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	GenerateInteractorFeaturesCSV generator = new GenerateInteractorFeaturesCSV();
+    	generator.generateCSV(service);
     }
     
     /**

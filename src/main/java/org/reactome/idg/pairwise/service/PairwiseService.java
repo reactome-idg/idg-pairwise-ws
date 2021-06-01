@@ -276,6 +276,7 @@ public class PairwiseService {
 		
 		//get pairwise doc for gene and throw exception if no doc found.
     	Document interactorsDoc = getRelationshipDocForGene(term);
+    	if(interactorsDoc == null) throwDocumentNotFound(term);
     	
     	Map<String, List<Long>> geneToPEMap = callGeneToIdsInPathwayDiagram(dbId);
     	if(geneToPEMap == null) {
@@ -314,7 +315,11 @@ public class PairwiseService {
 
 	}
  
- 	private Map<String, List<Long>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
+ 	private void throwDocumentNotFound(String term) {
+		throw new ResourceNotFoundException("Could not find relationship document" + (term != null ? (" for: " + term + "."):"."));
+	}
+
+	private Map<String, List<Long>> callGeneToIdsInPathwayDiagram(Long pathwayDbId) throws IOException{
  		String url = config.getCoreWSURL() + "/getGeneToIdsInPathway/"+pathwayDbId;
  		GetMethod method = new GetMethod(url);
  		method.setRequestHeader("Accept", "application/json");
@@ -401,14 +406,8 @@ public class PairwiseService {
      * @return
      */
     public Document getRelationshipDocForGene(String gene) {
-    	Document doc = database.getCollection(RELATIONSHIP_COL_ID)
+    	return database.getCollection(RELATIONSHIP_COL_ID)
     			.find(Filters.eq("_id", gene)).first();
-    	if(doc == null) {
-    		String infomsg = "No interactor document found for gene: " + gene;
-    		logger.info(infomsg);
-    		throw new ResourceNotFoundException(infomsg);
-    	}
-    	return doc;
     }
     
     public Set<String> getGenesFromRelDoc(Document relDoc){
@@ -486,6 +485,7 @@ public class PairwiseService {
     	if(term == null) return new ArrayList<>();
 
     	Document relDoc = getRelationshipDocForGene(term);
+    	if(relDoc == null) this.throwDocumentNotFound(term);
     	
     	List<String> descIds = this.getDataDescIdsForDigitalKeys(dataDescKeys);
     	
@@ -639,6 +639,7 @@ public class PairwiseService {
     	if(gene == null) throw new ResourceNotFoundException("Could not find term: " + term);
     	
     	Document geneDoc = this.getRelationshipDocForGene(gene);
+    	if(geneDoc == null) this.throwDocumentNotFound(term);
     	
     	//get list of Data Description ids
     	List<String> dataDescriptions = this.getDataDescriptions().stream().sorted().collect(Collectors.toList());
@@ -717,8 +718,10 @@ public class PairwiseService {
 		List<DataDesc> rtn = new ArrayList<>();
 		
 		MongoCollection<Document> collection = database.getCollection(DATA_DESCRIPTIONS_COL_ID);
-		Set<String> keys = this.getRelationshipDocForGene(gene).keySet();
-		keys.forEach(key -> {
+		Document relDoc = this.getRelationshipDocForGene(gene);
+		if(relDoc == null) this.throwDocumentNotFound(term);
+		
+		relDoc.keySet().forEach(key -> {
 			if(!key.contains("|"))
 				return;
 			Document dataDescDoc = collection.find(Filters.eq("_id", key)).first();
