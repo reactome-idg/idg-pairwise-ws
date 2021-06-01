@@ -183,6 +183,26 @@ public class PairwiseController {
     															  request.getPrd() != null ? request.getPrd() : 0.9d);
     }
     
+    @CrossOrigin
+    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForTerm/download")
+    public void downloadEnrichedSecondaryPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request, HttpServletResponse response) {
+    	String csv = pairwiseService.downloadTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
+    																	request.getDataDescKeys(), 
+    																	request.getPrd() != null ? request.getPrd(): 0.9d);
+    	response.setContentType("blob");
+    	ServletOutputStream writer;
+		try {
+			writer = response.getOutputStream();
+			writer.print(csv);
+			writer.flush();
+	    	writer.close();
+		} catch (IOException e) {
+			logger.error(e.getMessage(), e);
+			throw new InternalServerError("We experienced an error and are working to fix it!");
+		}
+    	
+    }
+    
     /**
      * Supports uniprot and standard gene symbol
      * @param term

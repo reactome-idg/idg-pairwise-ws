@@ -185,6 +185,21 @@ public class WSTests {
     }
     
     @Test
+    public void testDownloadEnrichInteractorsForGene() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForTerm/download";
+    	System.out.println(url);
+    	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
+    	postData.setTerm("NTN1");
+    	postData.setDataDescKeys(Collections.singletonList(1));
+    	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
+    	String rtn = callHttp(url, HTTP_POST, json);
+    	System.out.println(rtn);
+    	
+    }
+    
+    @Test
     public void testQuantityOfPathwaysAndStIdsForGene() throws Exception {
     	ObjectMapper mapper = new ObjectMapper();
     	String url = HOST_URL + "/relationships/primaryPathwaysForGene/EGFR";

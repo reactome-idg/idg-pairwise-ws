@@ -480,6 +480,25 @@ public class PairwiseService {
     	return rtn;
     }
     
+    public String downloadTermToSecondaryPathwaysWithEnrichment(String term, List<Integer> dataDescKeys, double prd) {
+		List<Pathway> pathways = queryTermToSecondaryPathwaysWithEnrichment(term, dataDescKeys, prd);
+		
+		StringBuilder pathwayString = new StringBuilder();
+		
+		pathwayString.append("Stable_Id,Pathway_Name,pValue,FDR\n");
+		
+		pathways.forEach((pathway) -> {
+		
+			pathwayString.append(pathway.getStId() + ",")
+						 .append(pathway.getName() + ",")
+						 .append(pathway.getpVal() + ",")
+						 .append(pathway.getFdr() + "\n");
+			
+		});
+		
+		return pathwayString.toString();
+	}
+    
     public List<Pathway> queryTermToSecondaryPathwaysWithEnrichment(String term, List<Integer> dataDescKeys, Double prd) {
     	//if no data descs passed in, return pathways for combined score with a prd of 0.5d;
     	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) return queryEnrichedPathwaysForCombinedScore(term, prd);
