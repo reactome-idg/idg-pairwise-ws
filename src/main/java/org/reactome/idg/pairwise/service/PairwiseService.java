@@ -389,6 +389,8 @@ public class PairwiseService {
             List<String> geneList = indexList.stream()
                     .map(i -> indexToGene.get(i))
                     .collect(Collectors.toList());
+          //remove null that results from gene name mapping between species
+            geneList.removeAll(Collections.singletonList("null"));
             rel.setPosGenes(geneList);
         }
         indexList = (List<Integer>) relDoc.get("neg");
@@ -396,6 +398,8 @@ public class PairwiseService {
             List<String> geneList = indexList.stream()
                     .map(i -> indexToGene.get(i))
                     .collect(Collectors.toList());
+            //remove null that results from gene name mapping between species
+            geneList.removeAll(Collections.singletonList("null"));
             rel.setNegGenes(geneList);
         }
     }
