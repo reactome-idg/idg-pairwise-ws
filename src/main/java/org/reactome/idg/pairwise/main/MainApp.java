@@ -32,7 +32,8 @@ public class MainApp {
 //    	  pushPRDPredictions(args);
 //    	  addDataDescDigitalKeys();
 //    	  addReactomeAnnotatedGenesCollection();
-    	generateFeatureCSV();
+//    	generateFeatureCSV();
+    	addPathwayToGenesAndWeightedTDL();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -137,6 +138,13 @@ public class MainApp {
     	PairwiseService service = context.getBean(PairwiseService.class);
     	GenerateInteractorFeaturesCSV generator = new GenerateInteractorFeaturesCSV();
     	generator.generateCSV(service);
+    }
+    
+    private static void addPathwayToGenesAndWeightedTDL() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	GeneToPathwayProcessor processor = new GeneToPathwayProcessor(service);
+    	processor.processGeneToPathways();
     }
     
     /**
