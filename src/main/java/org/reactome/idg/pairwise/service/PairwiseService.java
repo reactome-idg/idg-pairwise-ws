@@ -51,12 +51,17 @@ import com.mongodb.client.model.Updates;
 @Service
 @SuppressWarnings("unchecked")
 public class PairwiseService {
-    private final String DATA_DESCRIPTIONS_COL_ID = "datadescriptions";
+    //mongoDb collections
+	private final String DATA_DESCRIPTIONS_COL_ID = "datadescriptions";
     private final String GENE_INDEX_COL_ID = "GENE_INDEX";
     private final String RELATIONSHIP_COL_ID = "relationships";
-    private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
-    private final String COMBINED_SCORE = "combined_score";
     private final String REACTOME_ANNOTATED_GENES_COL_ID = "REACTOME_ANNOTATED_GENES";
+    private final String REACTOME_PATHWAYS_CACHE_COL_ID = "reactome_pathways";
+    
+    private final String UNIPROT_TO_GENE_FILE_NAME = "GeneToUniProt.txt";
+    
+    //to reference documents on collections
+    private final String COMBINED_SCORE = "combined_score";
 
     private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
     
@@ -1114,9 +1119,38 @@ public class PairwiseService {
 		collection.insertOne(doc);
 	}
     
+    /*
+     * inserts data into the reactome_pathways collection.
+     * Each pathway document contains a set of gene indexes for genes contained in the pathway
+     * and a Target Development Level score based on the weighted average
+     * of the Target Development Levels of each gene in the pathway.
+     */
+    public void insertReactomePathwayCache(Map<String, Set<String>> pathwayToGeneSet, Map<String, Double> pathwayToTDLAvg) {
+    	Map<String, Integer> geneToIndex = this.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+    	
+    	List<Document> docs = new ArrayList<>();
+    	pathwayToGeneSet.forEach((pw, geneSet) ->{
+    		List<Integer> indexList = geneSet.stream().map(gene -> geneToIndex.get(gene)).collect(Collectors.toList());
+    		
+    		//build document and add to docs list
+    		Document doc = new Document();
+    		doc.append("_id", pw);
+    		doc.append("weighted_tdl_average", pathwayToTDLAvg.getOrDefault(pw, null));
+    		doc.append("gene_list", indexList);
+    		docs.add(doc);
+    	});
+    	//add collection of documents to database all at once
+    	database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).insertMany(docs);
+    }
+    
     public void regenrateReactomeAnnotatedGenesCollection() {
     	database.getCollection(REACTOME_ANNOTATED_GENES_COL_ID).drop();
     	database.createCollection(REACTOME_ANNOTATED_GENES_COL_ID);
+    }
+    
+    public void regenerateReactomePathwaysCacheCollection() {
+    	database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).drop();
+    	database.createCollection(REACTOME_PATHWAYS_CACHE_COL_ID);
     }
 
 //	public void regeneratePathwayCollections() {
