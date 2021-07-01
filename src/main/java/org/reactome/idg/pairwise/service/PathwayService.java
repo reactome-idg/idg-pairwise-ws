@@ -22,7 +22,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class PathwayService {
-    private static final Logger logger = LoggerFactory.getLogger(PairwiseService.class);
+    private static final Logger logger = LoggerFactory.getLogger(PathwayService.class);
     
     @Autowired
     private ServiceConfig config;
