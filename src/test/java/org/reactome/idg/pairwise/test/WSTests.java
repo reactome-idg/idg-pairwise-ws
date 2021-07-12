@@ -185,6 +185,24 @@ public class WSTests {
     }
     
     @Test
+    public void testCombinedScoreEnrichedInteractorsForTerm() throws Exception {
+    	ObjectMapper mapper = new ObjectMapper();
+    	String url = HOST_URL + "/relationships/network/enrichedSecondaryPathaysForTerm";
+    	System.out.println(url);
+    	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
+    	postData.setTerm("NTN1");
+    	postData.setDataDescKeys(Collections.singletonList(0));
+    	postData.setPrd(0.9d);
+    	String json = mapper.writeValueAsString(postData);
+    	System.out.println(json);
+    	Long time1 = System.currentTimeMillis();
+    	String rtn = callHttp(url, HTTP_POST, json);
+    	Long time2 = System.currentTimeMillis();
+    	outputJSON(rtn);
+    	System.out.println(time2-time1);
+    }
+    
+    @Test
     public void testDownloadEnrichInteractorsForGene() throws Exception {
     	ObjectMapper mapper = new ObjectMapper();
     	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForTerm/download";
@@ -232,20 +250,6 @@ public class WSTests {
     	String url = HOST_URL + "/relationships/hierarchyForTerm/MAPK3";
     	System.out.println(url);
     	String rtn = callHttp(url,HTTP_GET, null);
-    	outputJSON(rtn);
-    }
-    
-    @Test
-    public void testQueryEnrichedPathwaysForCombinedScore() throws Exception {
-    	ObjectMapper mapper = new ObjectMapper();
-    	String url = HOST_URL + "/relationships/combinedScoreForTerm";
-    	System.out.println(url);
-    	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
-    	postData.setTerm("NTN1");
-    	postData.setPrd(0.9d);
-    	String json = mapper.writeValueAsString(postData);
-    	System.out.println(json);
-    	String rtn = callHttp(url, HTTP_POST, json);
     	outputJSON(rtn);
     }
     
