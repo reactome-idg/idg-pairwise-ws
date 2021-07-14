@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
@@ -19,6 +20,7 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
+import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import org.bson.Document;
 import org.reactome.annotate.GeneSetAnnotation;
 import org.reactome.annotate.PathwayBasedAnnotator;
@@ -28,8 +30,13 @@ import org.reactome.idg.pairwise.model.GeneCombinedScore;
 import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
+import org.reactome.idg.pairwise.model.PathwayOverlap;
+import org.reactome.idg.pairwise.model.network.EdgeData;
+import org.reactome.idg.pairwise.model.network.Element;
+import org.reactome.idg.pairwise.model.network.NodeData;
 import org.reactome.idg.pairwise.model.pathway.GraphHierarchy;
 import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
+import org.reactome.idg.pairwise.util.FourColorGradient;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
 import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
@@ -74,6 +81,8 @@ public class PairwiseService {
     @Autowired
     private PathwayService pathwayService;
     
+    FourColorGradient fourColorGradient;
+    
     // Cached index to gene for performance
     private Map<Integer, String> indexToGene;
     //TODO: One-to-one mapping between UniProt and gene symbols are most likely not right.
@@ -82,12 +91,14 @@ public class PairwiseService {
     private Map<String, String> uniprotToGene;
     private Map<String, String> geneToUniprot;
     private Set<String> reactomeAnnotatedGenes;
+    private int totalReactomeGenes;
     
     //cached EventHierarchy
     private GraphHierarchy graphHierarchy;
     private PathwayBasedAnnotator annotator;
 
     public PairwiseService() {
+    	fourColorGradient = new FourColorGradient();
     }
     
     public ServiceConfig getServiceConfig() {
@@ -125,8 +136,18 @@ public class PairwiseService {
     	if(geneToUniprot == null) loadUniProtToGene();
     	return geneToUniprot;
     }
+    
+    public int getTotalReactomeGenes() {
+    	if(totalReactomeGenes == 0) loadTotalReactomeGenes(); 
+    	return totalReactomeGenes;
+    }
 
-    public Set<String> getReactomeAnnotatedGenes(){
+    private void loadTotalReactomeGenes() {
+		Document doc = database.getCollection(REACTOME_ANNOTATED_GENES_COL_ID).find().first();
+		totalReactomeGenes = ((List<String>)doc.get("reactomeAnnotatedGenes")).size();
+	}
+
+	public Set<String> getReactomeAnnotatedGenes(){
     	if(this.reactomeAnnotatedGenes != null) return this.reactomeAnnotatedGenes;
     	
     	Document doc = database.getCollection(REACTOME_ANNOTATED_GENES_COL_ID).find().first();
@@ -532,7 +553,108 @@ public class PairwiseService {
     	
 	}
     
-    public Map<String, Double> queryCombinedScoreGenesForTerm(String term) {
+    public List<Element> queryTermToSecondaryPathwaysNetworkWithEnrichment(String term, List<Integer> dataDescKeys,
+			double prd) {
+    	Map<Integer, String> indexToGene = this.getIndexToGene();
+    	List<Pathway> pathways;
+    	//check if should get combined score pathways or based on dataDescs
+    	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) 
+    		pathways = queryEnrichedPathwaysForCombinedScore(term, prd);
+    	else pathways = queryTermToSecondaryPathwaysWithEnrichment(term, dataDescKeys, prd);
+    	    	
+    	List<Element> nodes = new ArrayList<>();
+    	List<Element> edges = new ArrayList<>();
+    	
+    	//assumes there are no repeat pathways
+    	for(int i = 0; i < pathways.size()-1; i++) {
+			Pathway from = pathways.get(i);
+
+    		//get pathway overlap doc
+			Document pathwayDoc = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).find(Filters.eq("_id", from.getStId())).first();
+			from.setWeightedTDL(pathwayDoc.getDouble("weighted_tdl_average"));
+			from.setGenes(((List<Integer>)pathwayDoc.get("gene_list"))
+					.stream().map(index -> indexToGene.get(index))
+					.collect(Collectors.toList()));
+    		
+    		//add from pathways to nodes
+			nodes.add(new Element(Element.Group.NODES, new NodeData(from.getStId(),
+																   from.getName(),
+																   from.getWeightedTDL(),
+																   from.getFdr(),
+																   from.getpVal(),
+																   fourColorGradient.getColor(from.getWeightedTDL()))));
+			
+			//build map of overlapping pathway stId to overlap information
+			Map<String, PathwayOverlap> stIdToOverlappingPathway = getStIdToOverlappingPathways(((List<Document>)pathwayDoc.get("overlapping_pathways")));
+    		for(int j = i+1; j<pathways.size(); j++) {
+    			Pathway to = pathways.get(j);
+    			
+    			//if 'to' pathway does not overlap with from pathway or if 
+    			//hypergeometric score is to high, continue
+    			if(!stIdToOverlappingPathway.containsKey(to.getStId()) 
+    					|| stIdToOverlappingPathway.get(to.getStId()).getHypergeometricScore() > 0.001) continue;
+    			
+    			EdgeData data = new EdgeData(from.getStId() + "-" +to.getStId(),
+			  							     stIdToOverlappingPathway.get(to.getStId()).getNumberOfSharedGenes(),
+			  							     stIdToOverlappingPathway.get(to.getStId()).getHypergeometricScore(),
+			  							     from.getStId(),
+			  							     to.getStId());
+    			Element edge = new Element(Element.Group.EDGES, data);
+    			edges.add(edge);
+    		}
+    	}
+    	
+    	//last pathway gets skipped when creating nodes in outer for loop, so capture it here.
+    	Pathway lastPw = pathways.get(pathways.size()-1);
+    	if(lastPw.getGenes() != null)
+    		nodes.add(new Element(Element.Group.NODES, new NodeData(lastPw.getStId(),
+												    				lastPw.getName(),
+												    				lastPw.getWeightedTDL(),
+												    				lastPw.getFdr(),
+												    				lastPw.getpVal(),
+																	fourColorGradient.getColor(lastPw.getWeightedTDL()))));
+    	Document pathwayDoc = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).find(Filters.eq("_id", lastPw.getStId())).first();
+		lastPw.setWeightedTDL(pathwayDoc.getDouble("weighted_tdl_average"));
+		lastPw.setGenes(((List<Integer>)pathwayDoc.get("gene_list"))
+				.stream().map(index -> indexToGene.get(index))
+				.collect(Collectors.toList()));
+		nodes.addAll(edges);
+		return nodes;
+	}
+    
+    private Map<String, PathwayOverlap> getStIdToOverlappingPathways(List<Document> docs) {
+		Map<String, PathwayOverlap> rtn = new HashMap<>();
+		
+		docs.forEach(doc -> {
+			String stId = doc.getString("stId");
+			rtn.put(stId, new PathwayOverlap(stId, doc.getDouble("hypergeometricScore"), doc.getInteger("numberOfSharedGenes")));
+		});
+		
+    	return rtn;
+	}
+
+	/**
+     * Modifies Pathways in place to add list of genes and weighted TDL
+     * @param pathways
+     */
+    private void addGenesAndTDLToPathways(List<Pathway> pathways) {
+    	Map<Integer, String> indexToGene = this.getIndexToGene();
+    	Map<String, Pathway> stIdToPathway = pathways.stream().collect(Collectors.toMap(Pathway::getStId, Function.identity()));
+		MongoCollection<Document> collection = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID);
+		MongoCursor<Document> cursor = collection.find(Filters.in("_id", 
+																  pathways.stream().map(pw -> pw.getStId())
+																  .collect(Collectors.toList())))
+																  .iterator();
+		while(cursor.hasNext()) {
+			Document curr = cursor.next();
+			stIdToPathway.get(curr.get("_id")).setGenes(((List<Integer>)curr.get("gene_list"))
+																			.stream().map(index -> indexToGene.get(index))
+																			.collect(Collectors.toList()));
+			stIdToPathway.get(curr.get("_id")).setWeightedTDL(((Double)curr.get("weighted_tdl_average")));
+		}
+	}
+
+	public Map<String, Double> queryCombinedScoreGenesForTerm(String term) {
     	term = getGeneForTerm(term);
     	if(term == null) return new HashMap<>();
 		
@@ -544,8 +666,8 @@ public class PairwiseService {
 	}
     
     public List<Pathway> queryEnrichedPathwaysForCombinedScore(String term, Double prdCutoff) {
-		
-		//if term is uniprot, convert to gene name.
+    	
+    	//if term is uniprot, convert to gene name.
 		//Return empty list if gene not available.
 		term = getGeneForTerm(term);
     	if(term == null) return new ArrayList<>();
@@ -1125,17 +1247,25 @@ public class PairwiseService {
      * and a Target Development Level score based on the weighted average
      * of the Target Development Levels of each gene in the pathway.
      */
-    public void insertReactomePathwayCache(Map<String, Set<String>> pathwayToGeneSet, Map<String, Double> pathwayToTDLAvg) {
+    public void insertReactomePathwayCache(Collection<Pathway> pathways) {
     	Map<String, Integer> geneToIndex = this.getIndexToGene().entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     	
     	List<Document> docs = new ArrayList<>();
-    	pathwayToGeneSet.forEach((pw, geneSet) ->{
-    		List<Integer> indexList = geneSet.stream().map(gene -> geneToIndex.get(gene)).collect(Collectors.toList());
-    		
+    	pathways.forEach(pw->{
+    		List<Integer> indexList = pw.getGenes().stream().map(gene -> geneToIndex.get(gene)).collect(Collectors.toList());
+    		List<Document> pathwayOverlapDocs = new ArrayList<>();
+    		pw.getStIdToHypergeometricScoreMap().forEach(overlap ->{
+    			Document doc = new Document();
+    			doc.append("stId", overlap.getStId());
+    			doc.append("hypergeometricScore", overlap.getHypergeometricScore());
+    			doc.append("numberOfSharedGenes", overlap.getNumberOfSharedGenes());
+    			pathwayOverlapDocs.add(doc);
+    		});
     		//build document and add to docs list
     		Document doc = new Document();
-    		doc.append("_id", pw);
-    		doc.append("weighted_tdl_average", pathwayToTDLAvg.getOrDefault(pw, null));
+    		doc.append("_id", pw.getStId());
+    		doc.append("weighted_tdl_average", pw.getWeightedTDL());
+    		doc.append("overlapping_pathways", pathwayOverlapDocs);
     		doc.append("gene_list", indexList);
     		docs.add(doc);
     	});

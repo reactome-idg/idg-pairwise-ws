@@ -1,8 +1,8 @@
 package org.reactome.idg.pairwise.web;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,6 +18,7 @@ import org.reactome.idg.pairwise.model.PEsForInteractorResponse;
 import org.reactome.idg.pairwise.model.PairwiseRelRequest;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
+import org.reactome.idg.pairwise.model.network.Element;
 import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.reactome.idg.pairwise.service.PathwayService;
@@ -181,6 +182,15 @@ public class PairwiseController {
     	return pairwiseService.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
     															  request.getDataDescKeys(), 
     															  request.getPrd() != null ? request.getPrd() : 0.9d);
+    }
+    
+    @CrossOrigin
+    @PostMapping(path="/relationships/network/enrichedSecondaryPathaysForTerm")
+    public List<Element> enrichedNetworkPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request){
+    	if(request == null || request.getTerm() == null) return Collections.emptyList();
+    	return pairwiseService.queryTermToSecondaryPathwaysNetworkWithEnrichment(request.getTerm(),
+    																			 request.getDataDescKeys(),
+    																			 request.getPrd() != null ? request.getPrd() : 0.9d);
     }
     
     @CrossOrigin
