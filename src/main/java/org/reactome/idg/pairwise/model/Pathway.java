@@ -113,8 +113,8 @@ public class Pathway {
 		this.weightedTDL = weightedTDL;
 	}
 
-	public Collection<PathwayOverlap> getStIdToHypergeometricScoreMap() {
-		return stIdToHypergeometricScoreMap.values();
+	public Map<String, PathwayOverlap> getStIdToHypergeometricScoreMap() {
+		return stIdToHypergeometricScoreMap;
 	}
 
 	public void setStIdToHypergeometricScoreMap(Map<String, PathwayOverlap> stIdTohypergeometricScoreMap) {

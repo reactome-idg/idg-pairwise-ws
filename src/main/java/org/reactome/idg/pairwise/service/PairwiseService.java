@@ -1254,7 +1254,7 @@ public class PairwiseService {
     	pathways.forEach(pw->{
     		List<Integer> indexList = pw.getGenes().stream().map(gene -> geneToIndex.get(gene)).collect(Collectors.toList());
     		List<Document> pathwayOverlapDocs = new ArrayList<>();
-    		pw.getStIdToHypergeometricScoreMap().forEach(overlap ->{
+    		pw.getStIdToHypergeometricScoreMap().values().forEach(overlap ->{
     			Document doc = new Document();
     			doc.append("stId", overlap.getStId());
     			doc.append("hypergeometricScore", overlap.getHypergeometricScore());
