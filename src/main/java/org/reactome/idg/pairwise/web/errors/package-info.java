@@ -1,0 +1,1 @@
+package org.reactome.idg.pairwise.web.errors;
