@@ -2,6 +2,7 @@ package org.reactome.idg.pairwise.config;
 
 import java.util.Arrays;
 
+import org.reactome.idg.pairwise.service.ServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -39,6 +40,18 @@ public class MainAppConfig {
     
     @Value("${mongo.authentication.db}")
     private String authenticaionDb;
+    
+    @Value("${core.ws.service}")
+    private String coreWSUrl;
+    
+    @Value("${uniprot.to.reactome}")
+    private String uniProt2Reactome;
+    
+    @Value("${uniprot.to.reactome.all}")
+    private String uniProt2ReactomeAllLevels;
+    
+    @Value("${event.hierarchy.url}")
+    private String eventHierarchyUrl;
 
     @Bean
     public MongoClient mongoClient() {
@@ -52,4 +65,14 @@ public class MainAppConfig {
         return mongoClient().getDatabase(dbName);
     }
     
+    @Bean
+    public ServiceConfig getPairwiseServiceConfig() {
+    	ServiceConfig config = new ServiceConfig();
+    	config.setCoreWSURL(coreWSUrl);
+    	config.setEventHierarchyUrl(eventHierarchyUrl);
+    	config.setUniProt2ReactomeFile(uniProt2Reactome);
+    	config.setUniProt2ReactomeAllLevelsFile(uniProt2ReactomeAllLevels);
+    	
+    	return config;
+    }
 }

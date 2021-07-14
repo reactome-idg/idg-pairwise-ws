@@ -8,7 +8,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 
+import org.reactome.idg.model.FeatureType;
 import org.reactome.idg.pairwise.config.MainAppConfig;
+import org.reactome.idg.pairwise.generators.GenerateInteractorFeaturesCSV;
 import org.reactome.idg.pairwise.model.DataDesc;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.service.PairwiseService;
@@ -25,7 +27,13 @@ public class MainApp {
 
     public static void main(String[] args) {
 //        pushDataIntoDB(args);
-        pushMLFeatureIntoDB();
+//        pushMLFeatureIntoDB();
+//    	  pushPathwayData();
+//    	  pushPRDPredictions(args);
+//    	  addDataDescDigitalKeys();
+//    	  addReactomeAnnotatedGenesCollection();
+//    	generateFeatureCSV();
+    	addPathwayToGenesAndWeightedTDL();
     }
     
     private static void pushMLFeatureIntoDB() {
@@ -82,6 +90,61 @@ public class MainApp {
         //        descs.forEach(desc -> System.out.println(desc.getId()));
 //      loadPathwayGeneDarkProteinRels(service);
         context.close();
+    }
+    
+    
+    /**
+     * Used to insert pathway index data from Uniprot2Reactome.txt file
+     * Also caches Gene/Pathway relationships into a pathways collection
+     */
+    private static void pushPathwayData() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+        PairwiseService service = context.getBean(PairwiseService.class);
+    	PathwayProcessor processor = new PathwayProcessor();
+    	processor.processPathways(service);
+    	
+    	context.close();
+    }
+    
+    private static void pushPRDPredictions(String[] args) {
+    	if(args.length < 3) return;
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	PRDPredictionProcessor processor = new PRDPredictionProcessor();
+    	processor.processPRDPredictions(service, args[0],args[1], args[2]);
+    	
+    	context.close();
+    }
+    
+    private static void addDataDescDigitalKeys() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	service.addDataDescDigitalKeys();
+    	
+    	context.close();
+    }
+    
+    private static void addReactomeAnnotatedGenesCollection() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	ReactomeGeneProcessor processor = new ReactomeGeneProcessor();
+    	processor.processReactomeGenes(service);
+    	
+    	context.close();
+    }
+    
+    private static void generateFeatureCSV() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	GenerateInteractorFeaturesCSV generator = new GenerateInteractorFeaturesCSV();
+    	generator.generateCSV(service);
+    }
+    
+    private static void addPathwayToGenesAndWeightedTDL() {
+    	AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(MainAppConfig.class);
+    	PairwiseService service = context.getBean(PairwiseService.class);
+    	GeneToPathwayProcessor processor = new GeneToPathwayProcessor(service);
+    	processor.processGeneToPathways();
     }
     
     /**
