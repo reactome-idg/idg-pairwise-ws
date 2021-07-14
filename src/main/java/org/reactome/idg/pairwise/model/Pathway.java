@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 /**
  * 
  * @author brunsont
@@ -20,8 +23,13 @@ public class Pathway {
 	private Double pVal;
 	private boolean bottomLevel;
 	private List<String> genes;
+	private Double weightedTDL;
+	private Map<String, PathwayOverlap> stIdToHypergeometricScoreMap;
 	
 	public Pathway() {
+	}
+	public Pathway(String stId) {
+		this.stId = stId;
 	}
 	
 	public Pathway(String stId, String name, Double fdr, Double pVal, boolean bottomLevel) {
@@ -95,5 +103,27 @@ public class Pathway {
 	}
 	public void setGenes(List<String> genes) {
 		this.genes = genes;
+	}
+
+	public Double getWeightedTDL() {
+		return weightedTDL;
+	}
+
+	public void setWeightedTDL(Double weightedTDL) {
+		this.weightedTDL = weightedTDL;
+	}
+
+	public Collection<PathwayOverlap> getStIdToHypergeometricScoreMap() {
+		return stIdToHypergeometricScoreMap.values();
+	}
+
+	public void setStIdToHypergeometricScoreMap(Map<String, PathwayOverlap> stIdTohypergeometricScoreMap) {
+		this.stIdToHypergeometricScoreMap = stIdTohypergeometricScoreMap;
+	}
+	
+	public void addStIdToHypergeometricScoreRelationship(String relStId, PathwayOverlap p) {
+		if(this.stIdToHypergeometricScoreMap == null) this.stIdToHypergeometricScoreMap = new HashMap<>();
+		if(!this.stIdToHypergeometricScoreMap.containsKey(relStId))
+			this.stIdToHypergeometricScoreMap.put(relStId, p);
 	}
 }
