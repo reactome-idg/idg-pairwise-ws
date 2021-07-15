@@ -112,6 +112,16 @@
 			<groupId>org.reactome.idg</groupId>
 			<artifactId>fi-network-ml</artifactId>
 			<version>0.1.0-SNAPSHOT</version>
+			<exclusions>
+			 <exclusion>
+			    <groupId>org.hibernate</groupId>
+                <artifactId>hibernate-core</artifactId>
+			 </exclusion>
+			 <exclusion>
+			    <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-core</artifactId>
+             </exclusion>
+			</exclusions>
 		</dependency>
 
 	</dependencies>
