@@ -1,5 +1,7 @@
 package org.reactome.idg.pairwise.model.network;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public class Element {
 	public enum Group {
 		NODES("nodes"),
@@ -9,6 +11,8 @@ public class Element {
 		private Group(String label) {
 			this.label = label;
 		}
+		
+		@JsonValue
 		@Override
 		public String toString() {
 			return this.label;
