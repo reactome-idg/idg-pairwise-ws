@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -561,16 +562,33 @@ public class PairwiseService {
     	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) 
     		pathways = queryEnrichedPathwaysForCombinedScore(term, prd);
     	else pathways = queryTermToSecondaryPathwaysWithEnrichment(term, dataDescKeys, prd);
-    	    	
+    	
+    	//TODO: This should really be done on the front end
+    	//sort pathways by FDR and take sublist to make maximum of 200 nodes
+    	Collections.sort(pathways, new Comparator<Pathway>() {
+    		@Override
+    		public int compare(Pathway p1, Pathway p2) {
+    			return Double.compare(p1.getFdr(), p2.getFdr());
+    		}
+    	});
+    	
+    	if(pathways.size() > 200) {
+    		pathways = pathways.subList(0, 200);
+    	}
+    	
+    	
     	List<Element> nodes = new ArrayList<>();
     	List<Element> edges = new ArrayList<>();
     	
+    	//double for loop to compare every pathway to every other pathway for overlapping
+    	//genes
     	//assumes there are no repeat pathways
     	for(int i = 0; i < pathways.size()-1; i++) {
 			Pathway from = pathways.get(i);
 
     		//get pathway overlap doc
 			Document pathwayDoc = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).find(Filters.eq("_id", from.getStId())).first();
+			if(pathwayDoc == null) continue;
 			from.setWeightedTDL(pathwayDoc.getDouble("weighted_tdl_average"));
 			from.setGenes(((List<Integer>)pathwayDoc.get("gene_list"))
 					.stream().map(index -> indexToGene.get(index))
@@ -589,10 +607,11 @@ public class PairwiseService {
     		for(int j = i+1; j<pathways.size(); j++) {
     			Pathway to = pathways.get(j);
     			
+    			//TODO: this should really not be necessary and filtered on the front end
     			//if 'to' pathway does not overlap with from pathway or if 
     			//hypergeometric score is to high, continue
     			if(!stIdToOverlappingPathway.containsKey(to.getStId()) 
-    					|| stIdToOverlappingPathway.get(to.getStId()).getHypergeometricScore() > 0.001) continue;
+    					|| stIdToOverlappingPathway.get(to.getStId()).getHypergeometricScore() > 0.0001) continue;
     			
     			EdgeData data = new EdgeData(from.getStId() + "-" +to.getStId(),
 			  							     stIdToOverlappingPathway.get(to.getStId()).getNumberOfSharedGenes(),
@@ -606,6 +625,11 @@ public class PairwiseService {
     	
     	//last pathway gets skipped when creating nodes in outer for loop, so capture it here.
     	Pathway lastPw = pathways.get(pathways.size()-1);
+    	Document pathwayDoc = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).find(Filters.eq("_id", lastPw.getStId())).first();
+		lastPw.setWeightedTDL(pathwayDoc.getDouble("weighted_tdl_average"));
+		lastPw.setGenes(((List<Integer>)pathwayDoc.get("gene_list"))
+				.stream().map(index -> indexToGene.get(index))
+				.collect(Collectors.toList()));
     	if(lastPw.getGenes() != null)
     		nodes.add(new Element(Element.Group.NODES, new NodeData(lastPw.getStId(),
 												    				lastPw.getName(),
@@ -613,11 +637,6 @@ public class PairwiseService {
 												    				lastPw.getFdr(),
 												    				lastPw.getpVal(),
 																	fourColorGradient.getColor(lastPw.getWeightedTDL()))));
-    	Document pathwayDoc = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).find(Filters.eq("_id", lastPw.getStId())).first();
-		lastPw.setWeightedTDL(pathwayDoc.getDouble("weighted_tdl_average"));
-		lastPw.setGenes(((List<Integer>)pathwayDoc.get("gene_list"))
-				.stream().map(index -> indexToGene.get(index))
-				.collect(Collectors.toList()));
 		nodes.addAll(edges);
 		return nodes;
 	}
