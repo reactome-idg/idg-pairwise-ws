@@ -1122,10 +1122,6 @@ public class PairwiseService {
     
     /**
      * Insert combined score for gene pair from gene1 to gene2 and reverse.
-     * @param gene1
-     * @param gene2
-     * @param prd
-     * @param geneToIndex
      */
     public void insertCombinedScore(Collection<GeneCombinedScore> geneCombinedScores) {
     	
@@ -1143,11 +1139,11 @@ public class PairwiseService {
     	});
     }
     
-    /**
-     * Collect keyset of each argument for loop to ensure nothing is missed
-     * @param geneToPathwayList
-     * @param geneToSecondPathway
-     */
+//    /**
+//     * Collect keyset of each argument for loop to ensure nothing is missed
+//     * @param geneToPathwayList
+//     * @param geneToSecondPathway
+//     */
 //    public void insertGeneRelationships(Map<String, Set<Integer>> geneToPathwayList) {
 //    	logger.info("Inserting gene relationships");
 //    	

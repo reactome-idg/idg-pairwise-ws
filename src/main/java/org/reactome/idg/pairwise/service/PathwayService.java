@@ -79,7 +79,7 @@ public class PathwayService {
 	private Set<String> loadBasePathways(Map<String, String> uniprotToGene) throws IOException {
 		Set<String> rtn = new HashSet<>();
 		BufferedReader br = new BufferedReader(new FileReader(config.getUniProt2ReactomeFile()));
-		String line = null;
+		String line;
 		while((line = br.readLine()) != null) {
 			String[] tokens = line.split("\t");
 			String correctedUniprot = tokens[0].split("-")[0]; //fix for uniprots with isophorms
