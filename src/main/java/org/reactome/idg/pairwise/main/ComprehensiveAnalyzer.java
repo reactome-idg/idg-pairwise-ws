@@ -1,8 +1,8 @@
 package org.reactome.idg.pairwise.main;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
@@ -22,6 +22,7 @@ public class ComprehensiveAnalyzer {
     // The local WS API started from mvn tomcat7:run
     private final String TCRD_WS_URL = "http://localhost:8060/tcrdws";
     private final String PAIRWISE_UR_URL = "http://localhost:8043/idgpairwise";
+    private ObjectMapper mapper = new ObjectMapper();
 
     public ComprehensiveAnalyzer() {
     }
@@ -33,7 +34,6 @@ public class ComprehensiveAnalyzer {
      */
     public List<String> getDarkProteins() throws Exception {
         String url = TCRD_WS_URL + "/tdark/uniprots";
-        ObjectMapper mapper = new ObjectMapper();
         URL urlAddress = new URL(url);
         // For get-based URL, we may use this simple API
         List<String> list = mapper.readValue(urlAddress, new TypeReference<List<String>>(){});
@@ -52,7 +52,6 @@ public class ComprehensiveAnalyzer {
         GeneToPathwaysRequestWrapper wrapper = new GeneToPathwaysRequestWrapper();
         wrapper.setTerm(term);
         wrapper.setPrd(0.0d); // Pick up all pathways
-        ObjectMapper mapper = new ObjectMapper();
         Content content = Request.post(url)
                 .bodyString(mapper.writeValueAsString(wrapper), ContentType.APPLICATION_JSON)
                 .execute()
@@ -60,10 +59,15 @@ public class ComprehensiveAnalyzer {
         List<Pathway> pathways = mapper.readValue(content.toString(), new TypeReference<List<Pathway>>(){});
         return pathways;
     }
+    
+    public Map<String, Double> fetchCombinedScores(String term) throws Exception {
+    	String url = PAIRWISE_UR_URL + "/relationships/combinedScoreGenesForTerm/" + term;
+    	Map<String, Double> gene2score = mapper.readValue(new URL(url), new TypeReference<Map<String, Double>>() {});
+    	return gene2score;
+    }
 
     public List<String> getPathwayGenes(String stId) throws Exception {
     	String url = PAIRWISE_UR_URL + "/relationships/genesForPathway/" + stId;
-    	ObjectMapper mapper = new ObjectMapper();
     	Pathway pathway = mapper.readValue(new URL(url), Pathway.class);
     	List<String> genes = pathway.getGenes();
     	return genes;
@@ -74,6 +78,15 @@ public class ComprehensiveAnalyzer {
     	String stId = "R-HSA-69620";
     	List<String> genes = getPathwayGenes(stId);
     	System.out.println(stId + ": " + genes.size());
+    }
+    
+    @Test
+    public void testFetchCombinedScores() throws Exception {
+    	String term = "Q8N5C1"; // CALHM5
+    	Map<String, Double> gene2score = fetchCombinedScores(term);
+    	System.out.println("gene2score: " + gene2score.size());
+    	String gene = gene2score.keySet().stream().findAny().get();
+    	System.out.println(gene + ": " + gene2score.get(gene));
     }
 
     @Test
