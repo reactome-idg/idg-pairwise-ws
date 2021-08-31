@@ -1,20 +1,18 @@
 package org.reactome.idg.pairwise.main;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.hc.client5.http.fluent.Content;
 import org.apache.hc.client5.http.fluent.Request;
-import org.apache.hc.client5.http.fluent.Response;
 import org.apache.hc.core5.http.ContentType;
 import org.junit.Test;
 import org.reactome.idg.pairwise.model.GeneToPathwaysRequestWrapper;
 import org.reactome.idg.pairwise.model.Pathway;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This class is used to do a comprehensive analysis of dark proteins in the context of Reactome pathways. To run methods
@@ -63,8 +61,19 @@ public class ComprehensiveAnalyzer {
         return pathways;
     }
 
-    public List<String> getPathwayGenes() throws Exception {
-    	return new ArrayList<>();
+    public List<String> getPathwayGenes(String stId) throws Exception {
+    	String url = PAIRWISE_UR_URL + "/relationships/genesForPathway/" + stId;
+    	ObjectMapper mapper = new ObjectMapper();
+    	Pathway pathway = mapper.readValue(new URL(url), Pathway.class);
+    	List<String> genes = pathway.getGenes();
+    	return genes;
+    }
+    
+    @Test
+    public void testGetPathwayGenes() throws Exception {
+    	String stId = "R-HSA-69620";
+    	List<String> genes = getPathwayGenes(stId);
+    	System.out.println(stId + ": " + genes.size());
     }
 
     @Test
