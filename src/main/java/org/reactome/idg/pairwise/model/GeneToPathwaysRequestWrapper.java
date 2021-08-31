@@ -16,8 +16,9 @@ public class GeneToPathwaysRequestWrapper {
 	private String term;
 	private List<Integer> dataDescKeys;
 	private Double prd;
+
 	public GeneToPathwaysRequestWrapper() {
-		
+
 	}
 	public GeneToPathwaysRequestWrapper(String term, List<Integer> dataDescKeys) {
 		super();
