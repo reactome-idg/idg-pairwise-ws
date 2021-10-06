@@ -142,6 +142,10 @@
 					<artifactId>httpclient</artifactId>
 				</exclusion>
 
+				<exclusion>
+					<groupId>io.github.classgraph</groupId>
+					<artifactId>classgraph</artifactId>
+				</exclusion>
 			</exclusions>
 		</dependency>
 
