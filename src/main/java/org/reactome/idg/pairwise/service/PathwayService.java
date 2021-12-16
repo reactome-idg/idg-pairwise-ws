@@ -71,8 +71,7 @@ public class PathwayService {
 			}
 			br.close();
 		} catch (IOException e) {
-			logger.error(e.getMessage());
-			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 	}
     

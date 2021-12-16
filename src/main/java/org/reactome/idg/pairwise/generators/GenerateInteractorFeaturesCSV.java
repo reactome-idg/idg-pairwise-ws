@@ -2,7 +2,6 @@ package org.reactome.idg.pairwise.generators;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -14,7 +13,6 @@ import java.util.stream.Collectors;
 import org.bson.Document;
 import org.reactome.idg.pairwise.main.PathwayProcessor;
 import org.reactome.idg.pairwise.service.PairwiseService;
-import org.reactome.idg.pairwise.web.errors.ResourceNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,14 +95,16 @@ public class GenerateInteractorFeaturesCSV {
 						writer.write(toWrite.toString());
 						writer.newLine();
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
+						logger.error(e.getMessage(), e);
 					}
 				}
 	 		});
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			writer.close();
+		} 
+		catch (IOException e) {
 			e.printStackTrace();
+			logger.error(e.getMessage(), e);
 		}
 	}
 	

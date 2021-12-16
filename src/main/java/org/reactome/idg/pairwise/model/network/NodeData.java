@@ -15,6 +15,7 @@ public class NodeData extends Data {
 	private Double fdr;
 	private Double pVal;
 	private String weightedTDLColorHex;
+	private Integer geneNumber;
 	
 	public NodeData() {/*Nothing Here*/}
 	
@@ -28,7 +29,13 @@ public class NodeData extends Data {
 		this.weightedTDLColorHex = weightedTDLColorHex;
 	}
 
+	public Integer getGeneNumber() {
+		return geneNumber;
+	}
 
+	public void setGeneNumber(Integer geneNumber) {
+		this.geneNumber = geneNumber;
+	}
 
 	public Double getWeightedTDL() {
 		return weightedTDL;

@@ -138,6 +138,7 @@ public class MainApp {
     	PairwiseService service = context.getBean(PairwiseService.class);
     	GenerateInteractorFeaturesCSV generator = new GenerateInteractorFeaturesCSV();
     	generator.generateCSV(service);
+    	context.close();
     }
     
     private static void addPathwayToGenesAndWeightedTDL() {
@@ -145,6 +146,7 @@ public class MainApp {
     	PairwiseService service = context.getBean(PairwiseService.class);
     	GeneToPathwayProcessor processor = new GeneToPathwayProcessor(service);
     	processor.processGeneToPathways();
+    	context.close();
     }
     
     /**

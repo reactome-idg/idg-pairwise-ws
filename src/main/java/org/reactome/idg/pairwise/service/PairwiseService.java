@@ -512,12 +512,13 @@ public class PairwiseService {
 		
 		StringBuilder pathwayString = new StringBuilder();
 		
-		pathwayString.append("Stable_Id,Pathway_Name,pValue,FDR\n");
+		pathwayString.append("Pathway Id,Pathway,Gene Number,pValue,FDR\n");
 		
 		pathways.forEach((pathway) -> {
 		
 			pathwayString.append(pathway.getStId() + ",")
 						 .append(pathway.getName() + ",")
+						 .append(pathway.getNumGenes() + ",")
 						 .append(pathway.getpVal() + ",")
 						 .append(pathway.getFdr() + "\n");
 			
@@ -554,28 +555,22 @@ public class PairwiseService {
     	
 	}
     
-    public List<Element> queryTermToSecondaryPathwaysNetworkWithEnrichment(String term, List<Integer> dataDescKeys,
-			double prd) {
-    	Map<Integer, String> indexToGene = this.getIndexToGene();
+    public List<Element> queryTermToSecondaryPathwaysNetworkWithEnrichment(String term, 
+                                                                           List<Integer> dataDescKeys,
+                                                                           double prd) {
+//    	Map<Integer, String> indexToGene = this.getIndexToGene();
     	List<Pathway> pathways;
     	//check if should get combined score pathways or based on dataDescs
     	if(dataDescKeys == null || dataDescKeys.size() == 0 || dataDescKeys.contains(0)) 
     		pathways = queryEnrichedPathwaysForCombinedScore(term, prd);
-    	else pathways = queryTermToSecondaryPathwaysWithEnrichment(term, dataDescKeys, prd);
+    	else 
+    		pathways = queryTermToSecondaryPathwaysWithEnrichment(term, dataDescKeys, prd);
     	
-    	//TODO: This should really be done on the front end
-    	//sort pathways by FDR and take sublist to make maximum of 200 nodes
-    	Collections.sort(pathways, new Comparator<Pathway>() {
-    		@Override
-    		public int compare(Pathway p1, Pathway p2) {
-    			return Double.compare(p1.getFdr(), p2.getFdr());
-    		}
-    	});
-    	
-    	if(pathways.size() > 200) {
-    		pathways = pathways.subList(0, 200);
-    	}
-    	
+    	// Filter to bottom level pathways only
+    	pathways = pathways.stream()
+    			           .filter(pathway -> pathway.isBottomLevel())
+    			           .sorted((p1, p2) -> p1.getStId().compareTo(p2.getStId()))
+    			           .collect(Collectors.toList());
     	
     	List<Element> nodes = new ArrayList<>();
     	List<Element> edges = new ArrayList<>();
@@ -583,36 +578,34 @@ public class PairwiseService {
     	//double for loop to compare every pathway to every other pathway for overlapping
     	//genes
     	//assumes there are no repeat pathways
-    	for(int i = 0; i < pathways.size()-1; i++) {
+    	for(int i = 0; i < pathways.size(); i++) {
 			Pathway from = pathways.get(i);
 
     		//get pathway overlap doc
 			Document pathwayDoc = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).find(Filters.eq("_id", from.getStId())).first();
 			if(pathwayDoc == null) continue;
 			from.setWeightedTDL(pathwayDoc.getDouble("weighted_tdl_average"));
-			from.setGenes(((List<Integer>)pathwayDoc.get("gene_list"))
-					.stream().map(index -> indexToGene.get(index))
-					.collect(Collectors.toList()));
-    		
-    		//add from pathways to nodes
-			nodes.add(new Element(Element.Group.NODES, new NodeData(from.getStId(),
-																   from.getName(),
-																   from.getWeightedTDL(),
-																   from.getFdr(),
-																   from.getpVal(),
-																   fourColorGradient.getColor(from.getWeightedTDL()))));
+			    		//add from pathways to nodes
+			NodeData nodeData = new NodeData(from.getStId(),
+					   from.getName(),
+					   from.getWeightedTDL(),
+					   from.getFdr(),
+					   from.getpVal(),
+					   fourColorGradient.getColor(from.getWeightedTDL()));
+			List<Integer> geneList = (List<Integer>)pathwayDoc.get("gene_list");
+			nodeData.setGeneNumber(geneList == null? 0: geneList.size());
 			
+			nodes.add(new Element(Element.Group.NODES, nodeData));
+			// Nothing to do for the last pathway. We just want to add it into the network
+			if (i == pathways.size() - 1)
+				break;
 			//build map of overlapping pathway stId to overlap information
 			Map<String, PathwayOverlap> stIdToOverlappingPathway = getStIdToOverlappingPathways(((List<Document>)pathwayDoc.get("overlapping_pathways")));
     		for(int j = i+1; j<pathways.size(); j++) {
     			Pathway to = pathways.get(j);
-    			
-    			//TODO: this should really not be necessary and filtered on the front end
-    			//if 'to' pathway does not overlap with from pathway or if 
-    			//hypergeometric score is to high, continue
-    			if(!stIdToOverlappingPathway.containsKey(to.getStId()) 
-    					|| stIdToOverlappingPathway.get(to.getStId()).getHypergeometricScore() > 0.0001) continue;
-    			
+    			if(!stIdToOverlappingPathway.containsKey(to.getStId()) || 
+    			   stIdToOverlappingPathway.get(to.getStId()).getNumberOfSharedGenes() == 0) // No shared genes, no edges
+    				continue;
     			EdgeData data = new EdgeData(from.getStId() + "-" +to.getStId(),
 			  							     stIdToOverlappingPathway.get(to.getStId()).getNumberOfSharedGenes(),
 			  							     stIdToOverlappingPathway.get(to.getStId()).getHypergeometricScore(),
@@ -622,22 +615,9 @@ public class PairwiseService {
     			edges.add(edge);
     		}
     	}
-    	
-    	//last pathway gets skipped when creating nodes in outer for loop, so capture it here.
-    	Pathway lastPw = pathways.get(pathways.size()-1);
-    	Document pathwayDoc = database.getCollection(REACTOME_PATHWAYS_CACHE_COL_ID).find(Filters.eq("_id", lastPw.getStId())).first();
-		lastPw.setWeightedTDL(pathwayDoc.getDouble("weighted_tdl_average"));
-		lastPw.setGenes(((List<Integer>)pathwayDoc.get("gene_list"))
-				.stream().map(index -> indexToGene.get(index))
-				.collect(Collectors.toList()));
-    	if(lastPw.getGenes() != null)
-    		nodes.add(new Element(Element.Group.NODES, new NodeData(lastPw.getStId(),
-												    				lastPw.getName(),
-												    				lastPw.getWeightedTDL(),
-												    				lastPw.getFdr(),
-												    				lastPw.getpVal(),
-																	fourColorGradient.getColor(lastPw.getWeightedTDL()))));
-		nodes.addAll(edges);
+    	// Two sections: first nodes and then edges. nodes is just a convenient variable here. Actually it
+    	// is the whole network.
+    	nodes.addAll(edges);
 		return nodes;
 	}
     
@@ -743,11 +723,13 @@ public class PairwiseService {
     	List<Pathway> rtnPathways = new ArrayList<>();
     	annotations.forEach(annotation -> {
     		String stId = annotation.getTopic();
-    		rtnPathways.add(new Pathway(stId,
-    									pathwayStIdToPathway.get(stId).getName(),
-    									Double.parseDouble(annotation.getFdr()),
-    									annotation.getPValue(),
-    									pathwayStIdToPathway.get(stId).isBottomLevel()));
+    		Pathway pathway = new Pathway(stId,
+										  pathwayStIdToPathway.get(stId).getName(),
+										  Double.parseDouble(annotation.getFdr()),
+										  annotation.getPValue(),
+										  pathwayStIdToPathway.get(stId).isBottomLevel());
+    		pathway.setNumGenes(annotation.getNumberInTopic());
+    		rtnPathways.add(pathway);
     	});
     	
     	return rtnPathways;
@@ -760,8 +742,7 @@ public class PairwiseService {
     		annotations = this.annotator.annotateGeneSet(interactors, 
     													 pathwayService.getGeneToPathwayStId(uniprotToGene));
     	} catch(Exception e) {
-    		logger.error(e.getMessage());
-    		e.printStackTrace();
+    		logger.error(e.getMessage(), e);
     		throw new InternalServerError("Could not annotate interactors for " + gene);
     	}
     	return annotations;

@@ -1,13 +1,12 @@
 package org.reactome.idg.pairwise.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 /**
  * 
  * @author brunsont
@@ -23,6 +22,7 @@ public class Pathway {
 	private Double pVal;
 	private boolean bottomLevel;
 	private List<String> genes;
+	private Integer numGenes;
 	private Double weightedTDL;
 	private Map<String, PathwayOverlap> stIdToHypergeometricScoreMap;
 	
@@ -46,6 +46,12 @@ public class Pathway {
 		this.bottomLevel = bottomLevel;
 	}
 	
+	public Integer getNumGenes() {
+		return numGenes;
+	}
+	public void setNumGenes(Integer numGenes) {
+		this.numGenes = numGenes;
+	}
 	public Integer getIndex() {
 		return index;
 	}
