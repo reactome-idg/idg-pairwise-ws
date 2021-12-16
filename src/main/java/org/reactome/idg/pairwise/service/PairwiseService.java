@@ -606,7 +606,7 @@ public class PairwiseService {
     			if(!stIdToOverlappingPathway.containsKey(to.getStId()) || 
     			   stIdToOverlappingPathway.get(to.getStId()).getNumberOfSharedGenes() == 0) // No shared genes, no edges
     				continue;
-    			EdgeData data = new EdgeData(from.getStId() + "-" +to.getStId(),
+    			EdgeData data = new EdgeData(from.getStId() + ":" +to.getStId(),
 			  							     stIdToOverlappingPathway.get(to.getStId()).getNumberOfSharedGenes(),
 			  							     stIdToOverlappingPathway.get(to.getStId()).getHypergeometricScore(),
 			  							     from.getStId(),
