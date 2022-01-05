@@ -7,7 +7,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 /**
- * Run this class to generat a map from UniProt to genes using the TCRD database.
+ * Run this class to generate a map from UniProt to genes using the TCRD database. The generated mapping file is used
+ * in class org.reactome.idg.pairwise.service.PairwiseService.
  * @author wug
  *
  */

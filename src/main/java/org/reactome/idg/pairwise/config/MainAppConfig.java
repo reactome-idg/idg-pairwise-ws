@@ -2,6 +2,7 @@ package org.reactome.idg.pairwise.config;
 
 import java.util.Arrays;
 
+import org.gk.persistence.MySQLAdaptor;
 import org.reactome.idg.pairwise.service.ServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -44,14 +45,16 @@ public class MainAppConfig {
     @Value("${core.ws.service}")
     private String coreWSUrl;
     
-    @Value("${uniprot.to.reactome}")
-    private String uniProt2Reactome;
-    
-    @Value("${uniprot.to.reactome.all}")
-    private String uniProt2ReactomeAllLevels;
-    
     @Value("${event.hierarchy.url}")
     private String eventHierarchyUrl;
+    @Value("${mysql.host}")
+    private String mysqlHost;
+    @Value("${mysql.db}")
+    private String mysqlDb;
+    @Value("${mysql.user}")
+    private String mysqlUser;
+    @Value("${mysql.pwd}")
+    private String mysqlPwd;
 
     @Bean
     public MongoClient mongoClient() {
@@ -70,9 +73,17 @@ public class MainAppConfig {
     	ServiceConfig config = new ServiceConfig();
     	config.setCoreWSURL(coreWSUrl);
     	config.setEventHierarchyUrl(eventHierarchyUrl);
-    	config.setUniProt2ReactomeFile(uniProt2Reactome);
-    	config.setUniProt2ReactomeAllLevelsFile(uniProt2ReactomeAllLevels);
     	
     	return config;
+    }
+    
+    @Bean
+    public MySQLAdaptor getMySQLDBA() throws Exception {
+    	MySQLAdaptor dba = new MySQLAdaptor(mysqlHost, 
+    			mysqlDb,
+    			mysqlUser,
+    			mysqlPwd);
+    	dba.initDumbThreadForConnection(); // Make sure it is running always
+    	return dba;
     }
 }

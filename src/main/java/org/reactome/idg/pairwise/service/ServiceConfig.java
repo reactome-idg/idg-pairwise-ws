@@ -9,8 +9,6 @@ public class ServiceConfig {
 
 	private String coreWSURL;
 	private String eventHierarchyUrl;
-	private String uniProt2ReactomeFile;
-	private String uniProt2ReactomeAllLevelsFile;
 	
 	public ServiceConfig() {
 		
@@ -30,22 +28,6 @@ public class ServiceConfig {
 
 	public void setEventHierarchyUrl(String eventHierarchyUrl) {
 		this.eventHierarchyUrl = eventHierarchyUrl;
-	}
-
-	public String getUniProt2ReactomeFile() {
-		return uniProt2ReactomeFile;
-	}
-
-	public void setUniProt2ReactomeFile(String uniProt2ReactomeFile) {
-		this.uniProt2ReactomeFile = uniProt2ReactomeFile;
-	}
-
-	public String getUniProt2ReactomeAllLevelsFile() {
-		return uniProt2ReactomeAllLevelsFile;
-	}
-
-	public void setUniProt2ReactomeAllLevelsFile(String uniProt2ReactomeAllLevelsFile) {
-		this.uniProt2ReactomeAllLevelsFile = uniProt2ReactomeAllLevelsFile;
 	}
 	
 }

@@ -104,26 +104,23 @@
 					<groupId>org.hibernate</groupId>
 					<artifactId>hibernate</artifactId>
 				</exclusion>
+				<exclusion>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.reactome.fi</groupId>
+					<artifactId>build</artifactId>
+				</exclusion>
 			</exclusions>
         </dependency>
 
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<!-- Need to use version 6 mysql driver. Otherwise, the driver cannot 
-				be found. -->
-			<!-- Have to call this SET GLOBAL time_zone = '-7:00' (for PDT) to avoid 
-				the error: The server time zone value 'PDT' is unrecognized -->
-			<!-- Add the following line in /etc/my.cnf: default_time_zone = '-7:00'. 
-				So there is no need to do the above, which should be done after mysql (re)starts. -->
-			<version>6.0.6</version>
-		</dependency>
 		
 		<!-- For loading features that will be loaded into the database. -->
 		<dependency>
 			<groupId>org.reactome.idg</groupId>
 			<artifactId>fi-network-ml</artifactId>
-			<version>0.1.1-SNAPSHOT</version>
+			<version>0.1.2-SNAPSHOT</version>
 			<exclusions>
 			 <exclusion>
 			    <groupId>org.hibernate</groupId>
@@ -148,7 +145,11 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.20</version>
+        </dependency>
 	</dependencies>
 
 	<profiles>
