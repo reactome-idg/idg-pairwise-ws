@@ -62,6 +62,9 @@ public class PathwayService {
 					human);
 			ReactomeAnalyzer reactomeAnalyzer = new ReactomeAnalyzer();
 			reactomeAnalyzer.setMySQLAdaptor(mysqlDBA);
+			// In this context we want to include candidate members so that the numbers are more consistent
+			// with the web application
+			reactomeAnalyzer.getTopicHelper().setNeedCandidateRepeatedUnit(true);
 			Map<GKInstance, Set<String>> pathway2uniprotIds = reactomeAnalyzer.grepIDsFromTopics(humanPathways);
 			// Convert to the required data structures
 			for (GKInstance pathway : pathway2uniprotIds.keySet()) {
