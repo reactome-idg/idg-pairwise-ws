@@ -23,6 +23,7 @@ public class GraphPathway {
 	private boolean diagram;
 	private List<GraphPathway> children;
 	private List<GraphPathway> parents;
+	private String topPathway;
 	
 	public GraphPathway() {}
 	
@@ -112,5 +113,12 @@ public class GraphPathway {
 			return true;
 		}
 		return false;
+	}
+	public String getTopPathway() {
+		return topPathway;
+	}
+
+	public void setTopPathway(String topPathway) {
+		this.topPathway = topPathway;
 	}
 }

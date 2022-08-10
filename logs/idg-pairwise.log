@@ -829,3 +829,397 @@ Caused by: java.net.ConnectException: Connection refused (Connection refused)
 2021-07-14 13:39:47,712 INFO  [cluster-ClusterId{value='60ef4b93d9bb7d3856c05933', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:53}] to localhost:27017
 2021-07-14 13:39:47,715 INFO  [cluster-ClusterId{value='60ef4b93d9bb7d3856c05933', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 2, 2]}, minWireVersion=0, maxWireVersion=8, maxDocumentSize=16777216, roundTripTimeNanos=459832}
 2021-07-14 13:39:55,953 INFO  [http-bio-8043-exec-1] connection: Opened connection [connectionId{localValue:2, serverValue:54}] to localhost:27017
+2022-05-20 10:08:46,116 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 10:08:46,240 INFO  [cluster-ClusterId{value='6287cb1ebff48ca90b7caaed', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='root', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslStart(SaslAuthenticator.java:117)
+	at com.mongodb.connection.SaslAuthenticator.access$000(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:50)
+	... 9 common frames omitted
+2022-05-20 10:26:06,062 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 10:26:06,163 INFO  [cluster-ClusterId{value='6287cf2ebff48caaa003ab34', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='root', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslStart(SaslAuthenticator.java:117)
+	at com.mongodb.connection.SaslAuthenticator.access$000(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:50)
+	... 9 common frames omitted
+2022-05-20 11:05:52,813 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 11:05:52,926 INFO  [cluster-ClusterId{value='6287d880bff48cadb87da309', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='root', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslStart(SaslAuthenticator.java:117)
+	at com.mongodb.connection.SaslAuthenticator.access$000(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:50)
+	... 9 common frames omitted
+2022-05-20 11:29:07,954 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 11:29:08,130 INFO  [cluster-ClusterId{value='6287ddf3bff48cb05cc6b536', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='root', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslStart(SaslAuthenticator.java:117)
+	at com.mongodb.connection.SaslAuthenticator.access$000(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:50)
+	... 9 common frames omitted
+2022-05-20 11:50:04,458 INFO  [main] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 11:50:04,578 INFO  [main] cluster: No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description ClusterDescription{type=UNKNOWN, connectionMode=SINGLE, serverDescriptions=[ServerDescription{address=localhost:27017, type=UNKNOWN, state=CONNECTING}]}. Waiting for 30000 ms before timing out
+2022-05-20 11:50:04,915 INFO  [cluster-ClusterId{value='6287e2dcbff48cb2690a0ede', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='beaversd', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslContinue(SaslAuthenticator.java:121)
+	at com.mongodb.connection.SaslAuthenticator.access$100(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:63)
+	... 9 common frames omitted
+2022-05-20 11:52:10,975 INFO  [main] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 11:52:11,091 INFO  [main] cluster: No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description ClusterDescription{type=UNKNOWN, connectionMode=SINGLE, serverDescriptions=[ServerDescription{address=localhost:27017, type=UNKNOWN, state=CONNECTING}]}. Waiting for 30000 ms before timing out
+2022-05-20 11:52:11,162 INFO  [cluster-ClusterId{value='6287e35abff48cb296029af5', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='beaversd', source='admin', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslContinue(SaslAuthenticator.java:121)
+	at com.mongodb.connection.SaslAuthenticator.access$100(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:63)
+	... 9 common frames omitted
+2022-05-20 11:57:09,065 INFO  [main] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 11:57:09,172 INFO  [main] cluster: No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description ClusterDescription{type=UNKNOWN, connectionMode=SINGLE, serverDescriptions=[ServerDescription{address=localhost:27017, type=UNKNOWN, state=CONNECTING}]}. Waiting for 30000 ms before timing out
+2022-05-20 11:57:09,230 INFO  [cluster-ClusterId{value='6287e484bff48cb31096d69e', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:206}] to localhost:27017
+2022-05-20 11:57:09,232 INFO  [cluster-ClusterId{value='6287e484bff48cb31096d69e', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=541231}
+2022-05-20 11:57:09,251 INFO  [main] connection: Opened connection [connectionId{localValue:2, serverValue:207}] to localhost:27017
+2022-05-20 11:57:09,272 INFO  [main] connection: Closed connection [connectionId{localValue:2, serverValue:207}] to localhost:27017 because the pool has been closed.
+2022-05-20 11:57:49,321 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 11:57:49,586 INFO  [cluster-ClusterId{value='6287e4adbff48cb31b2970af', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='beaversd', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslContinue(SaslAuthenticator.java:121)
+	at com.mongodb.connection.SaslAuthenticator.access$100(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:63)
+	... 9 common frames omitted
+2022-05-20 11:59:11,857 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 11:59:12,182 INFO  [cluster-ClusterId{value='6287e4ffbff48cb3aad0dafd', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='beaversd', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslContinue(SaslAuthenticator.java:121)
+	at com.mongodb.connection.SaslAuthenticator.access$100(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:63)
+	... 9 common frames omitted
+2022-05-20 12:02:13,199 INFO  [main] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:02:13,275 INFO  [main] cluster: No server chosen by ReadPreferenceServerSelector{readPreference=primary} from cluster description ClusterDescription{type=UNKNOWN, connectionMode=SINGLE, serverDescriptions=[ServerDescription{address=localhost:27017, type=UNKNOWN, state=CONNECTING}]}. Waiting for 30000 ms before timing out
+2022-05-20 12:02:13,317 INFO  [cluster-ClusterId{value='6287e5b5bff48cb90f011817', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:210}] to localhost:27017
+2022-05-20 12:02:13,319 INFO  [cluster-ClusterId{value='6287e5b5bff48cb90f011817', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=545630}
+2022-05-20 12:02:13,340 INFO  [main] connection: Opened connection [connectionId{localValue:2, serverValue:211}] to localhost:27017
+2022-05-20 12:02:13,352 INFO  [main] connection: Closed connection [connectionId{localValue:2, serverValue:211}] to localhost:27017 because the pool has been closed.
+2022-05-20 12:03:05,734 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:03:05,989 INFO  [cluster-ClusterId{value='6287e5e9bff48cb919d01fbe', description='null'}-localhost:27017] cluster: Exception in monitor thread while connecting to server localhost:27017
+com.mongodb.MongoSecurityException: Exception authenticating MongoCredential{mechanism=null, userName='beaversd', source='idg_pairwise', password=<hidden>, mechanismProperties={}}
+	at com.mongodb.connection.SaslAuthenticator.wrapInMongoSecurityException(SaslAuthenticator.java:157)
+	at com.mongodb.connection.SaslAuthenticator.access$200(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:66)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:44)
+	at com.mongodb.connection.SaslAuthenticator.doAsSubject(SaslAuthenticator.java:162)
+	at com.mongodb.connection.SaslAuthenticator.authenticate(SaslAuthenticator.java:44)
+	at com.mongodb.connection.DefaultAuthenticator.authenticate(DefaultAuthenticator.java:32)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.authenticateAll(InternalStreamConnectionInitializer.java:109)
+	at com.mongodb.connection.InternalStreamConnectionInitializer.initialize(InternalStreamConnectionInitializer.java:46)
+	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:116)
+	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:113)
+	at java.lang.Thread.run(Thread.java:750)
+Caused by: com.mongodb.MongoCommandException: Command failed with error 18: 'Authentication failed.' on server localhost:27017. The full response is { "ok" : 0.0, "errmsg" : "Authentication failed.", "code" : 18, "codeName" : "AuthenticationFailed" }
+	at com.mongodb.connection.CommandHelper.createCommandFailureException(CommandHelper.java:170)
+	at com.mongodb.connection.CommandHelper.receiveCommandResult(CommandHelper.java:123)
+	at com.mongodb.connection.CommandHelper.executeCommand(CommandHelper.java:32)
+	at com.mongodb.connection.SaslAuthenticator.sendSaslContinue(SaslAuthenticator.java:121)
+	at com.mongodb.connection.SaslAuthenticator.access$100(SaslAuthenticator.java:37)
+	at com.mongodb.connection.SaslAuthenticator$1.run(SaslAuthenticator.java:63)
+	... 9 common frames omitted
+2022-05-20 12:09:02,574 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:09:02,832 INFO  [cluster-ClusterId{value='6287e74ebff48cb96c734075', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:213}] to localhost:27017
+2022-05-20 12:09:02,835 INFO  [cluster-ClusterId{value='6287e74ebff48cb96c734075', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=548948}
+2022-05-20 12:11:07,225 INFO  [http-bio-8043-exec-4] connection: Opened connection [connectionId{localValue:2, serverValue:214}] to localhost:27017
+2022-05-20 12:11:41,546 INFO  [http-bio-8043-exec-7] connection: Opened connection [connectionId{localValue:3, serverValue:215}] to localhost:27017
+2022-05-20 12:23:53,066 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:23:53,296 INFO  [cluster-ClusterId{value='6287eac9bff48cbad27d9a4e', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:216}] to localhost:27017
+2022-05-20 12:23:53,299 INFO  [cluster-ClusterId{value='6287eac9bff48cbad27d9a4e', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=514569}
+2022-05-20 12:24:06,658 INFO  [http-bio-8043-exec-3] connection: Opened connection [connectionId{localValue:2, serverValue:217}] to localhost:27017
+2022-05-20 12:24:29,769 INFO  [http-bio-8043-exec-10] connection: Opened connection [connectionId{localValue:3, serverValue:218}] to localhost:27017
+2022-05-20 12:27:04,942 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:27:05,190 INFO  [cluster-ClusterId{value='6287eb88bff48cbb15bfd236', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:219}] to localhost:27017
+2022-05-20 12:27:05,193 INFO  [cluster-ClusterId{value='6287eb88bff48cbb15bfd236', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=574945}
+2022-05-20 12:27:11,563 INFO  [http-bio-8043-exec-3] connection: Opened connection [connectionId{localValue:2, serverValue:220}] to localhost:27017
+2022-05-20 12:31:05,529 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:2, serverValue:220}] to localhost:27017 because the pool has been closed.
+2022-05-20 12:31:17,665 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:31:17,915 INFO  [cluster-ClusterId{value='6287ec85bff48cbb64441b7c', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:221}] to localhost:27017
+2022-05-20 12:31:17,918 INFO  [cluster-ClusterId{value='6287ec85bff48cbb64441b7c', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=549105}
+2022-05-20 12:31:25,409 ERROR [http-bio-8043-exec-2] PathwayService: null
+java.lang.NullPointerException: null
+	at org.gk.persistence.GKBReader.createRenderableFromElement(GKBReader.java:655)
+	at org.gk.persistence.DiagramGKBReader.createRenderableFromElement(DiagramGKBReader.java:148)
+	at org.gk.persistence.GKBReader.openNodes(GKBReader.java:495)
+	at org.gk.persistence.GKBReader.openProcess(GKBReader.java:419)
+	at org.gk.persistence.GKBReader.openProcess(GKBReader.java:333)
+	at org.gk.persistence.DiagramGKBReader.openProcess(DiagramGKBReader.java:87)
+	at org.gk.persistence.DiagramGKBReader.openDiagram(DiagramGKBReader.java:81)
+	at org.gk.persistence.DiagramGKBReader.openDiagram(DiagramGKBReader.java:59)
+	at org.reactome.idg.bn.PathwayImpactAnalyzer.loadPathwaysForAnalysis(PathwayImpactAnalyzer.java:238)
+	at org.reactome.idg.pairwise.service.PathwayService.cachePathways(PathwayService.java:56)
+	at org.reactome.idg.pairwise.service.PathwayService.getGeneToPathwayList(PathwayService.java:108)
+	at org.reactome.idg.pairwise.service.PathwayService.getGeneToPathwayStId(PathwayService.java:114)
+	at org.reactome.idg.pairwise.service.PairwiseService.getPathwayStIdsForTerm(PairwiseService.java:1151)
+	at org.reactome.idg.pairwise.web.PairwiseController.getPathwayStIdsForTerm(PairwiseController.java:115)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:498)
+	at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:205)
+	at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:133)
+	at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:97)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:827)
+	at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:738)
+	at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:85)
+	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:967)
+	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:901)
+	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:970)
+	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:861)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:621)
+	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:846)
+	at javax.servlet.http.HttpServlet.service(HttpServlet.java:728)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:305)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51)
+	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:243)
+	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:210)
+	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:222)
+	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:123)
+	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:502)
+	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:171)
+	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:100)
+	at org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:953)
+	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:118)
+	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:408)
+	at org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1041)
+	at org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:603)
+	at org.apache.tomcat.util.net.JIoEndpoint$SocketProcessor.run(JIoEndpoint.java:310)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:750)
+2022-05-20 12:31:25,501 INFO  [http-bio-8043-exec-3] connection: Opened connection [connectionId{localValue:2, serverValue:222}] to localhost:27017
+2022-05-20 12:35:57,310 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:2, serverValue:222}] to localhost:27017 because the pool has been closed.
+2022-05-20 12:42:05,324 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:42:05,550 INFO  [cluster-ClusterId{value='6287ef0dbff48cbc830a3ce2', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:223}] to localhost:27017
+2022-05-20 12:42:05,553 INFO  [cluster-ClusterId{value='6287ef0dbff48cbc830a3ce2', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=800125}
+2022-05-20 12:42:51,350 INFO  [http-bio-8043-exec-4] connection: Opened connection [connectionId{localValue:2, serverValue:224}] to localhost:27017
+2022-05-20 12:46:18,214 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-20 12:46:18,422 INFO  [cluster-ClusterId{value='6287f00abff48cbccc7ff971', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:225}] to localhost:27017
+2022-05-20 12:46:18,429 INFO  [cluster-ClusterId{value='6287f00abff48cbccc7ff971', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=973707}
+2022-05-20 12:47:14,443 INFO  [http-bio-8043-exec-4] connection: Opened connection [connectionId{localValue:2, serverValue:226}] to localhost:27017
+2022-05-23 09:25:42,209 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-05-23 09:25:42,389 INFO  [cluster-ClusterId{value='628bb586bff48cdfb75bd0cf', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:227}] to localhost:27017
+2022-05-23 09:25:42,392 INFO  [cluster-ClusterId{value='628bb586bff48cdfb75bd0cf', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=535437}
+2022-05-23 09:26:36,905 INFO  [http-bio-8043-exec-5] connection: Opened connection [connectionId{localValue:2, serverValue:228}] to localhost:27017
+2022-05-24 08:56:03,359 INFO  [http-bio-8043-exec-2] connection: Opened connection [connectionId{localValue:3, serverValue:229}] to localhost:27017
+2022-06-08 10:17:30,724 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:2, serverValue:228}] to localhost:27017 because the pool has been closed.
+2022-06-08 10:17:30,735 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:3, serverValue:229}] to localhost:27017 because the pool has been closed.
+2022-06-08 11:14:28,360 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-08 11:14:28,545 INFO  [cluster-ClusterId{value='62a0e70417c44c082a021819', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:230}] to localhost:27017
+2022-06-08 11:14:28,548 INFO  [cluster-ClusterId{value='62a0e70417c44c082a021819', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=707784}
+2022-06-08 12:15:57,122 INFO  [http-bio-8043-exec-7] connection: Opened connection [connectionId{localValue:2, serverValue:231}] to localhost:27017
+2022-06-08 12:16:18,899 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-08 12:16:19,090 INFO  [cluster-ClusterId{value='62a0f58242fc2c0ee78c2e0b', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:232}] to localhost:27017
+2022-06-08 12:16:19,093 INFO  [cluster-ClusterId{value='62a0f58242fc2c0ee78c2e0b', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=507918}
+2022-06-22 14:42:14,635 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-22 14:42:14,865 INFO  [cluster-ClusterId{value='62b38cb642fc2c0b4f556a53', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:233}] to localhost:27017
+2022-06-22 14:42:14,870 INFO  [cluster-ClusterId{value='62b38cb642fc2c0b4f556a53', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=444962}
+2022-06-23 10:41:09,034 INFO  [http-bio-8043-exec-5] connection: Opened connection [connectionId{localValue:3, serverValue:234}] to localhost:27017
+2022-06-23 10:41:09,201 INFO  [http-bio-8043-exec-3] connection: Opened connection [connectionId{localValue:4, serverValue:235}] to localhost:27017
+2022-06-27 09:07:23,932 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:4, serverValue:235}] to localhost:27017 because the pool has been closed.
+2022-06-27 09:07:23,937 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:2, serverValue:231}] to localhost:27017 because the pool has been closed.
+2022-06-27 09:07:23,937 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:3, serverValue:234}] to localhost:27017 because the pool has been closed.
+2022-06-27 10:12:19,102 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-27 10:12:19,293 INFO  [cluster-ClusterId{value='62b9e4f3bfb48c071a743b61', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:1}] to localhost:27017
+2022-06-27 10:12:19,295 INFO  [cluster-ClusterId{value='62b9e4f3bfb48c071a743b61', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=431348}
+2022-06-27 10:15:54,088 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-27 10:15:54,255 INFO  [cluster-ClusterId{value='62b9e5cabfb48c07b66ffecc', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:2}] to localhost:27017
+2022-06-27 10:15:54,256 INFO  [cluster-ClusterId{value='62b9e5cabfb48c07b66ffecc', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=342743}
+2022-06-27 10:17:15,235 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-27 10:17:15,416 INFO  [cluster-ClusterId{value='62b9e61bbfb48c07d2b68772', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:14}] to localhost:27017
+2022-06-27 10:17:15,419 INFO  [cluster-ClusterId{value='62b9e61bbfb48c07d2b68772', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=481912}
+2022-06-27 11:54:44,351 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-27 11:54:44,610 INFO  [cluster-ClusterId{value='62b9fcf4bfb48c14d0e61db4', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:17}] to localhost:27017
+2022-06-27 11:54:44,613 INFO  [cluster-ClusterId{value='62b9fcf4bfb48c14d0e61db4', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=904240}
+2022-06-27 11:59:45,077 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-06-27 11:59:45,286 INFO  [cluster-ClusterId{value='62b9fe21bfb48c155fcb45a2', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:18}] to localhost:27017
+2022-06-27 11:59:45,292 INFO  [cluster-ClusterId{value='62b9fe21bfb48c155fcb45a2', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=554979}
+2022-06-27 12:02:41,551 INFO  [http-bio-8043-exec-5] connection: Opened connection [connectionId{localValue:2, serverValue:19}] to localhost:27017
+2022-07-01 13:30:16,745 INFO  [http-bio-8043-exec-15] connection: Opened connection [connectionId{localValue:3, serverValue:76}] to localhost:27017
+2022-07-12 15:17:15,324 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-12 15:17:15,510 INFO  [cluster-ClusterId{value='62cdf2eb6c37ec3823641974', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:1}] to localhost:27017
+2022-07-12 15:17:15,513 INFO  [cluster-ClusterId{value='62cdf2eb6c37ec3823641974', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=460303}
+2022-07-12 15:32:29,868 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-12 15:32:30,038 INFO  [cluster-ClusterId{value='62cdf67d6c37ec39ab1787bd', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:2}] to localhost:27017
+2022-07-12 15:32:30,039 INFO  [cluster-ClusterId{value='62cdf67d6c37ec39ab1787bd', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=421280}
+2022-07-12 15:33:20,061 INFO  [http-bio-8043-exec-5] connection: Opened connection [connectionId{localValue:2, serverValue:3}] to localhost:27017
+2022-07-18 11:17:33,603 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:2, serverValue:3}] to localhost:27017 because the pool has been closed.
+2022-07-18 13:23:30,291 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-18 13:23:30,537 INFO  [cluster-ClusterId{value='62d5c142b720cc106b62c12b', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:1}] to localhost:27017
+2022-07-18 13:23:30,539 INFO  [cluster-ClusterId{value='62d5c142b720cc106b62c12b', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=542644}
+2022-07-18 13:25:17,690 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-18 13:25:17,856 INFO  [cluster-ClusterId{value='62d5c1adb720cc108b2c7d86', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:2}] to localhost:27017
+2022-07-18 13:25:17,858 INFO  [cluster-ClusterId{value='62d5c1adb720cc108b2c7d86', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=477185}
+2022-07-18 13:27:06,088 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-18 13:27:06,261 INFO  [cluster-ClusterId{value='62d5c21ab720cc10b9ed1366', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:3}] to localhost:27017
+2022-07-18 13:27:06,262 INFO  [cluster-ClusterId{value='62d5c21ab720cc10b9ed1366', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=337093}
+2022-07-18 13:40:56,858 INFO  [http-bio-8043-exec-8] connection: Opened connection [connectionId{localValue:2, serverValue:4}] to localhost:27017
+2022-07-18 13:41:11,684 INFO  [http-bio-8043-exec-10] connection: Opened connection [connectionId{localValue:3, serverValue:5}] to localhost:27017
+2022-07-22 09:28:10,040 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:2, serverValue:4}] to localhost:27017 because the pool has been closed.
+2022-07-22 09:28:10,051 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:3, serverValue:5}] to localhost:27017 because the pool has been closed.
+2022-07-22 15:01:49,590 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-22 15:01:49,813 INFO  [cluster-ClusterId{value='62db1e4db720cc567db018be', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:6}] to localhost:27017
+2022-07-22 15:01:49,817 INFO  [cluster-ClusterId{value='62db1e4db720cc567db018be', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=965526}
+2022-07-22 15:04:19,786 INFO  [http-bio-8043-exec-4] connection: Opened connection [connectionId{localValue:2, serverValue:7}] to localhost:27017
+2022-07-28 13:39:45,409 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-28 13:39:45,660 INFO  [cluster-ClusterId{value='62e2f411e6bb0c0f2e538d3f', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:1}] to localhost:27017
+2022-07-28 13:39:45,662 INFO  [cluster-ClusterId{value='62e2f411e6bb0c0f2e538d3f', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=579532}
+2022-07-28 13:40:47,399 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-28 13:40:47,582 INFO  [cluster-ClusterId{value='62e2f44fe6bb0c0f4cc8dacf', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:2}] to localhost:27017
+2022-07-28 13:40:47,585 INFO  [cluster-ClusterId{value='62e2f44fe6bb0c0f4cc8dacf', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=446608}
+2022-07-28 13:41:48,591 INFO  [http-bio-8043-exec-5] connection: Opened connection [connectionId{localValue:2, serverValue:3}] to localhost:27017
+2022-07-29 13:13:25,126 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-29 13:13:25,303 INFO  [cluster-ClusterId{value='62e43f65e6bb0c5ef7bb0c70', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:4}] to localhost:27017
+2022-07-29 13:13:25,306 INFO  [cluster-ClusterId{value='62e43f65e6bb0c5ef7bb0c70', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=477939}
+2022-07-29 13:17:10,972 INFO  [http-bio-8043-exec-7] connection: Opened connection [connectionId{localValue:2, serverValue:5}] to localhost:27017
+2022-07-29 16:58:05,562 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-29 16:58:05,806 INFO  [cluster-ClusterId{value='62e4740de6bb0c785d158bb5', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:6}] to localhost:27017
+2022-07-29 16:58:05,809 INFO  [cluster-ClusterId{value='62e4740de6bb0c785d158bb5', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=597158}
+2022-07-29 16:58:25,667 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-07-29 16:58:25,865 INFO  [cluster-ClusterId{value='62e47421e6bb0c7866c627b6', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:7}] to localhost:27017
+2022-07-29 16:58:25,866 INFO  [cluster-ClusterId{value='62e47421e6bb0c7866c627b6', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=433678}
+2022-07-29 16:59:32,780 INFO  [http-bio-8043-exec-6] connection: Opened connection [connectionId{localValue:2, serverValue:8}] to localhost:27017
+2022-08-01 08:40:28,534 INFO  [localhost-startStop-2] connection: Closed connection [connectionId{localValue:2, serverValue:8}] to localhost:27017 because the pool has been closed.
+2022-08-01 12:00:01,072 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-08-01 12:00:01,337 INFO  [cluster-ClusterId{value='62e822b1e8e76c3f7d47e0b8', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:1}] to localhost:27017
+2022-08-01 12:00:01,340 INFO  [cluster-ClusterId{value='62e822b1e8e76c3f7d47e0b8', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=596295}
+2022-08-01 12:00:32,610 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-08-01 12:00:32,787 INFO  [cluster-ClusterId{value='62e822d0e8e76c3f88037cd8', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:2}] to localhost:27017
+2022-08-01 12:00:32,789 INFO  [cluster-ClusterId{value='62e822d0e8e76c3f88037cd8', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=504826}
+2022-08-01 12:01:49,500 INFO  [localhost-startStop-1] cluster: Cluster created with settings {hosts=[localhost:27017], mode=SINGLE, requiredClusterType=UNKNOWN, serverSelectionTimeout='30000 ms', maxWaitQueueSize=500}
+2022-08-01 12:01:49,683 INFO  [cluster-ClusterId{value='62e8231de8e76c3fb0b66fd8', description='null'}-localhost:27017] connection: Opened connection [connectionId{localValue:1, serverValue:3}] to localhost:27017
+2022-08-01 12:01:49,691 INFO  [cluster-ClusterId{value='62e8231de8e76c3fb0b66fd8', description='null'}-localhost:27017] cluster: Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, version=ServerVersion{versionList=[4, 4, 13]}, minWireVersion=0, maxWireVersion=9, maxDocumentSize=16777216, roundTripTimeNanos=478432}
+2022-08-01 12:03:11,215 INFO  [http-bio-8043-exec-5] connection: Opened connection [connectionId{localValue:2, serverValue:4}] to localhost:27017

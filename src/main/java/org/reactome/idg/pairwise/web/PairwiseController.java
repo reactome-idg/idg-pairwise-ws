@@ -19,6 +19,7 @@ import org.reactome.idg.pairwise.model.PairwiseRelRequest;
 import org.reactome.idg.pairwise.model.PairwiseRelationship;
 import org.reactome.idg.pairwise.model.Pathway;
 import org.reactome.idg.pairwise.model.network.Element;
+import org.reactome.idg.pairwise.model.pathway.GraphPathway;
 import org.reactome.idg.pairwise.model.pathway.HierarchyResponseWrapper;
 import org.reactome.idg.pairwise.service.PairwiseService;
 import org.reactome.idg.pairwise.web.errors.InternalServerError;
@@ -113,6 +114,12 @@ public class PairwiseController {
     @GetMapping("/realtionships/pathwayStIdsForTerm/{term}")
     public Set<String> getPathwayStIdsForTerm(@PathVariable("term")String term){
     	return pairwiseService.getPathwayStIdsForTerm(term);
+    }
+    
+    @CrossOrigin
+    @GetMapping("/realtionships/getHierarchicalOrderedPathways")
+    public List<GraphPathway> getHierarchicalOrderedPathways(){
+    	return pairwiseService.getHierarchicalOrderedPathways();
     }
     
     /**
