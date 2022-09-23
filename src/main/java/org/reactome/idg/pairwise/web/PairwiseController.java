@@ -117,9 +117,9 @@ public class PairwiseController {
     }
     
     @CrossOrigin
-    @GetMapping("/realtionships/getHierarchicalOrderedPathways")
-    public List<GraphPathway> getHierarchicalOrderedPathways(){
-    	return pairwiseService.getHierarchicalOrderedPathways();
+    @GetMapping("/realtionships/getHierarchicalOrderedGraphPathways")
+    public List<GraphPathway> getHierarchicalOrderedGraphPathways(){
+    	return pairwiseService.getHierarchicalOrderedGraphPathways();
     }
     
     /**

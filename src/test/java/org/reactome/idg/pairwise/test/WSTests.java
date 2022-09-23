@@ -253,7 +253,7 @@ public class WSTests {
     
     @Test
     public void testGetHierarchicalOrderedPathways() throws Exception {
-    	String url = HOST_URL + "/realtionships/getHierarchicalOrderedPathways";
+    	String url = HOST_URL + "/realtionships/getHierarchicalOrderedGraphPathways";
     	System.out.println(url);
     	String rtn = callHttp(url,HTTP_GET, null);
     	outputJSON(rtn);
