@@ -501,7 +501,7 @@ public class PairwiseService {
 		return rtn.size() > 0 ? new ArrayList<>(rtn) : new ArrayList<>();
 	}
 	 
-	public List<GraphPathway> getHierarchicalOrderedGraphPathways() {
+	public List<GraphPathway> getHierarchicalOrderedPathways() {
 		List<GraphPathway> rtn = pathwayService.getHierarchicalOrderedPathways();
 		if(rtn == null) return new ArrayList<>();
 		return rtn.size() > 0 ? new ArrayList<>(rtn) : new ArrayList<>();
