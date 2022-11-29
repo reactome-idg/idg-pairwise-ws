@@ -3,8 +3,6 @@ package org.reactome.idg.pairwise.test;
 import java.util.Arrays;
 
 import org.bson.Document;
-import org.gk.model.GKInstance;
-import org.gk.persistence.MySQLAdaptor;
 import org.junit.Test;
 
 import com.mongodb.MongoClient;
@@ -17,22 +15,12 @@ import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Projections;
 
 public class MongoDBTests {
-	
-	@Test
-	public void testMySQL() throws Exception {
-		MySQLAdaptor dba = new MySQLAdaptor("localhost",
-				"reactome", 
-				"root",
-				"B2u$6ger");
-		GKInstance instance = dba.fetchInstance(21L);
-		System.out.println("Release: " + instance);
-	}
 
     @Test
     public void testConnection() {
-        MongoCredential credential = MongoCredential.createCredential("beaversd",
+        MongoCredential credential = MongoCredential.createCredential("root",
                                                                       "idg_pairwise",
-                                                                      "B2u$6ger".toCharArray());
+                                                                      "macmongodb01".toCharArray());
         MongoClient client = new MongoClient(new ServerAddress("localhost"), Arrays.asList(credential));
         MongoDatabase database = client.getDatabase("idg_pairwise");
         MongoCollection<Document> collection = database.getCollection("relationships");

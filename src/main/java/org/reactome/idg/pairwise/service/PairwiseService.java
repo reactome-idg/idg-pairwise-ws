@@ -2,6 +2,7 @@ package org.reactome.idg.pairwise.service;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -16,7 +17,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.bson.Document;
@@ -159,21 +159,12 @@ public class PairwiseService {
      * Loads Event hierarchy from server and initializes GraphHierarchy object
      */
     private void loadGraphHierarchy() {
-        GetMethod method = new GetMethod(config.getEventHierarchyUrl());
-        method.setRequestHeader("Accept", "application/json");
-        HttpClient client = new HttpClient();
-        int responseCode;
         try {
-            responseCode = client.executeMethod(method);
-            if(responseCode != HttpStatus.SC_OK) {
-                logger.error(method.getStatusText());
-            }
-            graphHierarchy = new GraphHierarchy(method.getResponseBodyAsString());
-        } catch (HttpException e) {
-            logger.error(e.getMessage());
-            throw new InternalServerError("Internal Server Error");
-        } catch (IOException e) {
-            logger.error(e.getMessage());
+            URL url = new URL(config.getEventHierarchyUrl());
+            ObjectMapper mapper = new ObjectMapper();
+            graphHierarchy = new GraphHierarchy(mapper.readTree(url).toString());
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
             throw new InternalServerError("Internal Server Error");
         }
     }

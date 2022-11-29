@@ -254,7 +254,7 @@ public class PairwiseController {
      * @return
      */
     @CrossOrigin
-    @GetMapping("relationships/combinedScoreGenesForTerm/{term}")
+    @GetMapping("/relationships/combinedScoreGenesForTerm/{term}")
 	public Map<String, Double> queryCombinedScoreGenesForTerm(@PathVariable("term") String term) {
 		return pairwiseService.queryCombinedScoreGenesForTerm(term);
 	}

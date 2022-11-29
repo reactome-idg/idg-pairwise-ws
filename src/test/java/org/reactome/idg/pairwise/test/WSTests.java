@@ -29,7 +29,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class WSTests {
-    protected final String HOST_URL = "http://localhost:8043/idgpairwise";
+//    protected final String HOST_URL = "http://localhost:8043/idgpairwise";
+    protected final String HOST_URL = "https://idg.reactome.org/idgpairwise";
     protected final String HTTP_POST = "Post";
     protected final String HTTP_GET = "Get";
 
