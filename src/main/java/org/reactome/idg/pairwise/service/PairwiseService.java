@@ -223,6 +223,28 @@ public class PairwiseService {
         }
         return rels;
     }
+    
+	public List<PairwiseRelationship> queryRelsForTerm(String term, List<String> descIds, Boolean numberOnly) {
+
+		List<PairwiseRelationship> rtn = new ArrayList<>();
+		String gene = getGeneForTerm(term);
+
+		// if the gene and searched term are the same, the user entered a gene
+		if (gene.equals(term)) {
+			List<String> genes = new ArrayList<>();
+			genes.add(gene);
+			rtn = (queryRelsForGenes(genes, descIds, numberOnly));
+		}
+		// if the gene and searched term do not match, the user entered a UniProt
+		else {
+			List<String> termAsList = new ArrayList<>();
+			termAsList.add(term);
+			rtn = (queryRelsForProteins(termAsList, descIds, numberOnly));
+		}
+
+		return rtn;
+	}
+    
 
     public List<PairwiseRelationship> queryRelsForProteins(List<String> proteins,
                                                            List<String> descIds) {

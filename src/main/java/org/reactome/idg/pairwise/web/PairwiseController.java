@@ -98,6 +98,20 @@ public class PairwiseController {
         return pairwiseService.queryRelsForProteins(wrap.getGenes(), wrap.getDataDescs(), numberOnly);
     }
     
+    /**
+     * Only one term (a gene or UniProt) should be used as an input to genes 
+     * @param wrap
+     * @return
+     */
+    @PostMapping("/pairwise/term/{numberOnly}")
+    public List<PairwiseRelationship> queryRelationshipsForTerm(@PathVariable("numberOnly") Boolean numberOnly,
+                                                                    @RequestBody PairwiseRelRequest wrap) {
+    	if (wrap.getDataDescs() == null || wrap.getGenes() == null)
+            return new ArrayList<>(); // Nothing to return
+    	String term = wrap.getGenes().get(0); // Only one term used
+        return pairwiseService.queryRelsForTerm(term, wrap.getDataDescs(), numberOnly);
+    }
+    
     @CrossOrigin
     @GetMapping("/relationships/genesForPathway/{stId}")
     public Pathway queryPathwayToGeneRelationship(@PathVariable("stId") String stId) {
