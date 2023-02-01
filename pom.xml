@@ -141,8 +141,19 @@
                     <groupId>io.github.classgraph</groupId>
                     <artifactId>classgraph</artifactId>
                 </exclusion>
+                <exclusion>
+                	<groupId>org.reactome.fi</groupId>
+                	<artifactId>build</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
+        
+        <dependency>
+            <groupId>org.reactome.fi</groupId>
+            <artifactId>build</artifactId>
+            <version>1.0.3</version>
+        </dependency>
+        
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
