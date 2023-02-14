@@ -196,9 +196,32 @@ public class PairwiseController {
     public List<Pathway> enrichedPathwaysForTerm(@RequestBody GeneToPathwaysRequestWrapper request){
     	if(request == null || request.getTerm() == null)
     		return new ArrayList<>();
+    	// Add a delay to workaround a bug in the idg pathwaybrowser: the fireworks cannot be highlighted
+    	// because of an error that needs quite some time to fix in GWT projects.
+    	try {
+    	    Thread.sleep(1000);
+    	}
+    	catch(InterruptedException e) {}
     	return pairwiseService.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
     															  request.getDataDescKeys(), 
     															  request.getPrd() != null ? request.getPrd() : 0.9d);
+    }
+    
+    /**
+     * Performs enrichment analysis on interactors for term (gene symbol or uniprot) based on passed in data descriptions.
+     * If no data descriptions or passed in, passed in PRD cutoff will be used to query combined score pathways.
+     * Note: This version has not added any delay and should be used for the vuejs based homepage app.
+     * @param request
+     * @return
+     */
+    @CrossOrigin
+    @PostMapping(path="/relationships/enrichedSecondaryPathwaysForTerm1")
+    public List<Pathway> enrichedPathwaysForTermNoDelay(@RequestBody GeneToPathwaysRequestWrapper request){
+        if(request == null || request.getTerm() == null)
+            return new ArrayList<>();
+        return pairwiseService.queryTermToSecondaryPathwaysWithEnrichment(request.getTerm(), 
+                                                                  request.getDataDescKeys(), 
+                                                                  request.getPrd() != null ? request.getPrd() : 0.9d);
     }
     
     @CrossOrigin
