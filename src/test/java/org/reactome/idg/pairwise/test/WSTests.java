@@ -31,6 +31,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class WSTests {
 //    protected final String HOST_URL = "http://localhost:8043/idgpairwise";
     protected final String HOST_URL = "https://idg.reactome.org/idgpairwise";
+//    protected final String HOST_URL = "https://idg.reactome.org/idgpairwise_v71";
     protected final String HTTP_POST = "Post";
     protected final String HTTP_GET = "Get";
 
@@ -66,6 +67,8 @@ public class WSTests {
         List<String> genes = Stream.of("EGF","EGFR","TP53","NOTCH1").collect(Collectors.toList());
         List<String> descIds = Stream.of("GTEx|Ovary|Gene_Coexpression","GTEx|Breast-MammaryTissue|Gene_Coexpression","Harmonizome|human|Gene_Similarity|ctddisease").collect(Collectors.toList());
         PairwiseRelRequest query = new PairwiseRelRequest(genes, descIds);
+//        String text = mapper.writeValueAsString(query);
+//        System.out.println(text);
         System.out.println(url + ": " + descIds);
         String rtn = callHttp(url, HTTP_POST, mapper.writeValueAsString(query));
         outputJSON(rtn);
@@ -186,12 +189,15 @@ public class WSTests {
     @Test
     public void testCombinedScoreEnrichedInteractorsForTerm() throws Exception {
     	ObjectMapper mapper = new ObjectMapper();
-    	String url = HOST_URL + "/relationships/network/enrichedSecondaryPathaysForTerm";
+    	// Suggested to use this one
+    	String url = HOST_URL + "/relationships/enrichedSecondaryPathwaysForTerm1";
+//    	String url = HOST_URL + "/relationships/network/enrichedSecondaryPathaysForTerm";
     	System.out.println(url);
     	GeneToPathwaysRequestWrapper postData = new GeneToPathwaysRequestWrapper();
-    	postData.setTerm("NTN1");
+//    	postData.setTerm("NTN1");
+    	postData.setTerm("TANC1");
     	postData.setDataDescKeys(Collections.singletonList(0));
-    	postData.setPrd(0.9d);
+    	postData.setPrd(0.8d);
     	String json = mapper.writeValueAsString(postData);
     	System.out.println(json);
     	Long time1 = System.currentTimeMillis();
@@ -226,6 +232,7 @@ public class WSTests {
         url = HOST_URL + "/realtionships/pathwayStIdsForTerm/EGFR";
         rtn = callHttp(url, HTTP_GET, null);
         List<?> obj2 = mapper.readValue(rtn, ArrayList.class);
+        System.out.println(obj2);
         System.out.println("Number of Pathway stIds: " + obj2.size());
         assert(obj.size() == obj2.size());
     }

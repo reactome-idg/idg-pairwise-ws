@@ -1,14 +1,11 @@
 package org.reactome.idg.pairwise.test;
 
-import java.util.Arrays;
-
 import org.bson.Document;
 import org.junit.Test;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
 import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
@@ -18,10 +15,18 @@ public class MongoDBTests {
 
     @Test
     public void testConnection() {
-        MongoCredential credential = MongoCredential.createCredential("root",
-                                                                      "idg_pairwise",
-                                                                      "macmongodb01".toCharArray());
-        MongoClient client = new MongoClient(new ServerAddress("localhost"), Arrays.asList(credential));
+//        MongoCredential credential = MongoCredential.createCredential("root",
+//                                                                      "idg_pairwise",
+//                                                                      "macmongodb01".toCharArray());
+//        MongoClient client = new MongoClient(new ServerAddress("localhost"), Arrays.asList(credential));
+        String uri = String.format(
+                "mongodb://%s:%s@%s/%s",
+                "root",
+                "macmongodb01",
+                "localhost",
+                "admin"
+            );
+        MongoClient client = MongoClients.create(uri);
         MongoDatabase database = client.getDatabase("idg_pairwise");
         MongoCollection<Document> collection = database.getCollection("relationships");
         String[] genes = new String[] {

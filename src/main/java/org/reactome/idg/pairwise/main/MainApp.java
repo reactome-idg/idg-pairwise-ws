@@ -29,11 +29,11 @@ public class MainApp {
 //        pushDataIntoDB(args);
 //        pushMLFeatureIntoDB();
 //    	  pushPathwayData();
-//    	  pushPRDPredictions(args);
+    	  pushPRDPredictions(args);
 //    	  addDataDescDigitalKeys();
 //    	  addReactomeAnnotatedGenesCollection();
 //    	generateFeatureCSV();
-    	addPathwayToGenesAndWeightedTDL();
+//    	addPathwayToGenesAndWeightedTDL();
     }
     
     private static void pushMLFeatureIntoDB() {

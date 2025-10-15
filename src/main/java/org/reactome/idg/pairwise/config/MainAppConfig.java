@@ -1,7 +1,5 @@
 package org.reactome.idg.pairwise.config;
 
-import java.util.Arrays;
-
 import org.gk.persistence.MySQLAdaptor;
 import org.reactome.idg.pairwise.service.ServiceConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,9 +9,8 @@ import org.springframework.context.annotation.ComponentScans;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 
 /**
@@ -58,9 +55,14 @@ public class MainAppConfig {
 
     @Bean
     public MongoClient mongoClient() {
-        MongoCredential credential = MongoCredential.createCredential(userName, authenticaionDb, password.toCharArray());
-        MongoClient client = new MongoClient(new ServerAddress(host), Arrays.asList(credential));
-        return client;
+        String uri = String.format(
+                "mongodb://%s:%s@%s/%s",
+                userName,
+                password,
+                host,
+                authenticaionDb
+            );
+            return MongoClients.create(uri);
     }
 
     @Bean

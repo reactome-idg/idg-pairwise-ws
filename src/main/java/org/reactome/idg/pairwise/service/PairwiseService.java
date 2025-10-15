@@ -1219,7 +1219,7 @@ public class PairwiseService {
         .append("bioSource", desc.getBioSource())
         .append("dataType", desc.getDataType().toString())
         .append("provenance", desc.getProvenance())
-        .append("digitalKey", collection.count()+1); //digitalKey is for accession with shorter filter than _id
+        .append("digitalKey", collection.countDocuments()+1); //digitalKey is for accession with shorter filter than _id
         if (desc.getOrigin() != null)
             document.append("origin", desc.getOrigin());
         collection.insertOne(document);

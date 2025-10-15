@@ -1,5 +1,6 @@
 package org.reactome.idg.pairwise.service;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.net.URL;
 
 import org.gk.model.GKInstance;
 import org.gk.model.ReactomeJavaConstants;
@@ -18,11 +18,12 @@ import org.gk.util.GKApplicationUtilities;
 import org.reactome.data.ReactomeAnalyzer;
 import org.reactome.idg.bn.PathwayImpactAnalyzer;
 import org.reactome.idg.pairwise.model.Pathway;
+import org.reactome.idg.pairwise.model.pathway.GraphPathway;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.reactome.idg.pairwise.model.pathway.GraphPathway;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
